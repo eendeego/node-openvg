@@ -1,6 +1,6 @@
 #include "EGL/egl.h"
 #include "GLES/gl.h"
-#include "openvg.h"
+#include "VG/openvg.h"
 #include <assert.h>
 
 #include "egl.h"
@@ -10,19 +10,11 @@
 using namespace v8;
 
 namespace egl {
-  typedef struct {
-    EGLDisplay display;
-    EGLContext context;
-    EGLSurface surface;
-
-    uint32_t screen_width;
-    uint32_t screen_height;
-  } state_t;
-
-  static state_t State;
+  state_t State;
 
   extern void
   Init() {
+    VGErrorCode errorCode;
     EGLBoolean result;
     int32_t success = 0;
 
@@ -51,7 +43,6 @@ namespace egl {
 
     // get an EGL display connection
     State.display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    assert(State.display != EGL_NO_DISPLAY);
 
     printf("eglGetDisplay returned: %010p.\n", State.display);
 
@@ -73,6 +64,8 @@ namespace egl {
     success = graphics_get_display_size(0 /* LCD */ , &State.screen_width,
                                         &State.screen_height);
     assert(success >= 0);
+
+    printf("Screen dimensions: %dx%d\n", State.screen_width, State.screen_height);
 
     dst_rect.x = 0;
     dst_rect.y = 0;
@@ -102,7 +95,7 @@ namespace egl {
     // connect the context to the surface
     result = eglMakeCurrent(State.display, State.surface, State.surface, State.context);
     assert(EGL_FALSE != result);
-  
+
     //DAVE - Set up screen ratio
     glViewport(0, 0, (GLsizei) State.screen_width, (GLsizei) State.screen_height);
   
@@ -121,5 +114,10 @@ namespace egl {
     eglDestroySurface(State.display, State.surface);
     eglDestroyContext(State.display, State.context);
     eglTerminate(State.display);
+  }
+
+  extern void
+  swapBuffers(EGLDisplay dpy, EGLSurface surf) {
+    eglSwapBuffers(dpy, surf);
   }
 }
