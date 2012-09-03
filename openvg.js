@@ -12,3 +12,8 @@ openVG.init = function() {
 openVG.finish = function() {
   openVG.lowLevelFinish();
 };
+
+openVG.background = function(r, g, b) {
+  openVG.fill(r, g, b, 1.0);
+  openVG.rect(0, 0, screen.width, screen.height);
+};

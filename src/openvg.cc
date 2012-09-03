@@ -22,7 +22,6 @@ init(Handle<Object> target)
   NODE_SET_METHOD(target, "end"            , openvg::End);
 
   NODE_SET_METHOD(target, "rect"           , openvg::Rect);
-  NODE_SET_METHOD(target, "background"     , openvg::Background);
   NODE_SET_METHOD(target, "fill"           , openvg::Fill);
   NODE_SET_METHOD(target, "ellipse"        , openvg::Circle);
   NODE_SET_METHOD(target, "circle"         , openvg::Circle);
@@ -190,26 +189,6 @@ Handle<Value> openvg::Rect(const Arguments& args) {
   VGfloat h = (VGfloat) args[3]->NumberValue();
 
   rect(x, y, w, h);
-
-  return Undefined();
-}
-
-Handle<Value> openvg::Background(const Arguments& args) {
-  HandleScope scope;
-
-  if (!(args.Length() == 3 && args[0]->IsNumber() &&
-        args[1]->IsNumber() && args[2]->IsNumber())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Init()")));
-  }
-
-  VGfloat color[4];
-  int r = args[0]->Int32Value();
-  int g = args[1]->Int32Value();
-  int b = args[2]->Int32Value();
-  VGfloat a = 1;
-  RGBA(r, g, b, a, color);
-  setFill(color);
-  rect(0, 0, egl::State.screen_width, egl::State.screen_height);
 
   return Undefined();
 }
