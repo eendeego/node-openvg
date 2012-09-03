@@ -19,8 +19,8 @@ console.log('Calling init.');
 openVG.init();
 console.log('Got back from init.');
 
-width  = openVG.getScreenWidth();
-height = openVG.getScreenHeight();
+width  = openVG.screen.width;
+height = openVG.screen.height;
 
 openVG.start();                             // Start the picture
 openVG.background(0, 0, 0);                 // Black background

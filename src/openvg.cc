@@ -18,9 +18,6 @@ init(Handle<Object> target)
   NODE_SET_METHOD(target, "lowLevelInit"  , openvg::Init);
   NODE_SET_METHOD(target, "lowLevelFinish", openvg::Finish);
 
-  NODE_SET_METHOD(target, "getScreenWidth" , openvg::getScreenWidth);
-  NODE_SET_METHOD(target, "getScreenHeight", openvg::getScreenHeight);
-
   NODE_SET_METHOD(target, "start"          , openvg::Start);
   NODE_SET_METHOD(target, "end"            , openvg::End);
 
@@ -117,11 +114,15 @@ void ellipse(VGfloat x, VGfloat y, VGfloat w, VGfloat h) {
 Handle<Value> openvg::Init(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 0)) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Init()")));
+  if (!(args.Length() == 1 && args[0]->IsObject())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Init(screen)")));
   }
 
   vgInit();
+
+  Local<Object> screen = args[0].As<Object>();
+  screen->Set(String::NewSymbol("width" ), Integer::New(egl::State.screen_width));
+  screen->Set(String::NewSymbol("height"), Integer::New(egl::State.screen_height));
 
   printf("openvg::Init done!\n");
   return Undefined();
@@ -137,26 +138,6 @@ Handle<Value> openvg::Finish(const Arguments& args) {
   vgFinish();
 
   return Undefined();
-}
-
-Handle<Value> openvg::getScreenWidth(const Arguments& args) {
-  HandleScope scope;
-
-  if (!(args.Length() == 0)) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Init()")));
-  }
-
-  return Integer::New(egl::State.screen_width);
-}
-
-Handle<Value> openvg::getScreenHeight(const Arguments& args) {
-  HandleScope scope;
-
-  if (!(args.Length() == 0)) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Init()")));
-  }
-
-  return Integer::New(egl::State.screen_height);
 }
 
 Handle<Value> openvg::Start(const Arguments& args) {
