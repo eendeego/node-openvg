@@ -137,7 +137,7 @@ Handle<Value> openvg::Start(const Arguments& args) {
   HandleScope scope;
 
   if (!(args.Length() == 0)) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Init()")));
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Start()")));
   }
 
   uint32_t width, height;
@@ -160,7 +160,7 @@ Handle<Value> openvg::End(const Arguments& args) {
   HandleScope scope;
 
   if (!(args.Length() == 0)) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Init()")));
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected End()")));
   }
 
   CHECK_VG_ERROR;
@@ -174,7 +174,7 @@ Handle<Value> openvg::Rect(const Arguments& args) {
   if (!(args.Length() == 4 && args[0]->IsNumber() &&
         args[1]->IsNumber() && args[2]->IsNumber() &&
         args[3]->IsNumber())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Init()")));
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Rect(x, y, w, h)")));
   }
 
   VGfloat x = (VGfloat) args[0]->NumberValue();
@@ -193,7 +193,7 @@ Handle<Value> openvg::Fill(const Arguments& args) {
   if (!(args.Length() == 4 && args[0]->IsNumber() &&
         args[1]->IsNumber() && args[2]->IsNumber() &&
         args[3]->IsNumber())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Init()")));
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Fill(r, g, b, a)")));
   }
 
   VGfloat color[4];
@@ -212,7 +212,7 @@ Handle<Value> openvg::Ellipse(const Arguments& args) {
   if (!(args.Length() == 4 && args[0]->IsNumber() &&
         args[1]->IsNumber() && args[2]->IsNumber() &&
         args[3]->IsNumber())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Init()")));
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Ellipse(x, y, w, h)")));
   }
 
   VGfloat x = (VGfloat) args[0]->NumberValue();
@@ -228,7 +228,7 @@ Handle<Value> openvg::TextMiddle(const Arguments& args) {
   HandleScope scope;
 
   if (!(args.Length() == 5)) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Init()")));
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected TextMiddle(x, y, text, typeface, pointsize)")));
   }
 
   return Undefined();
