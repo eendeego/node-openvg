@@ -1,3 +1,6 @@
 build
 .lock-wscript
 
+.gdbinit
+.gdb_history
+
