@@ -1,11 +1,7 @@
 #include "EGL/egl.h"
 #include "GLES/gl.h"
-#include "VG/openvg.h"
-#include <assert.h>
 
 #include "egl.h"
-
-#include <stdio.h>
 
 using namespace v8;
 
@@ -14,7 +10,6 @@ namespace egl {
 
   extern void
   Init() {
-    VGErrorCode errorCode;
     EGLBoolean result;
     int32_t success = 0;
 
@@ -38,13 +33,8 @@ namespace egl {
 
     static EGL_DISPMANX_WINDOW_T nativewindow;
 
-    // EGLDisplay display;
-    printf("Calling eglGetDisplay...\n");
-
     // get an EGL display connection
     State.display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-
-    printf("eglGetDisplay returned: %010p.\n", State.display);
 
     result = eglInitialize(State.display, NULL, NULL);
     assert(EGL_FALSE != result);
@@ -64,8 +54,6 @@ namespace egl {
     success = graphics_get_display_size(0 /* LCD */ , &State.screen_width,
                                         &State.screen_height);
     assert(success >= 0);
-
-    printf("Screen dimensions: %dx%d\n", State.screen_width, State.screen_height);
 
     dst_rect.x = 0;
     dst_rect.y = 0;

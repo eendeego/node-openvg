@@ -10,13 +10,10 @@ namespace {
 #endif
       // Calling eglGetDisplay initializes EGL
       eglGetDisplay(EGL_DEFAULT_DISPLAY);
-
-      // std::cout << "EGL initialized" << std::endl;
     }
 
     ~initializer() {
       bcm_host_deinit();
-      // std::cout << "EGL deinitialized" << std::endl;
     }
   };
   static initializer i;

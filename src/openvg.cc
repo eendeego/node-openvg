@@ -7,8 +7,6 @@
 #include "openvg.h"
 #include "egl.h"
 
-#include <stdio.h>
-
 using namespace node;
 using namespace v8;
 
@@ -41,8 +39,6 @@ void vgInit() {
   egl::Init();
 
   CHECK_VG_ERROR;
-
-  printf("vgInit done!\n");
 }
 
 void vgFinish() {
@@ -122,7 +118,6 @@ Handle<Value> openvg::Init(const Arguments& args) {
   screen->Set(String::NewSymbol("width" ), Integer::New(egl::State.screen_width));
   screen->Set(String::NewSymbol("height"), Integer::New(egl::State.screen_height));
 
-  printf("openvg::Init done!\n");
   return Undefined();
 }
 
