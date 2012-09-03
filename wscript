@@ -20,3 +20,10 @@ def build(bld):
   obj.linkflags = ["-L/opt/vc/lib", "-lGLESv2"]
   obj.includes = ["/opt/vc/include", "/opt/vc/include/interface/vcos/pthreads"]
   obj.source = ["src/openvg.cc", "src/egl.cc"]
+
+  obj = bld.new_task_gen('cxx', 'shlib', 'node_addon')
+  obj.target = "init-egl"
+  obj.cxxflags = ["-Wall", "-pthread", "-fPIC"]
+  obj.linkflags = ["-shared", "-Wl,-soname,libinit-egl.so", "-L/opt/vc/lib", "-lGLESv2"]
+  obj.includes = ["/opt/vc/include", "/opt/vc/include/interface/vcos/pthreads"]
+  obj.source = ["src/init-egl.cc"]
