@@ -24,7 +24,6 @@ init(Handle<Object> target)
   NODE_SET_METHOD(target, "rect"           , openvg::Rect);
   NODE_SET_METHOD(target, "fill"           , openvg::Fill);
   NODE_SET_METHOD(target, "ellipse"        , openvg::Ellipse);
-  NODE_SET_METHOD(target, "circle"         , openvg::Circle);
   NODE_SET_METHOD(target, "textMiddle"     , openvg::TextMiddle);
 }
 
@@ -226,23 +225,6 @@ Handle<Value> openvg::Ellipse(const Arguments& args) {
   VGfloat w = (VGfloat) args[2]->NumberValue();
   VGfloat h = (VGfloat) args[3]->NumberValue();
   ellipse(x, y, w, h);
-
-  return Undefined();
-}
-
-Handle<Value> openvg::Circle(const Arguments& args) {
-  HandleScope scope;
-
-  if (!(args.Length() == 3 && args[0]->IsNumber() &&
-        args[1]->IsNumber() && args[2]->IsNumber())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Init()")));
-  }
-
-  VGfloat x = (VGfloat) args[0]->NumberValue();
-  VGfloat y = (VGfloat) args[1]->NumberValue();
-  VGfloat r = (VGfloat) args[2]->NumberValue();
-
-  ellipse(x, y, r, r);
 
   return Undefined();
 }
