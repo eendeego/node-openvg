@@ -246,7 +246,8 @@ Handle<Value> openvg::Fill(const Arguments& args) {
   int r = args[0]->Int32Value();
   int g = args[1]->Int32Value();
   int b = args[2]->Int32Value();
-  VGfloat a = (VGfloat) args[2]->NumberValue();
+  VGfloat a = (VGfloat) args[3]->NumberValue();
+
   RGBA(r, g, b, a, color);
   setFill(color);
 
