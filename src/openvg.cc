@@ -265,6 +265,8 @@ Handle<Value> openvg::Ellipse(const Arguments& args) {
   VGfloat w = (VGfloat) args[2]->NumberValue();
   VGfloat h = (VGfloat) args[3]->NumberValue();
   ellipse(x, y, w, h);
+
+  return Undefined();
 }
 
 Handle<Value> openvg::Circle(const Arguments& args) {
