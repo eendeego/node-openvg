@@ -577,11 +577,11 @@ var VGStringIDReverse = openVG.VGStringIDReverse =
 
 
 openVG.init = function() {
-  openVG.lowLevelInit(screen);
+  openVG.startUp(screen);
 };
 
 openVG.finish = function() {
-  openVG.lowLevelFinish();
+  openVG.shutdown();
 };
 
 openVG.background = function(r, g, b) {

@@ -8,8 +8,8 @@
 using namespace v8;
 
 namespace openvg {
-  static Handle<Value> Init(const Arguments& args);
-  static Handle<Value> Finish(const Arguments& args);
+  static Handle<Value> StartUp(const Arguments& args);
+  static Handle<Value> Shutdown(const Arguments& args);
 
   static Handle<Value> Start(const Arguments& args);
   static Handle<Value> End(const Arguments& args);

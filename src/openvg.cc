@@ -13,8 +13,8 @@ using namespace v8;
 extern "C" void
 init(Handle<Object> target)
 {
-  NODE_SET_METHOD(target, "lowLevelInit"  , openvg::Init);
-  NODE_SET_METHOD(target, "lowLevelFinish", openvg::Finish);
+  NODE_SET_METHOD(target, "startUp"        , openvg::StartUp);
+  NODE_SET_METHOD(target, "shutdown"       , openvg::Shutdown);
 
   NODE_SET_METHOD(target, "start"          , openvg::Start);
   NODE_SET_METHOD(target, "end"            , openvg::End);
@@ -33,17 +33,6 @@ init(Handle<Object> target)
       __assert_fail (buffer, __FILE__, __LINE__, __PRETTY_FUNCTION__);\
     }\
   }
-
-// init sets the system to its initial state
-void vgInit() {
-  egl::Init();
-
-  CHECK_VG_ERROR;
-}
-
-void vgFinish() {
-  egl::Finish();
-}
 
 // newPath creates path data
 VGPath newPath() {
@@ -105,14 +94,15 @@ void ellipse(VGfloat x, VGfloat y, VGfloat w, VGfloat h) {
   vgDestroyPath(path);
 }
 
-Handle<Value> openvg::Init(const Arguments& args) {
+Handle<Value> openvg::StartUp(const Arguments& args) {
   HandleScope scope;
 
   if (!(args.Length() == 1 && args[0]->IsObject())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Init(screen)")));
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected StartUp(screen)")));
   }
 
-  vgInit();
+  egl::Init();
+  CHECK_VG_ERROR;
 
   Local<Object> screen = args[0].As<Object>();
   screen->Set(String::NewSymbol("width" ), Integer::New(egl::State.screen_width));
@@ -121,17 +111,18 @@ Handle<Value> openvg::Init(const Arguments& args) {
   return Undefined();
 }
 
-Handle<Value> openvg::Finish(const Arguments& args) {
+Handle<Value> openvg::Shutdown(const Arguments& args) {
   HandleScope scope;
 
   if (!(args.Length() == 0)) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Finish()")));
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Shutdown()")));
   }
 
-  vgFinish();
+  egl::Finish();
 
   return Undefined();
 }
+
 
 Handle<Value> openvg::Start(const Arguments& args) {
   HandleScope scope;
