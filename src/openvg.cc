@@ -15,8 +15,8 @@ using namespace v8;
 extern "C" void
 init(Handle<Object> target)
 {
-  NODE_SET_METHOD(target, "init", openvg::Init);
-  NODE_SET_METHOD(target, "finish", openvg::Finish);
+  NODE_SET_METHOD(target, "lowLevelInit"  , openvg::Init);
+  NODE_SET_METHOD(target, "lowLevelFinish", openvg::Finish);
 
   NODE_SET_METHOD(target, "getScreenWidth" , openvg::getScreenWidth);
   NODE_SET_METHOD(target, "getScreenHeight", openvg::getScreenHeight);
