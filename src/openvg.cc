@@ -16,6 +16,8 @@ init(Handle<Object> target)
   NODE_SET_METHOD(target, "startUp"        , openvg::StartUp);
   NODE_SET_METHOD(target, "shutdown"       , openvg::Shutdown);
 
+  NODE_SET_METHOD(target, "getError"       , openvg::GetError);
+
   NODE_SET_METHOD(target, "start"          , openvg::Start);
   NODE_SET_METHOD(target, "end"            , openvg::End);
 
@@ -121,6 +123,17 @@ Handle<Value> openvg::Shutdown(const Arguments& args) {
   egl::Finish();
 
   return Undefined();
+}
+
+
+Handle<Value> openvg::GetError(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 0)) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected GetError()")));
+  }
+
+  return Integer::New(vgGetError());
 }
 
 
