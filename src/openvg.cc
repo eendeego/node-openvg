@@ -19,10 +19,6 @@ init(Handle<Object> target)
 
 // init sets the system to its initial state
 void vgInit() {
-#if defined(BCM_HOST_H)
-  // FIXME Find something less brittle than BCM_HOST_H
-  bcm_host_init();
-#endif
   egl::Init();
 
   printf("vgInit done!\n");
