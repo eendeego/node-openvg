@@ -24,6 +24,7 @@ init(Handle<Object> target)
   NODE_SET_METHOD(target, "start"          , openvg::Start);
   NODE_SET_METHOD(target, "end"            , openvg::End);
 
+  NODE_SET_METHOD(target, "rect"           , openvg::Rect);
   NODE_SET_METHOD(target, "background"     , openvg::Background);
   NODE_SET_METHOD(target, "fill"           , openvg::Fill);
   NODE_SET_METHOD(target, "ellipse"        , openvg::Circle);
@@ -191,6 +192,23 @@ Handle<Value> openvg::End(const Arguments& args) {
   CHECK_VG_ERROR;
   egl::swapBuffers(egl::State.display, egl::State.surface);
   assert(eglGetError() == EGL_SUCCESS);
+
+  return Undefined();
+}
+
+Handle<Value> openvg::Rect(const Arguments& args) {
+  if (!(args.Length() == 4 && args[0]->IsNumber() &&
+        args[1]->IsNumber() && args[2]->IsNumber() &&
+        args[3]->IsNumber())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Init()")));
+  }
+
+  VGfloat x = (VGfloat) args[0]->NumberValue();
+  VGfloat y = (VGfloat) args[1]->NumberValue();
+  VGfloat w = (VGfloat) args[2]->NumberValue();
+  VGfloat h = (VGfloat) args[3]->NumberValue();
+
+  rect(x, y, w, h);
 
   return Undefined();
 }
