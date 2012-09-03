@@ -1,3 +1,5 @@
+#define BUILDING_NODE_EXTENSION
+
 #include "VG/openvg.h"
 #include "VG/vgu.h"
 #include <v8.h>
