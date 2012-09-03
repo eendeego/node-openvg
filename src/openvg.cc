@@ -18,6 +18,9 @@ init(Handle<Object> target)
 
   NODE_SET_METHOD(target, "getError"       , openvg::GetError);
 
+  NODE_SET_METHOD(target, "flush"          , openvg::Flush);
+  NODE_SET_METHOD(target, "finish"         , openvg::Finish);
+
   NODE_SET_METHOD(target, "start"          , openvg::Start);
   NODE_SET_METHOD(target, "end"            , openvg::End);
 
@@ -134,6 +137,31 @@ Handle<Value> openvg::GetError(const Arguments& args) {
   }
 
   return Integer::New(vgGetError());
+}
+
+
+Handle<Value> openvg::Flush(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 0)) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Flush()")));
+  }
+
+  vgFlush();
+
+  return Undefined();
+}
+
+Handle<Value> openvg::Finish(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 0)) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Finish()")));
+  }
+
+  vgFinish();
+
+  return Undefined();
 }
 
 

@@ -13,6 +13,9 @@ namespace openvg {
 
   static Handle<Value> GetError(const Arguments& args);
 
+  static Handle<Value> Flush(const Arguments& args);
+  static Handle<Value> Finish(const Arguments& args);
+
   static Handle<Value> Start(const Arguments& args);
   static Handle<Value> End(const Arguments& args);
   static Handle<Value> Rect(const Arguments& args);
