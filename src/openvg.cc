@@ -23,7 +23,7 @@ init(Handle<Object> target)
 
   NODE_SET_METHOD(target, "rect"           , openvg::Rect);
   NODE_SET_METHOD(target, "fill"           , openvg::Fill);
-  NODE_SET_METHOD(target, "ellipse"        , openvg::Circle);
+  NODE_SET_METHOD(target, "ellipse"        , openvg::Ellipse);
   NODE_SET_METHOD(target, "circle"         , openvg::Circle);
   NODE_SET_METHOD(target, "textMiddle"     , openvg::TextMiddle);
 }
