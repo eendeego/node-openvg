@@ -21,6 +21,30 @@ init(Handle<Object> target)
   NODE_SET_METHOD(target, "flush"          , openvg::Flush);
   NODE_SET_METHOD(target, "finish"         , openvg::Finish);
 
+  /* Getters and Setters */
+  NODE_SET_METHOD(target, "setF"           , openvg::SetF);
+  NODE_SET_METHOD(target, "setI"           , openvg::SetI);
+  NODE_SET_METHOD(target, "setFV"          , openvg::SetFV);
+  NODE_SET_METHOD(target, "setIV"          , openvg::SetIV);
+
+  NODE_SET_METHOD(target, "getF"           , openvg::GetF);
+  NODE_SET_METHOD(target, "getI"           , openvg::GetI);
+  NODE_SET_METHOD(target, "getVectorSize"  , openvg::GetVectorSize);
+  NODE_SET_METHOD(target, "getFV"          , openvg::GetFV);
+  NODE_SET_METHOD(target, "getIV"          , openvg::GetIV);
+
+  NODE_SET_METHOD(target, "setParameterF"           , openvg::SetParameterF);
+  NODE_SET_METHOD(target, "setParameterI"           , openvg::SetParameterI);
+  NODE_SET_METHOD(target, "setParameterFV"          , openvg::SetParameterFV);
+  NODE_SET_METHOD(target, "setParameterIV"          , openvg::SetParameterIV);
+
+  NODE_SET_METHOD(target, "getParameterF"           , openvg::GetParameterF);
+  NODE_SET_METHOD(target, "getParameterI"           , openvg::GetParameterI);
+  NODE_SET_METHOD(target, "getParameterVectorSize"  , openvg::GetParameterVectorSize);
+  NODE_SET_METHOD(target, "getParameterFV"          , openvg::GetParameterFV);
+  NODE_SET_METHOD(target, "getParameterIV"          , openvg::GetParameterIV);
+
+
   NODE_SET_METHOD(target, "start"          , openvg::Start);
   NODE_SET_METHOD(target, "end"            , openvg::End);
 
@@ -163,6 +187,270 @@ Handle<Value> openvg::Finish(const Arguments& args) {
 
   return Undefined();
 }
+
+
+/* Getters and Setters */
+
+
+Handle<Value> openvg::SetF(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 2 && args[0]->IsNumber() && args[1]->IsNumber())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected SetF(Int, Float)")));
+  }
+
+  vgSetf((VGParamType) args[0]->Int32Value(),
+         (VGfloat) args[1]->NumberValue());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::SetI(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 2 && args[0]->IsNumber() && args[1]->IsNumber())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected SetI(Int, Int)")));
+  }
+
+  vgSeti((VGParamType) args[0]->Int32Value(),
+         (VGint) args[1]->Int32Value());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::SetFV(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 2 && args[0]->IsNumber() && args[1]->IsObject())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected SetFV(Int, Float32Array)")));
+  }
+
+  Local<Object> array = args[1]->ToObject();
+  Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
+
+  vgSetfv((VGParamType) args[0]->Int32Value(),
+          (VGint) array->Get(String::New("length"))->Uint32Value(),
+          (VGfloat*) buffer->GetIndexedPropertiesExternalArrayData());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::SetIV(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 2 && args[0]->IsNumber() && args[1]->IsObject())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected SetIV(Int, Int32Array)")));
+  }
+
+  Local<Object> array = args[1]->ToObject();
+  Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
+
+  vgSetiv((VGParamType) args[0]->Int32Value(),
+          (VGint) array->Get(String::New("length"))->Uint32Value(),
+          (VGint*) buffer->GetIndexedPropertiesExternalArrayData());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::GetF(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 1 && args[0]->IsNumber())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected GetF(Int)")));
+  }
+
+  return Number::New(vgGetf((VGParamType) args[0]->Int32Value()));
+}
+
+Handle<Value> openvg::GetI(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 1 && args[0]->IsNumber())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected GetI(Int)")));
+  }
+
+  return Integer::New(vgGeti((VGParamType) args[0]->Int32Value()));
+}
+
+Handle<Value> openvg::GetVectorSize(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 1 && args[0]->IsNumber())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected GetVectorSize(Int)")));
+  }
+
+  return Integer::New(vgGetVectorSize((VGParamType) args[0]->Int32Value()));
+}
+
+Handle<Value> openvg::GetFV(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 2 && args[0]->IsNumber() && args[1]->IsObject())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected GetFV(Int, Float32Array)")));
+  }
+
+  Local<Object> array = args[1]->ToObject();
+  Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
+
+  vgGetfv((VGParamType) args[0]->Int32Value(),
+          (VGint) array->Get(String::New("length"))->Uint32Value(),
+          (VGfloat*) buffer->GetIndexedPropertiesExternalArrayData());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::GetIV(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 2 && args[0]->IsNumber() && args[1]->IsObject())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected GetIV(Int, Int32Array)")));
+  }
+
+  Local<Object> array = args[1]->ToObject();
+  Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
+
+  vgGetiv((VGParamType) args[0]->Int32Value(),
+          (VGint) array->Get(String::New("length"))->Uint32Value(),
+          (VGint*) buffer->GetIndexedPropertiesExternalArrayData());
+
+  return Undefined();
+}
+
+
+Handle<Value> openvg::SetParameterF(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 3 && args[0]->IsNumber() && args[1]->IsNumber() && args[2]->IsNumber())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected SetParameterF(Int, Int, Float)")));
+  }
+
+  vgSetParameterf((VGHandle) args[0]->Int32Value(),
+                  (VGParamType) args[1]->Int32Value(),
+                  (VGfloat) args[2]->NumberValue());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::SetParameterI(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 3 && args[0]->IsNumber() && args[1]->IsNumber() && args[2]->IsNumber())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected SetParameterI(Int, Int, Int)")));
+  }
+
+  vgSetParameteri((VGHandle) args[0]->Int32Value(),
+                  (VGParamType) args[1]->Int32Value(),
+                  (VGint) args[2]->Int32Value());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::SetParameterFV(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 3 && args[0]->IsNumber() && args[1]->IsNumber() && args[2]->IsObject())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected SetParameterFV(Int, Int, ****)")));
+  }
+
+  Local<Object> array = args[2]->ToObject();
+  Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
+
+  vgSetParameterfv((VGHandle) args[0]->Int32Value(),
+                   (VGParamType) args[1]->Int32Value(),
+                   (VGint) array->Get(String::New("length"))->Uint32Value(),
+                   (VGfloat*) buffer->GetIndexedPropertiesExternalArrayData());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::SetParameterIV(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 3 && args[0]->IsNumber() && args[1]->IsNumber() && args[2]->IsObject())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected SetParameterIV(Int, Int, ****)")));
+  }
+
+  Local<Object> array = args[2]->ToObject();
+  Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
+
+  vgSetParameteriv((VGHandle) args[0]->Int32Value(),
+                   (VGParamType) args[1]->Int32Value(),
+                   (VGint) array->Get(String::New("length"))->Uint32Value(),
+                   (VGint*) buffer->GetIndexedPropertiesExternalArrayData());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::GetParameterF(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 2 && args[0]->IsNumber() && args[1]->IsNumber())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected GetParameterF(Object, Int)")));
+  }
+
+  return Number::New(vgGetParameterf((VGHandle) args[0]->Int32Value(),
+                                     (VGParamType) args[1]->Int32Value()));
+}
+
+Handle<Value> openvg::GetParameterI(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 2 && args[0]->IsNumber() && args[1]->IsNumber())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected GetParameterI(Object, Int)")));
+  }
+
+  return Integer::New(vgGetParameteri((VGHandle) args[0]->Int32Value(),
+                                      (VGParamType) args[1]->Int32Value()));
+}
+
+Handle<Value> openvg::GetParameterVectorSize(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 2 && args[0]->IsNumber() && args[1]->IsNumber())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected GetParameterVectorSize(Int, Int)")));
+  }
+
+  return Integer::New(vgGetParameterVectorSize((VGHandle) args[0]->Int32Value(),
+                                               (VGParamType) args[1]->Int32Value()));
+}
+
+Handle<Value> openvg::GetParameterFV(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 3 && args[0]->IsNumber() && args[1]->IsNumber() && args[2]->IsObject())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected GetParameterFV(Int, Int, Float32Array)")));
+  }
+
+  Local<Object> array = args[2]->ToObject();
+  Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
+
+  vgGetParameterfv((VGHandle) args[0]->Int32Value(),
+                   (VGParamType) args[1]->Int32Value(),
+                   (VGint) array->Get(String::New("length"))->Uint32Value(),
+                   (VGfloat*) buffer->GetIndexedPropertiesExternalArrayData());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::GetParameterIV(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 3 && args[0]->IsNumber() && args[1]->IsNumber() && args[2]->IsObject())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected GetParameterIV(Int, Int, Int32Array)")));
+  }
+
+  Local<Object> array = args[2]->ToObject();
+  Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
+
+  vgGetParameteriv((VGHandle) args[0]->Int32Value(),
+                   (VGParamType) args[1]->Int32Value(),
+                   (VGint) array->Get(String::New("length"))->Uint32Value(),
+                   (VGint*) buffer->GetIndexedPropertiesExternalArrayData());
+
+  return Undefined();
+}
+
+
 
 
 Handle<Value> openvg::Start(const Arguments& args) {

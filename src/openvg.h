@@ -16,6 +16,30 @@ namespace openvg {
   static Handle<Value> Flush(const Arguments& args);
   static Handle<Value> Finish(const Arguments& args);
 
+  /* Getters and Setters */
+  static Handle<Value> SetF(const Arguments& args);
+  static Handle<Value> SetI(const Arguments& args);
+  static Handle<Value> SetFV(const Arguments& args);
+  static Handle<Value> SetIV(const Arguments& args);
+
+  static Handle<Value> GetF(const Arguments& args);
+  static Handle<Value> GetI(const Arguments& args);
+  static Handle<Value> GetVectorSize(const Arguments& args);
+  static Handle<Value> GetFV(const Arguments& args);
+  static Handle<Value> GetIV(const Arguments& args);
+
+  static Handle<Value> SetParameterF(const Arguments& args);
+  static Handle<Value> SetParameterI(const Arguments& args);
+  static Handle<Value> SetParameterFV(const Arguments& args);
+  static Handle<Value> SetParameterIV(const Arguments& args);
+
+  static Handle<Value> GetParameterF(const Arguments& args);
+  static Handle<Value> GetParameterI(const Arguments& args);
+  static Handle<Value> GetParameterVectorSize(const Arguments& args);
+  static Handle<Value> GetParameterFV(const Arguments& args);
+  static Handle<Value> GetParameterIV(const Arguments& args);
+
+
   static Handle<Value> Start(const Arguments& args);
   static Handle<Value> End(const Arguments& args);
   static Handle<Value> Rect(const Arguments& args);
