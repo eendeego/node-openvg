@@ -81,6 +81,15 @@ init(Handle<Object> target)
   NODE_SET_METHOD(target, "pathTransformedBounds" , openvg::PathTransformedBounds);
   NODE_SET_METHOD(target, "drawPath"              , openvg::DrawPath);
 
+  /* Paint */
+  NODE_SET_METHOD(target, "createPaint" , openvg::CreatePaint);
+  NODE_SET_METHOD(target, "destroyPaint", openvg::DestroyPaint);
+  NODE_SET_METHOD(target, "setPaint"    , openvg::SetPaint);
+  NODE_SET_METHOD(target, "getPaint"    , openvg::GetPaint);
+  NODE_SET_METHOD(target, "setColor"    , openvg::SetColor);
+  NODE_SET_METHOD(target, "getColor"    , openvg::GetColor);
+  NODE_SET_METHOD(target, "paintPattern", openvg::PaintPattern);
+
   NODE_SET_METHOD(target, "start"          , openvg::Start);
   NODE_SET_METHOD(target, "end"            , openvg::End);
 
@@ -850,6 +859,78 @@ Handle<Value> openvg::DrawPath(const Arguments& args) {
 
   return Undefined();
 }
+
+
+/* Paint */
+
+
+Handle<Value> openvg::CreatePaint(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs0(createPaint);
+
+  return Uint32::New(vgCreatePaint());
+}
+
+Handle<Value> openvg::DestroyPaint(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs1(destroyPaint, VGPaint, Uint32);
+
+  vgDestroyPaint((VGPaint) args[0]->Uint32Value());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::SetPaint(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs2(setPaint, VGPaint, Uint32, paintModes, Uint32);
+
+  vgSetPaint((VGPaint) args[0]->Uint32Value(),
+             (VGbitfield) args[1]->Uint32Value());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::GetPaint(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs1(getPaint, VGPaint, Uint32);
+
+  return Uint32::New(vgGetPaint(static_cast<VGPaintMode>(args[0]->Uint32Value())));
+}
+
+Handle<Value> openvg::SetColor(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs2(setColor, VGPaint, Uint32, rgba, Uint32);
+
+  vgSetColor((VGPaint) args[0]->Uint32Value(),
+             (VGuint) args[1]->Uint32Value());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::GetColor(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs1(getColor, VGPaint, Uint32);
+
+  return Uint32::New(vgGetColor((VGPaint) args[0]->Uint32Value()));
+}
+
+Handle<Value> openvg::PaintPattern(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs2(paintPattern, VGPaint, Uint32, VGImage, Uint32);
+
+  vgPaintPattern((VGPaint) args[0]->Uint32Value(),
+                 (VGImage) args[1]->Uint32Value());
+
+  return Undefined();
+}
+
 
 
 

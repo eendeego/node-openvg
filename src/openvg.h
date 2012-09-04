@@ -75,6 +75,15 @@ namespace openvg {
   static Handle<Value> PathTransformedBounds(const Arguments& args);
   static Handle<Value> DrawPath(const Arguments& args);
 
+  /* Paint */
+  static Handle<Value> CreatePaint(const Arguments& args);
+  static Handle<Value> DestroyPaint(const Arguments& args);
+  static Handle<Value> SetPaint(const Arguments& args);
+  static Handle<Value> GetPaint(const Arguments& args);
+  static Handle<Value> SetColor(const Arguments& args);
+  static Handle<Value> GetColor(const Arguments& args);
+  static Handle<Value> PaintPattern(const Arguments& args);
+
   static Handle<Value> Start(const Arguments& args);
   static Handle<Value> End(const Arguments& args);
   static Handle<Value> Rect(const Arguments& args);
