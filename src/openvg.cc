@@ -44,6 +44,16 @@ init(Handle<Object> target)
   NODE_SET_METHOD(target, "getParameterFV"          , openvg::GetParameterFV);
   NODE_SET_METHOD(target, "getParameterIV"          , openvg::GetParameterIV);
 
+  /* Matrix Manipulation */
+  NODE_SET_METHOD(target, "loadIdentity"   , openvg::LoadIdentity);
+  NODE_SET_METHOD(target, "loadMatrix"     , openvg::LoadMatrix);
+  NODE_SET_METHOD(target, "getMatrix"      , openvg::GetMatrix);
+  NODE_SET_METHOD(target, "multMatrix"     , openvg::MultMatrix);
+  NODE_SET_METHOD(target, "translate"      , openvg::Translate);
+  NODE_SET_METHOD(target, "scale"          , openvg::Scale);
+  NODE_SET_METHOD(target, "shear"          , openvg::Shear);
+  NODE_SET_METHOD(target, "rotate"         , openvg::Rotate);
+
 
   NODE_SET_METHOD(target, "start"          , openvg::Start);
   NODE_SET_METHOD(target, "end"            , openvg::End);
@@ -446,6 +456,118 @@ Handle<Value> openvg::GetParameterIV(const Arguments& args) {
                    (VGParamType) args[1]->Int32Value(),
                    (VGint) array->Get(String::New("length"))->Uint32Value(),
                    (VGint*) buffer->GetIndexedPropertiesExternalArrayData());
+
+  return Undefined();
+}
+
+
+/* Matrix Manipulation */
+
+
+Handle<Value> openvg::LoadIdentity(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 0)) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected LoadIdentity()")));
+  }
+
+  vgLoadIdentity();
+
+  return Undefined();
+}
+
+Handle<Value> openvg::LoadMatrix(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 0 && args[0]->IsObject())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected LoadMatrix(Float32Array)")));
+  }
+
+  Local<Object> array = args[0]->ToObject();
+  Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
+
+  vgLoadMatrix((VGfloat*) buffer->GetIndexedPropertiesExternalArrayData());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::GetMatrix(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 0 && args[0]->IsObject())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected GetMatrix(Float32Array)")));
+  }
+
+  Local<Object> array = args[0]->ToObject();
+  Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
+
+  vgGetMatrix((VGfloat*) buffer->GetIndexedPropertiesExternalArrayData());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::MultMatrix(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 0 && args[0]->IsObject())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected MultMatrix(Float32Array)")));
+  }
+
+  Local<Object> array = args[0]->ToObject();
+  Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
+
+  vgMultMatrix((VGfloat*) buffer->GetIndexedPropertiesExternalArrayData());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::Translate(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 0 && args[0]->IsNumber() && args[1]->IsNumber())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Translate(x, y)")));
+  }
+
+  vgTranslate((VGfloat) args[0]->NumberValue(),
+              (VGfloat) args[1]->NumberValue());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::Scale(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 0 && args[0]->IsNumber() && args[1]->IsNumber())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Scale(x, y)")));
+  }
+
+  vgScale((VGfloat) args[0]->NumberValue(),
+          (VGfloat) args[1]->NumberValue());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::Shear(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 0 && args[0]->IsNumber() && args[1]->IsNumber())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Shear(x, y)")));
+  }
+
+  vgShear((VGfloat) args[0]->NumberValue(),
+          (VGfloat) args[1]->NumberValue());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::Rotate(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 0 && args[0]->IsNumber())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Rotate(angle)")));
+  }
+
+  vgRotate((VGfloat) args[0]->NumberValue());
 
   return Undefined();
 }

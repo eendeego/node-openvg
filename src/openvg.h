@@ -39,6 +39,15 @@ namespace openvg {
   static Handle<Value> GetParameterFV(const Arguments& args);
   static Handle<Value> GetParameterIV(const Arguments& args);
 
+  /* Matrix Manipulation */
+  static Handle<Value> LoadIdentity(const Arguments& args);
+  static Handle<Value> LoadMatrix(const Arguments& args);
+  static Handle<Value> GetMatrix(const Arguments& args);
+  static Handle<Value> MultMatrix(const Arguments& args);
+  static Handle<Value> Translate(const Arguments& args);
+  static Handle<Value> Scale(const Arguments& args);
+  static Handle<Value> Shear(const Arguments& args);
+  static Handle<Value> Rotate(const Arguments& args);
 
   static Handle<Value> Start(const Arguments& args);
   static Handle<Value> End(const Arguments& args);
