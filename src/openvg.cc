@@ -64,6 +64,22 @@ init(Handle<Object> target)
   NODE_SET_METHOD(target, "copyMask"        , openvg::CopyMask);
   NODE_SET_METHOD(target, "clear"           , openvg::Clear);
 
+  /* Paths */
+  NODE_SET_METHOD(target, "createPath"            , openvg::CreatePath);
+  NODE_SET_METHOD(target, "clearPath"             , openvg::ClearPath);
+  NODE_SET_METHOD(target, "destroyPath"           , openvg::DestroyPath);
+  NODE_SET_METHOD(target, "removePathCapabilities", openvg::RemovePathCapabilities);
+  NODE_SET_METHOD(target, "getPathCapabilities"   , openvg::GetPathCapabilities);
+  NODE_SET_METHOD(target, "appendPath"            , openvg::AppendPath);
+  NODE_SET_METHOD(target, "appendPathData"        , openvg::AppendPathData);
+  NODE_SET_METHOD(target, "modifyPathCoords"      , openvg::ModifyPathCoords);
+  NODE_SET_METHOD(target, "transformPath"         , openvg::TransformPath);
+  NODE_SET_METHOD(target, "interpolatePath"       , openvg::InterpolatePath);
+  NODE_SET_METHOD(target, "pathLength"            , openvg::PathLength);
+  NODE_SET_METHOD(target, "pointAlongPath"        , openvg::PointAlongPath);
+  NODE_SET_METHOD(target, "pathBounds"            , openvg::PathBounds);
+  NODE_SET_METHOD(target, "pathTransformedBounds" , openvg::PathTransformedBounds);
+  NODE_SET_METHOD(target, "drawPath"              , openvg::DrawPath);
 
   NODE_SET_METHOD(target, "start"          , openvg::Start);
   NODE_SET_METHOD(target, "end"            , openvg::End);
@@ -616,6 +632,221 @@ Handle<Value> openvg::Clear(const Arguments& args) {
 
   vgClear((VGint) args[0]->Int32Value(), (VGint) args[1]->Int32Value(),
           (VGint) args[2]->Int32Value(), (VGint) args[3]->Int32Value());
+
+  return Undefined();
+}
+
+
+/* Paths */
+
+
+Handle<Value> openvg::CreatePath(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs7(createPath,
+             pathFormat, Int32, VGPathDatatype, Uint32,
+             scale, Number, bias, Number, segmentCapacityHint, Int32,
+             coordCapacityHint, Int32, capabilities, Uint32);
+
+  return Uint32::New(vgCreatePath((VGint) args[0]->Int32Value(),
+                                  static_cast<VGPathDatatype>(args[1]->Uint32Value()),
+                                  (VGfloat) args[2]->NumberValue(),
+                                  (VGfloat) args[3]->NumberValue(),
+                                  (VGint) args[4]->Int32Value(),
+                                  (VGint) args[5]->Int32Value(),
+                                  (VGbitfield) args[6]->Uint32Value()));
+}
+
+Handle<Value> openvg::ClearPath(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs2(clearPath, VGPath, Number, capabilities, Uint32);
+
+  vgClearPath((VGPath) args[0]->Uint32Value(),
+              (VGbitfield) args[1]->Uint32Value());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::DestroyPath(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs1(destroyPath, VGPath, Number);
+
+  vgDestroyPath((VGPath) args[0]->Uint32Value());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::RemovePathCapabilities(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs2(removePathCapabilities, VGPath, Number, capabilities, Uint32);
+
+  vgRemovePathCapabilities((VGPath) args[0]->Uint32Value(),
+                           (VGbitfield) args[1]->Uint32Value());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::GetPathCapabilities(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs1(getPathCapabilities, VGPath, Number);
+
+  return Uint32::New(vgGetPathCapabilities((VGPath) args[0]->Int32Value()));
+}
+
+Handle<Value> openvg::AppendPath(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs2(appendPath, dstPath, Number, srcPath, Number);
+
+  vgAppendPath((VGPath) args[0]->Uint32Value(),
+               (VGPath) args[1]->Uint32Value());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::AppendPathData(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs4(appendPathData, dstPath, Number, numSegments, Int32, Uint8Array, Object, pathData, Object);
+
+  Local<Object> segmentsArray = args[2]->ToObject();
+  Handle<Object> segmentsBuffer = segmentsArray->Get(String::New("buffer"))->ToObject();
+
+  Local<Object> dataArray = args[3]->ToObject();
+  Handle<Object> dataBuffer = dataArray->Get(String::New("buffer"))->ToObject();
+
+  vgAppendPathData((VGPath) args[0]->Uint32Value(),
+                   (VGint) args[1]->Int32Value(),
+                   (VGubyte*) segmentsBuffer->GetIndexedPropertiesExternalArrayData(),
+                   (void*) dataBuffer->GetIndexedPropertiesExternalArrayData());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::ModifyPathCoords(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs4(modifyPathCoords, VGPath, Number, startIndex, Int32, numSegments, Int32, pathData, Object);
+
+  Local<Object> dataArray = args[3]->ToObject();
+  Handle<Object> dataBuffer = dataArray->Get(String::New("buffer"))->ToObject();
+
+  vgModifyPathCoords((VGPath) args[0]->Uint32Value(),
+                     (VGint) args[1]->Int32Value(),
+                     (VGint) args[2]->Int32Value(),
+                     (void*) dataBuffer->GetIndexedPropertiesExternalArrayData());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::TransformPath(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs2(transformPath, dstPath, Number, srcPath, Number);
+
+  vgTransformPath((VGPath) args[0]->Uint32Value(),
+                  (VGPath) args[1]->Uint32Value());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::InterpolatePath(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs4(interpolatePath,
+             dstPath, Number, startPath, Number, endPath, Number,
+             amount, Number);
+
+  return Boolean::New(vgInterpolatePath((VGPath) args[0]->Uint32Value(),
+                                        (VGPath) args[1]->Uint32Value(),
+                                        (VGPath) args[2]->Uint32Value(),
+                                        (VGfloat) args[3]->NumberValue()));
+}
+
+Handle<Value> openvg::PathLength(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs3(pathLength, path, Number,
+             startSegment, Int32, numSegments, Int32);
+
+  return Number::New(vgPathLength((VGPath) args[0]->Uint32Value(),
+                                  (VGint) args[1]->Int32Value(),
+                                  (VGint) args[2]->Int32Value()));
+}
+
+Handle<Value> openvg::PointAlongPath(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs5(pointAlongPath, path, Number,
+             startSegment, Int32, numSegments, Int32,
+             distance, Number, point, Object);
+
+  VGfloat x, y, tx, ty;
+
+  vgPointAlongPath((VGPath) args[0]->Uint32Value(),
+                   (VGint) args[1]->Int32Value(),
+                   (VGint) args[2]->Int32Value(),
+                   (VGfloat) args[3]->NumberValue(),
+                   &x, &y, &tx, &ty);
+
+  Local<Object> point = args[4].As<Object>();
+  point->Set(String::NewSymbol("x"), Number::New(x));
+  point->Set(String::NewSymbol("y"), Number::New(y));
+  point->Set(String::NewSymbol("tx"), Number::New(tx));
+  point->Set(String::NewSymbol("ty"), Number::New(ty));
+
+  return Undefined();
+}
+
+Handle<Value> openvg::PathBounds(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs2(pathBounds, VGPath, Number, bounds, Object);
+
+  VGfloat minX, minY, width, height;
+
+  vgPathBounds((VGPath) args[0]->Uint32Value(),
+               &minX, &minY, &width, &height);
+
+  Local<Object> bounds = args[1].As<Object>();
+  bounds->Set(String::NewSymbol("x"), Number::New(minX));
+  bounds->Set(String::NewSymbol("y"), Number::New(minY));
+  bounds->Set(String::NewSymbol("w"), Number::New(width));
+  bounds->Set(String::NewSymbol("h"), Number::New(height));
+
+  return Undefined();
+}
+
+Handle<Value> openvg::PathTransformedBounds(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs2(pathTransformedBounds, VGPath, Number, bounds, Object);
+
+  VGfloat minX, minY, width, height;
+
+  vgPathTransformedBounds((VGPath) args[0]->Uint32Value(),
+                          &minX, &minY, &width, &height);
+
+  Local<Object> bounds = args[1].As<Object>();
+  bounds->Set(String::NewSymbol("x"), Number::New(minX));
+  bounds->Set(String::NewSymbol("y"), Number::New(minY));
+  bounds->Set(String::NewSymbol("w"), Number::New(width));
+  bounds->Set(String::NewSymbol("h"), Number::New(height));
+
+  return Undefined();
+}
+
+Handle<Value> openvg::DrawPath(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs2(drawPath, VGPath, Number, paintModes, Number);
+
+  vgDrawPath((VGPath) args[0]->Uint32Value(),
+             (VGbitfield) args[1]->Uint32Value());
 
   return Undefined();
 }

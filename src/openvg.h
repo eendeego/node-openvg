@@ -58,6 +58,23 @@ namespace openvg {
   static Handle<Value> CopyMask(const Arguments& args);
   static Handle<Value> Clear(const Arguments& args);
 
+  /* Paths */
+  static Handle<Value> CreatePath(const Arguments& args);
+  static Handle<Value> ClearPath(const Arguments& args);
+  static Handle<Value> DestroyPath(const Arguments& args);
+  static Handle<Value> RemovePathCapabilities(const Arguments& args);
+  static Handle<Value> GetPathCapabilities(const Arguments& args);
+  static Handle<Value> AppendPath(const Arguments& args);
+  static Handle<Value> AppendPathData(const Arguments& args);
+  static Handle<Value> ModifyPathCoords(const Arguments& args);
+  static Handle<Value> TransformPath(const Arguments& args);
+  static Handle<Value> InterpolatePath(const Arguments& args);
+  static Handle<Value> PathLength(const Arguments& args);
+  static Handle<Value> PointAlongPath(const Arguments& args);
+  static Handle<Value> PathBounds(const Arguments& args);
+  static Handle<Value> PathTransformedBounds(const Arguments& args);
+  static Handle<Value> DrawPath(const Arguments& args);
+
   static Handle<Value> Start(const Arguments& args);
   static Handle<Value> End(const Arguments& args);
   static Handle<Value> Rect(const Arguments& args);
