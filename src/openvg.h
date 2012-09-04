@@ -84,10 +84,8 @@ namespace openvg {
   static Handle<Value> GetColor(const Arguments& args);
   static Handle<Value> PaintPattern(const Arguments& args);
 
-  static Handle<Value> Start(const Arguments& args);
   static Handle<Value> End(const Arguments& args);
   static Handle<Value> Rect(const Arguments& args);
-  static Handle<Value> Fill(const Arguments& args);
   static Handle<Value> Ellipse(const Arguments& args);
   static Handle<Value> TextMiddle(const Arguments& args);
 }
