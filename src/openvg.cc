@@ -6,6 +6,7 @@
 
 #include "openvg.h"
 #include "egl.h"
+#include "argchecks.h"
 
 using namespace node;
 using namespace v8;
@@ -145,9 +146,7 @@ void ellipse(VGfloat x, VGfloat y, VGfloat w, VGfloat h) {
 Handle<Value> openvg::StartUp(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 1 && args[0]->IsObject())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected StartUp(screen)")));
-  }
+  CheckArgs1(startUp, screen, Object);
 
   egl::Init();
   CHECK_VG_ERROR;
@@ -162,9 +161,7 @@ Handle<Value> openvg::StartUp(const Arguments& args) {
 Handle<Value> openvg::Shutdown(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 0)) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Shutdown()")));
-  }
+  CheckArgs0(shutdown);
 
   egl::Finish();
 
@@ -175,9 +172,7 @@ Handle<Value> openvg::Shutdown(const Arguments& args) {
 Handle<Value> openvg::GetError(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 0)) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected GetError()")));
-  }
+  CheckArgs0(getError);
 
   return Integer::New(vgGetError());
 }
@@ -186,9 +181,7 @@ Handle<Value> openvg::GetError(const Arguments& args) {
 Handle<Value> openvg::Flush(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 0)) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Flush()")));
-  }
+  CheckArgs0(flush);
 
   vgFlush();
 
@@ -198,9 +191,7 @@ Handle<Value> openvg::Flush(const Arguments& args) {
 Handle<Value> openvg::Finish(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 0)) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Finish()")));
-  }
+  CheckArgs0(finish);
 
   vgFinish();
 
@@ -214,9 +205,7 @@ Handle<Value> openvg::Finish(const Arguments& args) {
 Handle<Value> openvg::SetF(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 2 && args[0]->IsNumber() && args[1]->IsNumber())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected SetF(Int, Float)")));
-  }
+  CheckArgs2(setF, type, Int32, value, Number);
 
   vgSetf((VGParamType) args[0]->Int32Value(),
          (VGfloat) args[1]->NumberValue());
@@ -227,9 +216,7 @@ Handle<Value> openvg::SetF(const Arguments& args) {
 Handle<Value> openvg::SetI(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 2 && args[0]->IsNumber() && args[1]->IsNumber())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected SetI(Int, Int)")));
-  }
+  CheckArgs2(setI, type, Int32, value, Int32);
 
   vgSeti((VGParamType) args[0]->Int32Value(),
          (VGint) args[1]->Int32Value());
@@ -240,9 +227,7 @@ Handle<Value> openvg::SetI(const Arguments& args) {
 Handle<Value> openvg::SetFV(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 2 && args[0]->IsNumber() && args[1]->IsObject())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected SetFV(Int, Float32Array)")));
-  }
+  CheckArgs2(setFV, type, Int32, Float32Array, Object);
 
   Local<Object> array = args[1]->ToObject();
   Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
@@ -257,9 +242,7 @@ Handle<Value> openvg::SetFV(const Arguments& args) {
 Handle<Value> openvg::SetIV(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 2 && args[0]->IsNumber() && args[1]->IsObject())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected SetIV(Int, Int32Array)")));
-  }
+  CheckArgs2(setIV, type, Int32, Int32Array, Object);
 
   Local<Object> array = args[1]->ToObject();
   Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
@@ -274,9 +257,7 @@ Handle<Value> openvg::SetIV(const Arguments& args) {
 Handle<Value> openvg::GetF(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 1 && args[0]->IsNumber())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected GetF(Int)")));
-  }
+  CheckArgs1(getF, type, Int32);
 
   return Number::New(vgGetf((VGParamType) args[0]->Int32Value()));
 }
@@ -284,9 +265,7 @@ Handle<Value> openvg::GetF(const Arguments& args) {
 Handle<Value> openvg::GetI(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 1 && args[0]->IsNumber())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected GetI(Int)")));
-  }
+  CheckArgs1(getI, type, Int32);
 
   return Integer::New(vgGeti((VGParamType) args[0]->Int32Value()));
 }
@@ -294,9 +273,7 @@ Handle<Value> openvg::GetI(const Arguments& args) {
 Handle<Value> openvg::GetVectorSize(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 1 && args[0]->IsNumber())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected GetVectorSize(Int)")));
-  }
+  CheckArgs1(getVectorSize, type, Int32);
 
   return Integer::New(vgGetVectorSize((VGParamType) args[0]->Int32Value()));
 }
@@ -304,9 +281,7 @@ Handle<Value> openvg::GetVectorSize(const Arguments& args) {
 Handle<Value> openvg::GetFV(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 2 && args[0]->IsNumber() && args[1]->IsObject())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected GetFV(Int, Float32Array)")));
-  }
+  CheckArgs2(getFV, type, Int32, Float32Array, Object);
 
   Local<Object> array = args[1]->ToObject();
   Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
@@ -321,9 +296,7 @@ Handle<Value> openvg::GetFV(const Arguments& args) {
 Handle<Value> openvg::GetIV(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 2 && args[0]->IsNumber() && args[1]->IsObject())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected GetIV(Int, Int32Array)")));
-  }
+  CheckArgs2(getIV, type, Int32, Float32Array, Object);
 
   Local<Object> array = args[1]->ToObject();
   Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
@@ -339,9 +312,7 @@ Handle<Value> openvg::GetIV(const Arguments& args) {
 Handle<Value> openvg::SetParameterF(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 3 && args[0]->IsNumber() && args[1]->IsNumber() && args[2]->IsNumber())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected SetParameterF(Int, Int, Float)")));
-  }
+  CheckArgs3(setParameterF, VGHandle, Int32, VGParamType, Int32, value, Number);
 
   vgSetParameterf((VGHandle) args[0]->Int32Value(),
                   (VGParamType) args[1]->Int32Value(),
@@ -353,9 +324,7 @@ Handle<Value> openvg::SetParameterF(const Arguments& args) {
 Handle<Value> openvg::SetParameterI(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 3 && args[0]->IsNumber() && args[1]->IsNumber() && args[2]->IsNumber())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected SetParameterI(Int, Int, Int)")));
-  }
+  CheckArgs3(setParameterI, VGHandle, Int32, VGParamType, Int32, value, Int32);
 
   vgSetParameteri((VGHandle) args[0]->Int32Value(),
                   (VGParamType) args[1]->Int32Value(),
@@ -367,9 +336,7 @@ Handle<Value> openvg::SetParameterI(const Arguments& args) {
 Handle<Value> openvg::SetParameterFV(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 3 && args[0]->IsNumber() && args[1]->IsNumber() && args[2]->IsObject())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected SetParameterFV(Int, Int, ****)")));
-  }
+  CheckArgs3(setParameterFV, VGHandle, Int32, VGParamType, Int32, Float32Array, Object);
 
   Local<Object> array = args[2]->ToObject();
   Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
@@ -385,9 +352,7 @@ Handle<Value> openvg::SetParameterFV(const Arguments& args) {
 Handle<Value> openvg::SetParameterIV(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 3 && args[0]->IsNumber() && args[1]->IsNumber() && args[2]->IsObject())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected SetParameterIV(Int, Int, ****)")));
-  }
+  CheckArgs3(setParameterIV, VGHandle, Int32, VGParamType, Int32, Int32Array, Object);
 
   Local<Object> array = args[2]->ToObject();
   Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
@@ -403,9 +368,7 @@ Handle<Value> openvg::SetParameterIV(const Arguments& args) {
 Handle<Value> openvg::GetParameterF(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 2 && args[0]->IsNumber() && args[1]->IsNumber())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected GetParameterF(Object, Int)")));
-  }
+  CheckArgs2(getParameterF, VGHandle, Int32, VGParamType, Int32);
 
   return Number::New(vgGetParameterf((VGHandle) args[0]->Int32Value(),
                                      (VGParamType) args[1]->Int32Value()));
@@ -414,9 +377,7 @@ Handle<Value> openvg::GetParameterF(const Arguments& args) {
 Handle<Value> openvg::GetParameterI(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 2 && args[0]->IsNumber() && args[1]->IsNumber())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected GetParameterI(Object, Int)")));
-  }
+  CheckArgs2(getParameterI, VGHandle, Int32, VGParamType, Int32);
 
   return Integer::New(vgGetParameteri((VGHandle) args[0]->Int32Value(),
                                       (VGParamType) args[1]->Int32Value()));
@@ -425,9 +386,7 @@ Handle<Value> openvg::GetParameterI(const Arguments& args) {
 Handle<Value> openvg::GetParameterVectorSize(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 2 && args[0]->IsNumber() && args[1]->IsNumber())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected GetParameterVectorSize(Int, Int)")));
-  }
+  CheckArgs2(getParameterVectorSize, VGHandle, Int32, VGParamType, Int32);
 
   return Integer::New(vgGetParameterVectorSize((VGHandle) args[0]->Int32Value(),
                                                (VGParamType) args[1]->Int32Value()));
@@ -436,9 +395,7 @@ Handle<Value> openvg::GetParameterVectorSize(const Arguments& args) {
 Handle<Value> openvg::GetParameterFV(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 3 && args[0]->IsNumber() && args[1]->IsNumber() && args[2]->IsObject())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected GetParameterFV(Int, Int, Float32Array)")));
-  }
+  CheckArgs3(getParameterFV, VGHandle, Int32, VGParamType, Int32, Float32Array, Object);
 
   Local<Object> array = args[2]->ToObject();
   Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
@@ -454,9 +411,7 @@ Handle<Value> openvg::GetParameterFV(const Arguments& args) {
 Handle<Value> openvg::GetParameterIV(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 3 && args[0]->IsNumber() && args[1]->IsNumber() && args[2]->IsObject())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected GetParameterIV(Int, Int, Int32Array)")));
-  }
+  CheckArgs3(getParameterIV, VGHandle, Int32, VGParamType, Int32, Int32Array, Object);
 
   Local<Object> array = args[2]->ToObject();
   Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
@@ -476,9 +431,7 @@ Handle<Value> openvg::GetParameterIV(const Arguments& args) {
 Handle<Value> openvg::LoadIdentity(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 0)) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected LoadIdentity()")));
-  }
+  CheckArgs0(loadIdentity);
 
   vgLoadIdentity();
 
@@ -488,9 +441,7 @@ Handle<Value> openvg::LoadIdentity(const Arguments& args) {
 Handle<Value> openvg::LoadMatrix(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 0 && args[0]->IsObject())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected LoadMatrix(Float32Array)")));
-  }
+  CheckArgs1(loadIdentity, Float32Array, Object);
 
   Local<Object> array = args[0]->ToObject();
   Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
@@ -503,9 +454,7 @@ Handle<Value> openvg::LoadMatrix(const Arguments& args) {
 Handle<Value> openvg::GetMatrix(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 0 && args[0]->IsObject())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected GetMatrix(Float32Array)")));
-  }
+  CheckArgs1(getMatrix, Float32Array, Object);
 
   Local<Object> array = args[0]->ToObject();
   Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
@@ -518,9 +467,7 @@ Handle<Value> openvg::GetMatrix(const Arguments& args) {
 Handle<Value> openvg::MultMatrix(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 0 && args[0]->IsObject())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected MultMatrix(Float32Array)")));
-  }
+  CheckArgs1(multMatrix, Float32Array, Object);
 
   Local<Object> array = args[0]->ToObject();
   Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
@@ -533,9 +480,7 @@ Handle<Value> openvg::MultMatrix(const Arguments& args) {
 Handle<Value> openvg::Translate(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 0 && args[0]->IsNumber() && args[1]->IsNumber())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Translate(x, y)")));
-  }
+  CheckArgs2(translate, x, Number, y, Number);
 
   vgTranslate((VGfloat) args[0]->NumberValue(),
               (VGfloat) args[1]->NumberValue());
@@ -546,9 +491,7 @@ Handle<Value> openvg::Translate(const Arguments& args) {
 Handle<Value> openvg::Scale(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 0 && args[0]->IsNumber() && args[1]->IsNumber())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Scale(x, y)")));
-  }
+  CheckArgs2(scale, x, Number, y, Number);
 
   vgScale((VGfloat) args[0]->NumberValue(),
           (VGfloat) args[1]->NumberValue());
@@ -559,9 +502,7 @@ Handle<Value> openvg::Scale(const Arguments& args) {
 Handle<Value> openvg::Shear(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 0 && args[0]->IsNumber() && args[1]->IsNumber())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Shear(x, y)")));
-  }
+  CheckArgs2(shear, x, Number, y, Number);
 
   vgShear((VGfloat) args[0]->NumberValue(),
           (VGfloat) args[1]->NumberValue());
@@ -572,9 +513,7 @@ Handle<Value> openvg::Shear(const Arguments& args) {
 Handle<Value> openvg::Rotate(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 0 && args[0]->IsNumber())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Rotate(angle)")));
-  }
+  CheckArgs1(shear, angle, Number);
 
   vgRotate((VGfloat) args[0]->NumberValue());
 
@@ -588,12 +527,9 @@ Handle<Value> openvg::Rotate(const Arguments& args) {
 Handle<Value> openvg::Mask(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 6 &&
-        args[0]->IsUint32() && args[1]->IsUint32() &&
-        args[2]->IsInt32() && args[3]->IsInt32() &&
-        args[4]->IsInt32() && args[5]->IsInt32())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Mask(VGMaskOperation, x, y, width, height)")));
-  }
+  CheckArgs6(mask,
+             VGHandle, Uint32, VGMaskOperation, Uint32,
+             x, Int32, y, Int32, width, Int32, height, Int32);
 
   vgMask((VGHandle) args[0]->Uint32Value(),
          static_cast<VGMaskOperation>(args[1]->Uint32Value()),
@@ -608,10 +544,10 @@ Handle<Value> openvg::Mask(const Arguments& args) {
 Handle<Value> openvg::RenderToMask(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 3 && args[0]->IsUint32() &&
-        args[1]->IsUint32() && args[2]->IsUint32())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected RenderToMask(VGPath, VGbitfield, VGMaskOperation)")));
-  }
+  CheckArgs3(renderToMask,
+             VGPath, Uint32,
+             VGbitfield, Uint32,
+             VGMaskOperation, Uint32);
 
   vgRenderToMask((VGPath) args[0]->Uint32Value(),
                  (VGbitfield) args[1]->Uint32Value(),
@@ -623,9 +559,7 @@ Handle<Value> openvg::RenderToMask(const Arguments& args) {
 Handle<Value> openvg::CreateMaskLayer(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 2 && args[0]->IsInt32() && args[1]->IsInt32())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected CreateMaskLayer(width, height)")));
-  }
+  CheckArgs2(createMaskLayer, width, Int32, height, Int32);
 
   return Integer::New(vgCreateMaskLayer((VGint) args[0]->Int32Value(),
                                         (VGint) args[1]->Int32Value()));
@@ -634,9 +568,7 @@ Handle<Value> openvg::CreateMaskLayer(const Arguments& args) {
 Handle<Value> openvg::DestroyMaskLayer(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 1 && args[0]->IsUint32())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected DestroyMaskLayer(VGMaskLayer)")));
-  }
+  CheckArgs1(destroyMaskLayer, VGMaskLayer, Uint32);
 
   vgDestroyMaskLayer((VGMaskLayer) args[0]->Uint32Value());
 
@@ -646,12 +578,10 @@ Handle<Value> openvg::DestroyMaskLayer(const Arguments& args) {
 Handle<Value> openvg::FillMaskLayer(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 6 && args[0]->IsUint32() &&
-        args[1]->IsInt32() && args[2]->IsInt32() &&
-        args[3]->IsInt32() && args[4]->IsInt32() &&
-        args[5]->IsNumber())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected FillMaskLayer()")));
-  }
+  CheckArgs6(fillMaskLayer,
+             VGMaskLayer, Uint32,
+             x, Int32, y, Int32, width, Int32, height, Int32,
+             value, Number);
 
   vgFillMaskLayer((VGMaskLayer) args[0]->Uint32Value(),
                   (VGint) args[1]->Int32Value(),
@@ -666,12 +596,10 @@ Handle<Value> openvg::FillMaskLayer(const Arguments& args) {
 Handle<Value> openvg::CopyMask(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 7 && args[0]->IsUint32() &&
-        args[1]->IsInt32() && args[2]->IsInt32() &&
-        args[3]->IsInt32() && args[4]->IsInt32() &&
-        args[5]->IsInt32() && args[6]->IsInt32())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected CopyMask(VGMaskLayer, dx, dy, sx, sy, width, height)")));
-  }
+  CheckArgs7(fillMaskLayer,
+             VGMaskLayer, Uint32,
+             dx, Int32, dy, Int32, sx, Int32, sy, Int32,
+             width, Int32, height, Int32);
 
   vgCopyMask((VGMaskLayer) args[0]->Uint32Value(),
              (VGint) args[1]->Int32Value(), (VGint) args[2]->Int32Value(),
@@ -684,11 +612,7 @@ Handle<Value> openvg::CopyMask(const Arguments& args) {
 Handle<Value> openvg::Clear(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 4 && args[0]->IsUint32() &&
-        args[1]->IsInt32() && args[2]->IsInt32() &&
-        args[3]->IsInt32())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Clear(x, y, width, height)")));
-  }
+  CheckArgs4(clear, x, Int32, y, Int32, width, Int32, height, Int32);
 
   vgClear((VGint) args[0]->Int32Value(), (VGint) args[1]->Int32Value(),
           (VGint) args[2]->Int32Value(), (VGint) args[3]->Int32Value());
@@ -702,9 +626,7 @@ Handle<Value> openvg::Clear(const Arguments& args) {
 Handle<Value> openvg::Start(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 0)) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Start()")));
-  }
+  CheckArgs0(start);
 
   uint32_t width, height;
   width  = egl::State.screen_width;
@@ -725,9 +647,7 @@ Handle<Value> openvg::Start(const Arguments& args) {
 Handle<Value> openvg::End(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 0)) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected End()")));
-  }
+  CheckArgs0(end);
 
   CHECK_VG_ERROR;
   egl::swapBuffers(egl::State.display, egl::State.surface);
@@ -737,11 +657,7 @@ Handle<Value> openvg::End(const Arguments& args) {
 }
 
 Handle<Value> openvg::Rect(const Arguments& args) {
-  if (!(args.Length() == 4 && args[0]->IsNumber() &&
-        args[1]->IsNumber() && args[2]->IsNumber() &&
-        args[3]->IsNumber())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Rect(x, y, w, h)")));
-  }
+  CheckArgs4(rect, x, Number, y, Number, w, Number, h, Number);
 
   VGfloat x = (VGfloat) args[0]->NumberValue();
   VGfloat y = (VGfloat) args[1]->NumberValue();
@@ -756,11 +672,7 @@ Handle<Value> openvg::Rect(const Arguments& args) {
 Handle<Value> openvg::Fill(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 4 && args[0]->IsNumber() &&
-        args[1]->IsNumber() && args[2]->IsNumber() &&
-        args[3]->IsNumber())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Fill(r, g, b, a)")));
-  }
+  CheckArgs4(fill, r, Int32, g, Int32, b, Int32, a, Number);
 
   VGfloat color[4];
   int r = args[0]->Int32Value();
@@ -775,11 +687,7 @@ Handle<Value> openvg::Fill(const Arguments& args) {
 }
 
 Handle<Value> openvg::Ellipse(const Arguments& args) {
-  if (!(args.Length() == 4 && args[0]->IsNumber() &&
-        args[1]->IsNumber() && args[2]->IsNumber() &&
-        args[3]->IsNumber())) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Ellipse(x, y, w, h)")));
-  }
+  CheckArgs4(ellipse, x, Number, y, Number, w, Number, h, Number);
 
   VGfloat x = (VGfloat) args[0]->NumberValue();
   VGfloat y = (VGfloat) args[1]->NumberValue();
@@ -793,9 +701,7 @@ Handle<Value> openvg::Ellipse(const Arguments& args) {
 Handle<Value> openvg::TextMiddle(const Arguments& args) {
   HandleScope scope;
 
-  if (!(args.Length() == 5)) {
-    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected TextMiddle(x, y, text, typeface, pointsize)")));
-  }
+  CheckArgs5(textMiddle, x, Number, y, Number, text, String, typeface, String, pointsize, Number);
 
   return Undefined();
 }

@@ -16,7 +16,7 @@ def configure(conf):
 def build(bld):
   obj = bld.new_task_gen('cxx', 'shlib', 'node_addon')
   obj.target = "node-openvg"
-  obj.cxxflags = ["-pthread", "-Wall"]
+  obj.cxxflags = ["-pthread", "-Wall", "-DARG_CHECKS"]
   obj.linkflags = ["-L/opt/vc/lib", "-lGLESv2"]
   obj.includes = ["/opt/vc/include", "/opt/vc/include/interface/vcos/pthreads"]
   obj.source = ["src/openvg.cc", "src/egl.cc"]
