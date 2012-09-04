@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+
+DIRECTORY=`dirname $0`
+
+LD_PRELOAD=$DIRECTORY/../build/Release/init-egl.node node "$@"

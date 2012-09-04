@@ -12,5 +12,6 @@
     "node": ">=0.8.0"
   },
   "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {},
+  "bin" : { "node-pi" : "./bin/node-pi" }
 }

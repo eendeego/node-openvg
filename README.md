@@ -24,6 +24,5 @@ Build the package:
 
 To test:
 
-    (LD_PRELOAD=build/Release/init-egl.node node sample/hello.js)
+    bin/node-pi sample/hello.js
 
-The LD_PRELOAD trick is required because EGL initialization interferes with V8 contexts. This seems to be related with memory regions being mapped/allocated by EGL. By initializing EGL before any node/V8 execution, at least the bootstrap process works.
