@@ -54,6 +54,15 @@ init(Handle<Object> target)
   NODE_SET_METHOD(target, "shear"          , openvg::Shear);
   NODE_SET_METHOD(target, "rotate"         , openvg::Rotate);
 
+  /* Masking and Clearing */
+  NODE_SET_METHOD(target, "mask"            , openvg::Mask);
+  NODE_SET_METHOD(target, "renderToMask"    , openvg::RenderToMask);
+  NODE_SET_METHOD(target, "createMaskLayer" , openvg::CreateMaskLayer);
+  NODE_SET_METHOD(target, "destroyMaskLayer", openvg::DestroyMaskLayer);
+  NODE_SET_METHOD(target, "fillMaskLayer"   , openvg::FillMaskLayer);
+  NODE_SET_METHOD(target, "copyMask"        , openvg::CopyMask);
+  NODE_SET_METHOD(target, "clear"           , openvg::Clear);
+
 
   NODE_SET_METHOD(target, "start"          , openvg::Start);
   NODE_SET_METHOD(target, "end"            , openvg::End);
@@ -568,6 +577,121 @@ Handle<Value> openvg::Rotate(const Arguments& args) {
   }
 
   vgRotate((VGfloat) args[0]->NumberValue());
+
+  return Undefined();
+}
+
+
+/* Masking and Clearing */
+
+
+Handle<Value> openvg::Mask(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 6 &&
+        args[0]->IsUint32() && args[1]->IsUint32() &&
+        args[2]->IsInt32() && args[3]->IsInt32() &&
+        args[4]->IsInt32() && args[5]->IsInt32())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Mask(VGMaskOperation, x, y, width, height)")));
+  }
+
+  vgMask((VGHandle) args[0]->Uint32Value(),
+         static_cast<VGMaskOperation>(args[1]->Uint32Value()),
+         (VGint) args[2]->Int32Value(),
+         (VGint) args[3]->Int32Value(),
+         (VGint) args[4]->Int32Value(),
+         (VGint) args[5]->Int32Value());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::RenderToMask(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 3 && args[0]->IsUint32() &&
+        args[1]->IsUint32() && args[2]->IsUint32())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected RenderToMask(VGPath, VGbitfield, VGMaskOperation)")));
+  }
+
+  vgRenderToMask((VGPath) args[0]->Uint32Value(),
+                 (VGbitfield) args[1]->Uint32Value(),
+                 (VGMaskOperation) args[2]->Uint32Value());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::CreateMaskLayer(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 2 && args[0]->IsInt32() && args[1]->IsInt32())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected CreateMaskLayer(width, height)")));
+  }
+
+  return Integer::New(vgCreateMaskLayer((VGint) args[0]->Int32Value(),
+                                        (VGint) args[1]->Int32Value()));
+}
+
+Handle<Value> openvg::DestroyMaskLayer(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 1 && args[0]->IsUint32())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected DestroyMaskLayer(VGMaskLayer)")));
+  }
+
+  vgDestroyMaskLayer((VGMaskLayer) args[0]->Uint32Value());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::FillMaskLayer(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 6 && args[0]->IsUint32() &&
+        args[1]->IsInt32() && args[2]->IsInt32() &&
+        args[3]->IsInt32() && args[4]->IsInt32() &&
+        args[5]->IsNumber())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected FillMaskLayer()")));
+  }
+
+  vgFillMaskLayer((VGMaskLayer) args[0]->Uint32Value(),
+                  (VGint) args[1]->Int32Value(),
+                  (VGint) args[2]->Int32Value(),
+                  (VGint) args[3]->Int32Value(),
+                  (VGint) args[4]->Int32Value(),
+                  (VGfloat) args[5]->NumberValue());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::CopyMask(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 7 && args[0]->IsUint32() &&
+        args[1]->IsInt32() && args[2]->IsInt32() &&
+        args[3]->IsInt32() && args[4]->IsInt32() &&
+        args[5]->IsInt32() && args[6]->IsInt32())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected CopyMask(VGMaskLayer, dx, dy, sx, sy, width, height)")));
+  }
+
+  vgCopyMask((VGMaskLayer) args[0]->Uint32Value(),
+             (VGint) args[1]->Int32Value(), (VGint) args[2]->Int32Value(),
+             (VGint) args[3]->Int32Value(), (VGint) args[4]->Int32Value(),
+             (VGint) args[5]->Int32Value(), (VGint) args[6]->Int32Value());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::Clear(const Arguments& args) {
+  HandleScope scope;
+
+  if (!(args.Length() == 4 && args[0]->IsUint32() &&
+        args[1]->IsInt32() && args[2]->IsInt32() &&
+        args[3]->IsInt32())) {
+    return ThrowException(Exception::TypeError(String::New("Invalid arguments: Expected Clear(x, y, width, height)")));
+  }
+
+  vgClear((VGint) args[0]->Int32Value(), (VGint) args[1]->Int32Value(),
+          (VGint) args[2]->Int32Value(), (VGint) args[3]->Int32Value());
 
   return Undefined();
 }

@@ -49,6 +49,15 @@ namespace openvg {
   static Handle<Value> Shear(const Arguments& args);
   static Handle<Value> Rotate(const Arguments& args);
 
+  /* Masking and Clearing */
+  static Handle<Value> Mask(const Arguments& args);
+  static Handle<Value> RenderToMask(const Arguments& args);
+  static Handle<Value> CreateMaskLayer(const Arguments& args);
+  static Handle<Value> DestroyMaskLayer(const Arguments& args);
+  static Handle<Value> FillMaskLayer(const Arguments& args);
+  static Handle<Value> CopyMask(const Arguments& args);
+  static Handle<Value> Clear(const Arguments& args);
+
   static Handle<Value> Start(const Arguments& args);
   static Handle<Value> End(const Arguments& args);
   static Handle<Value> Rect(const Arguments& args);
