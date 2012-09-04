@@ -21,7 +21,6 @@ namespace openvg {
   static Handle<Value> Rect(const Arguments& args);
   static Handle<Value> Fill(const Arguments& args);
   static Handle<Value> Ellipse(const Arguments& args);
-  static Handle<Value> Circle(const Arguments& args);
   static Handle<Value> TextMiddle(const Arguments& args);
 }
 
