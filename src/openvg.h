@@ -100,6 +100,15 @@ namespace openvg {
   static Handle<Value> ReadPixels(const Arguments& args);
   static Handle<Value> CopyPixels(const Arguments& args);
 
+  /* Text */
+  static Handle<Value> CreateFont(const Arguments& args);
+  static Handle<Value> DestroyFont(const Arguments& args);
+  static Handle<Value> SetGlyphToPath(const Arguments& args);
+  static Handle<Value> SetGlyphToImage(const Arguments& args);
+  static Handle<Value> ClearGlyph(const Arguments& args);
+  static Handle<Value> DrawGlyph(const Arguments& args);
+  static Handle<Value> DrawGlyphs(const Arguments& args);
+
   static Handle<Value> End(const Arguments& args);
   static Handle<Value> Rect(const Arguments& args);
   static Handle<Value> Ellipse(const Arguments& args);

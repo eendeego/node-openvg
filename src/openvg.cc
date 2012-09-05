@@ -106,6 +106,15 @@ init(Handle<Object> target)
   NODE_SET_METHOD(target, "readPixels"     , openvg::ReadPixels);
   NODE_SET_METHOD(target, "copyPixels"     , openvg::CopyPixels);
 
+  /* Text */
+  NODE_SET_METHOD(target, "createFont"     , openvg::CreateFont);
+  NODE_SET_METHOD(target, "destroyFont"    , openvg::DestroyFont);
+  NODE_SET_METHOD(target, "setGlyphToPath" , openvg::SetGlyphToPath);
+  NODE_SET_METHOD(target, "setGlyphToImage", openvg::SetGlyphToImage);
+  NODE_SET_METHOD(target, "clearGlyph"     , openvg::ClearGlyph);
+  NODE_SET_METHOD(target, "drawGlyph"      , openvg::DrawGlyph);
+  NODE_SET_METHOD(target, "drawGlyphs"     , openvg::DrawGlyphs);
+
 
   NODE_SET_METHOD(target, "end"            , openvg::End);
 
@@ -1140,6 +1149,124 @@ Handle<Value> openvg::CopyPixels(const Arguments& args) {
   return Undefined();
 }
 
+
+/* Text */
+
+
+Handle<Value> openvg::CreateFont(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs1(createFont, glyphCapacityHint, Int32);
+
+  return Uint32::New(vgCreateFont((VGint) args[0]->Int32Value()));
+}
+
+Handle<Value> openvg::DestroyFont(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs1(destroyFont, VGFont, Number);
+
+  vgDestroyFont((VGFont) args[0]->Uint32Value());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::SetGlyphToPath(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs6(setGlyphToPath, VGFont, Number, glyphIndex, Uint32,
+             VGPath, Uint32, isHinted, Boolean,
+             glyphOrigin, Object, escapement, Object);
+
+  Local<Object> glyphOriginArray = args[4]->ToObject();
+  Handle<Object> glyphOriginBuffer = glyphOriginArray->Get(String::New("buffer"))->ToObject();
+
+  Local<Object> escapementArray = args[5]->ToObject();
+  Handle<Object> escapementBuffer = escapementArray->Get(String::New("buffer"))->ToObject();
+
+  vgSetGlyphToPath((VGFont) args[0]->Uint32Value(),
+                   (VGuint) args[1]->Uint32Value(),
+                   (VGPath) args[2]->Uint32Value(),
+                   (VGboolean) args[3]->BooleanValue(),
+                   (VGfloat*) glyphOriginBuffer->GetIndexedPropertiesExternalArrayData(),
+                   (VGfloat*) escapementBuffer->GetIndexedPropertiesExternalArrayData());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::SetGlyphToImage(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs5(setGlyphToImage, VGFont, Number, glyphIndex, Uint32,
+             VGImage, Uint32,
+             glyphOrigin, Object, escapement, Object);
+
+  Local<Object> glyphOriginArray = args[3]->ToObject();
+  Handle<Object> glyphOriginBuffer = glyphOriginArray->Get(String::New("buffer"))->ToObject();
+
+  Local<Object> escapementArray = args[4]->ToObject();
+  Handle<Object> escapementBuffer = escapementArray->Get(String::New("buffer"))->ToObject();
+
+  vgSetGlyphToImage((VGFont) args[0]->Uint32Value(),
+                    (VGuint) args[1]->Uint32Value(),
+                    (VGImage) args[2]->Uint32Value(),
+                    (VGfloat*) glyphOriginBuffer->GetIndexedPropertiesExternalArrayData(),
+                    (VGfloat*) escapementBuffer->GetIndexedPropertiesExternalArrayData());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::ClearGlyph(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs2(clearGlyph, VGFont, Number, glyphIndex, Uint32);
+
+  vgClearGlyph((VGFont) args[0]->Uint32Value(),
+               (VGuint) args[1]->Uint32Value());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::DrawGlyph(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs4(drawGlyph, VGFont, Number, glyphIndex, Uint32,
+             paintModes, Uint32, allowAutoHinting, Boolean);
+
+  vgDrawGlyph((VGFont) args[0]->Uint32Value(),
+              (VGuint) args[1]->Uint32Value(),
+              (VGbitfield) args[2]->Uint32Value(),
+              (VGboolean) args[3]->BooleanValue());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::DrawGlyphs(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs7(drawGlyphs, VGFont, Number, glyphCount, Int32,
+             glyphIndices, Object, adjustments_x, Object, adjustments_y, Object,
+             paintModes, Uint32, allowAutoHinting, Boolean);
+
+  Local<Object> glyphIndicesArray = args[2]->ToObject();
+  Handle<Object> glyphIndicesBuffer = glyphIndicesArray->Get(String::New("buffer"))->ToObject();
+
+  Local<Object> adjustments_xArray = args[3]->ToObject();
+  Handle<Object> adjustments_xBuffer = adjustments_xArray->Get(String::New("buffer"))->ToObject();
+
+  Local<Object> adjustments_yArray = args[4]->ToObject();
+  Handle<Object> adjustments_yBuffer = adjustments_yArray->Get(String::New("buffer"))->ToObject();
+
+  vgDrawGlyphs((VGFont) args[0]->Uint32Value(),
+               (VGuint) args[1]->Uint32Value(),
+               (VGuint*) glyphIndicesBuffer->GetIndexedPropertiesExternalArrayData(),
+               (VGfloat*) adjustments_xBuffer->GetIndexedPropertiesExternalArrayData(),
+               (VGfloat*) adjustments_yBuffer->GetIndexedPropertiesExternalArrayData(),
+               (VGbitfield) args[5]->Uint32Value(),
+               (VGboolean) args[6]->BooleanValue());
+
+  return Undefined();
+}
 
 
 
