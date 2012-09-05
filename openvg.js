@@ -608,7 +608,3 @@ openVG.init = function() {
 openVG.finish = function() {
   openVG.shutdown();
 };
-
-openVG.circle = function(x, y, r) {
-  openVG.ellipse(x, y, r, r);
-};

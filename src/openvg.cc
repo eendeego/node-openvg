@@ -147,8 +147,6 @@ init(Handle<Object> target)
 
   NODE_SET_METHOD(target, "end"            , openvg::End);
 
-  NODE_SET_METHOD(target, "rect"           , openvg::Rect);
-  NODE_SET_METHOD(target, "ellipse"        , openvg::Ellipse);
   NODE_SET_METHOD(target, "textMiddle"     , openvg::TextMiddle);
 }
 
@@ -160,28 +158,6 @@ init(Handle<Object> target)
       __assert_fail (buffer, __FILE__, __LINE__, __PRETTY_FUNCTION__);\
     }\
   }
-
-// newPath creates path data
-VGPath newPath() {
-  return vgCreatePath(VG_PATH_FORMAT_STANDARD, VG_PATH_DATATYPE_F,
-                      1.0f, 0.0f, 0, 0, VG_PATH_CAPABILITY_ALL);
-}
-
-// Rect makes a rectangle at the specified location and dimensions
-void rect(VGfloat x, VGfloat y, VGfloat w, VGfloat h) {
-  VGPath path = newPath();
-  vguRect(path, x, y, w, h);
-  vgDrawPath(path, VG_FILL_PATH | VG_STROKE_PATH);
-  vgDestroyPath(path);
-}
-
-// Ellipse makes an ellipse at the specified location and dimensions
-void ellipse(VGfloat x, VGfloat y, VGfloat w, VGfloat h) {
-  VGPath path = newPath();
-  vguEllipse(path, x, y, w, h);
-  vgDrawPath(path, VG_FILL_PATH | VG_STROKE_PATH);
-  vgDestroyPath(path);
-}
 
 Handle<Value> openvg::StartUp(const Arguments& args) {
   HandleScope scope;
@@ -1633,31 +1609,6 @@ Handle<Value> openvg::End(const Arguments& args) {
   CHECK_VG_ERROR;
   egl::swapBuffers(egl::State.display, egl::State.surface);
   assert(eglGetError() == EGL_SUCCESS);
-
-  return Undefined();
-}
-
-Handle<Value> openvg::Rect(const Arguments& args) {
-  CheckArgs4(rect, x, Number, y, Number, w, Number, h, Number);
-
-  VGfloat x = (VGfloat) args[0]->NumberValue();
-  VGfloat y = (VGfloat) args[1]->NumberValue();
-  VGfloat w = (VGfloat) args[2]->NumberValue();
-  VGfloat h = (VGfloat) args[3]->NumberValue();
-
-  rect(x, y, w, h);
-
-  return Undefined();
-}
-
-Handle<Value> openvg::Ellipse(const Arguments& args) {
-  CheckArgs4(ellipse, x, Number, y, Number, w, Number, h, Number);
-
-  VGfloat x = (VGfloat) args[0]->NumberValue();
-  VGfloat y = (VGfloat) args[1]->NumberValue();
-  VGfloat w = (VGfloat) args[2]->NumberValue();
-  VGfloat h = (VGfloat) args[3]->NumberValue();
-  ellipse(x, y, w, h);
 
   return Undefined();
 }

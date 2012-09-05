@@ -136,8 +136,6 @@ namespace openvg {
   }
 
   static Handle<Value> End(const Arguments& args);
-  static Handle<Value> Rect(const Arguments& args);
-  static Handle<Value> Ellipse(const Arguments& args);
   static Handle<Value> TextMiddle(const Arguments& args);
 }
 

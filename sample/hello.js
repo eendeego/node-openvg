@@ -56,10 +56,37 @@ function strokeWidth(width) {
   openVG.setI(openVG.VGParamType.VG_STROKE_JOIN_STYLE, openVG.VGJoinStyle.VG_JOIN_MITER);
 }
 
+function newPath() {
+  return openVG.createPath(openVG.VG_PATH_FORMAT_STANDARD,
+                           openVG.VGPathDatatype.VG_PATH_DATATYPE_F,
+                           1.0, 0.0, 0, 0,
+                           openVG.VGPathCapabilities.VG_PATH_CAPABILITY_ALL);
+}
+
+// Rect makes a rectangle at the specified location and dimensions
+function rect(x, y, w, h) {
+  var path = newPath();
+  openVG.vgu.rect(path, x, y, w, h);
+  openVG.drawPath(path, openVG.VGPaintMode.VG_FILL_PATH | openVG.VGPaintMode.VG_STROKE_PATH);
+  openVG.destroyPath(path);
+}
+
+// Ellipse makes an ellipse at the specified location and dimensions
+function ellipse(x, y, w, h) {
+  var path = newPath();
+  openVG.vgu.ellipse(path, x, y, w, h);
+  openVG.drawPath(path, openVG.VGPaintMode.VG_FILL_PATH | openVG.VGPaintMode.VG_STROKE_PATH);
+  openVG.destroyPath(path);
+}
+
+function circle(x, y, r) {
+  ellipse(x, y, r, r);
+}
+
 function background(r, g, b) {
   fill(r, g, b, 1.0);
-  openVG.rect(0, 0, openVG.screen.width, openVG.screen.height);
-};
+  rect(0, 0, openVG.screen.width, openVG.screen.height);
+}
 
 function fill(r, g, b, a) {
   var color = new Float32Array(4);
@@ -96,7 +123,7 @@ Object.keys(openVG.VGStringID).map(function(string) {
 start();                             // Start the picture
 background(0, 0, 0);                 // Black background
 fill(44, 77, 232, 1);                // Big blue marble
-openVG.circle(width/2, 0, width);           // The "world"
+circle(width/2, 0, width);           // The "world"
 fill(255, 255, 255, 1);              // White text
 // openVG.textMiddle(width/2, height/2,
 //                   "hello, world",
