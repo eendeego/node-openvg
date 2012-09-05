@@ -90,6 +90,23 @@ init(Handle<Object> target)
   NODE_SET_METHOD(target, "getColor"    , openvg::GetColor);
   NODE_SET_METHOD(target, "paintPattern", openvg::PaintPattern);
 
+  /* Images */
+  NODE_SET_METHOD(target, "createImage"    , openvg::CreateImage);
+  NODE_SET_METHOD(target, "destroyImage"   , openvg::DestroyImage);
+  NODE_SET_METHOD(target, "clearImage"     , openvg::ClearImage);
+  NODE_SET_METHOD(target, "imageSubData"   , openvg::ImageSubData);
+  NODE_SET_METHOD(target, "getImageSubData", openvg::GetImageSubData);
+  NODE_SET_METHOD(target, "childImage"     , openvg::ChildImage);
+  NODE_SET_METHOD(target, "getParent"      , openvg::GetParent);
+  NODE_SET_METHOD(target, "copyImage"      , openvg::CopyImage);
+  NODE_SET_METHOD(target, "drawImage"      , openvg::DrawImage);
+  NODE_SET_METHOD(target, "setPixels"      , openvg::SetPixels);
+  NODE_SET_METHOD(target, "writePixels"    , openvg::WritePixels);
+  NODE_SET_METHOD(target, "getPixels"      , openvg::GetPixels);
+  NODE_SET_METHOD(target, "readPixels"     , openvg::ReadPixels);
+  NODE_SET_METHOD(target, "copyPixels"     , openvg::CopyPixels);
+
+
   NODE_SET_METHOD(target, "end"            , openvg::End);
 
   NODE_SET_METHOD(target, "rect"           , openvg::Rect);
@@ -890,6 +907,239 @@ Handle<Value> openvg::PaintPattern(const Arguments& args) {
 
   return Undefined();
 }
+
+
+/* Images */
+
+
+Handle<Value> openvg::CreateImage(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs4(createImage, VGImageFormat, Uint32, width, Int32, height, Int32, allowedQuality, Uint32);
+
+  return Uint32::New(vgCreateImage(static_cast<VGImageFormat>(args[0]->Uint32Value()),
+                                   (VGint) args[1]->Int32Value(),
+                                   (VGint) args[2]->Int32Value(),
+                                   (VGuint) args[3]->Uint32Value()));
+}
+
+Handle<Value> openvg::DestroyImage(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs1(destroyImage, VGImage, Uint32);
+
+  vgDestroyImage((VGImage) (VGPaint) args[0]->Uint32Value());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::ClearImage(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs5(clearImage, VGImage, Uint32, x, Int32, y, Int32, width, Int32, height, Int32);
+
+  vgClearImage((VGImage) args[0]->Uint32Value(),
+               (VGint) args[1]->Int32Value(),
+               (VGint) args[2]->Int32Value(),
+               (VGint) args[3]->Int32Value(),
+               (VGint) args[4]->Int32Value());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::ImageSubData(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs8(imageSubData,
+             VGImage, Uint32, data, Object, dataStride, Int32, dataFormat, Uint32,
+             x, Int32, y, Int32, width, Int32, height, Int32);
+
+  Local<Object> dataArray = args[1]->ToObject();
+  Handle<Object> dataBuffer = dataArray->Get(String::New("buffer"))->ToObject();
+
+  vgImageSubData((VGImage) args[0]->Uint32Value(),
+                 (void*) dataBuffer->GetIndexedPropertiesExternalArrayData(),
+                 (VGint) args[2]->Int32Value(),
+                 static_cast<VGImageFormat>(args[3]->Uint32Value()),
+                 (VGint) args[4]->Int32Value(),
+                 (VGint) args[5]->Int32Value(),
+                 (VGint) args[6]->Int32Value(),
+                 (VGint) args[7]->Int32Value());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::GetImageSubData(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs8(getImageSubData,
+             VGImage, Uint32, data, Object, dataStride, Int32, dataFormat, Uint32,
+             x, Int32, y, Int32, width, Int32, height, Int32);
+
+  Local<Object> dataArray = args[1]->ToObject();
+  Handle<Object> dataBuffer = dataArray->Get(String::New("buffer"))->ToObject();
+
+  vgGetImageSubData((VGImage) args[0]->Uint32Value(),
+                    (void*) dataBuffer->GetIndexedPropertiesExternalArrayData(),
+                    (VGint) args[2]->Int32Value(),
+                    static_cast<VGImageFormat>(args[3]->Uint32Value()),
+                    (VGint) args[4]->Int32Value(),
+                    (VGint) args[5]->Int32Value(),
+                    (VGint) args[6]->Int32Value(),
+                    (VGint) args[7]->Int32Value());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::ChildImage(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs5(childImage, VGImage, Uint32, x, Int32, y, Int32, width, Int32, height, Int32);
+
+  return Uint32::New(vgChildImage((VGImage) args[0]->Uint32Value(),
+                                  (VGint) args[1]->Int32Value(),
+                                  (VGint) args[2]->Int32Value(),
+                                  (VGint) args[3]->Int32Value(),
+                                  (VGint) args[4]->Int32Value()));
+}
+
+Handle<Value> openvg::GetParent(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs1(getParent, VGImage, Int32);
+
+  return Uint32::New(vgGetParent((VGImage) args[0]->Uint32Value()));
+}
+
+Handle<Value> openvg::CopyImage(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs9(copyImage,
+             dstImage, Uint32, dx, Int32, dy, Int32,
+             srcImage, Uint32, sx, Int32, sy, Int32,
+             width, Int32, height, Int32, dither, Boolean);
+
+  vgCopyImage((VGImage) args[0]->Uint32Value(),
+              (VGint) args[1]->Int32Value(),
+              (VGint) args[2]->Int32Value(),
+              (VGImage) args[3]->Uint32Value(),
+              (VGint) args[4]->Int32Value(),
+              (VGint) args[5]->Int32Value(),
+              (VGint) args[6]->Int32Value(),
+              (VGint) args[7]->Int32Value(),
+              (VGboolean) args[8]->BooleanValue());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::DrawImage(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs1(drawImage, VGImage, Uint32);
+
+  vgDrawImage((VGImage) args[0]->Uint32Value());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::SetPixels(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs7(setPixels,
+             dx, Int32, dy, Int32,
+             srcImage, Uint32, dx, Int32, dy, Int32,
+             width, Int32, height, Int32);
+
+  vgSetPixels((VGint) args[0]->Int32Value(),
+              (VGint) args[1]->Int32Value(),
+              (VGImage) args[2]->Uint32Value(),
+              (VGint) args[3]->Int32Value(),
+              (VGint) args[4]->Int32Value(),
+              (VGint) args[5]->Int32Value(),
+              (VGint) args[6]->Int32Value());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::WritePixels(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs7(writePixels, data, Object, dataStride, Int32,
+             dataFormat, Uint32,
+             dx, Int32, dy, Int32, width, Int32, height, Int32);
+
+  Local<Object> dataArray = args[0]->ToObject();
+  Handle<Object> dataBuffer = dataArray->Get(String::New("buffer"))->ToObject();
+
+  vgWritePixels((void*) dataBuffer->GetIndexedPropertiesExternalArrayData(),
+                (VGint) args[1]->Int32Value(),
+                static_cast<VGImageFormat>(args[2]->Uint32Value()),
+                (VGint) args[3]->Int32Value(),
+                (VGint) args[4]->Int32Value(),
+                (VGint) args[5]->Int32Value(),
+                (VGint) args[6]->Int32Value());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::GetPixels(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs7(getPixels,
+             VGImage, Uint32,
+             dx, Int32, dy, Int32,
+             sx, Int32, sy, Int32,
+             width, Int32, height, Int32);
+
+  vgGetPixels((VGImage) args[0]->Uint32Value(),
+              (VGint) args[1]->Int32Value(),
+              (VGint) args[2]->Int32Value(),
+              (VGint) args[3]->Int32Value(),
+              (VGint) args[4]->Int32Value(),
+              (VGint) args[5]->Int32Value(),
+              (VGint) args[6]->Int32Value());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::ReadPixels(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs7(readPixels,
+             data, Object, dataStride, Int32, dataFormat, Uint32,
+             sx, Int32, sy, Int32, width, Int32, height, Int32);
+
+  Local<Object> dataArray = args[0]->ToObject();
+  Handle<Object> dataBuffer = dataArray->Get(String::New("buffer"))->ToObject();
+
+  vgReadPixels((void*) dataBuffer->GetIndexedPropertiesExternalArrayData(),
+               (VGint) args[1]->Int32Value(),
+               static_cast<VGImageFormat>(args[2]->Uint32Value()),
+               (VGint) args[3]->Int32Value(),
+               (VGint) args[4]->Int32Value(),
+               (VGint) args[5]->Int32Value(),
+               (VGint) args[6]->Int32Value());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::CopyPixels(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs6(copyPixels,
+             dx, Int32, dy, Int32, sx, Int32, sy, Int32,
+             width, Int32, height, Int32);
+
+  vgCopyPixels((VGint) args[0]->Int32Value(),
+               (VGint) args[1]->Int32Value(),
+               (VGint) args[2]->Int32Value(),
+               (VGint) args[3]->Int32Value(),
+               (VGint) args[4]->Int32Value(),
+               (VGint) args[5]->Int32Value());
+
+  return Undefined();
+}
+
 
 
 

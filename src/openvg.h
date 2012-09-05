@@ -84,6 +84,22 @@ namespace openvg {
   static Handle<Value> GetColor(const Arguments& args);
   static Handle<Value> PaintPattern(const Arguments& args);
 
+  /* Images */
+  static Handle<Value> CreateImage(const Arguments& args);
+  static Handle<Value> DestroyImage(const Arguments& args);
+  static Handle<Value> ClearImage(const Arguments& args);
+  static Handle<Value> ImageSubData(const Arguments& args);
+  static Handle<Value> GetImageSubData(const Arguments& args);
+  static Handle<Value> ChildImage(const Arguments& args);
+  static Handle<Value> GetParent(const Arguments& args);
+  static Handle<Value> CopyImage(const Arguments& args);
+  static Handle<Value> DrawImage(const Arguments& args);
+  static Handle<Value> SetPixels(const Arguments& args);
+  static Handle<Value> WritePixels(const Arguments& args);
+  static Handle<Value> GetPixels(const Arguments& args);
+  static Handle<Value> ReadPixels(const Arguments& args);
+  static Handle<Value> CopyPixels(const Arguments& args);
+
   static Handle<Value> End(const Arguments& args);
   static Handle<Value> Rect(const Arguments& args);
   static Handle<Value> Ellipse(const Arguments& args);
