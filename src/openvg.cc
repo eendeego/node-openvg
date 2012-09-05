@@ -123,6 +123,11 @@ init(Handle<Object> target)
   NODE_SET_METHOD(target, "lookup"           , openvg::Lookup);
   NODE_SET_METHOD(target, "lookupSingle"     , openvg::LookupSingle);
 
+  /* Hardware Queries */
+  NODE_SET_METHOD(target, "hardwareQuery", openvg::HardwareQuery);
+
+  /* Renderer and Extension Information */
+  NODE_SET_METHOD(target, "getString", openvg::GetString);
 
   NODE_SET_METHOD(target, "end"            , openvg::End);
 
@@ -1417,6 +1422,29 @@ Handle<Value> openvg::LookupSingle(const Arguments& args) {
                  (VGboolean) args[5]->BooleanValue());
 
   return Undefined();
+}
+
+
+/* Hardware Queries */
+Handle<Value> openvg::HardwareQuery(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs2(hardwareQuery, key, Uint32, setting, Int32);
+
+  return Uint32::New(vgHardwareQuery(static_cast<VGHardwareQueryType>(args[0]->Uint32Value()),
+                                     (VGint) args[1]->Int32Value()));
+}
+
+
+/* Renderer and Extension Information */
+VG_API_CALL const VGubyte * VG_API_ENTRY vgGetString(VGStringID name) VG_API_EXIT;
+
+Handle<Value> openvg::GetString(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs1(getString, key, Uint32);
+
+  return String::New((char*) vgGetString(static_cast<VGStringID>(args[0]->Uint32Value())));
 }
 
 

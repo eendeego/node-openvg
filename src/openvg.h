@@ -117,6 +117,12 @@ namespace openvg {
   static Handle<Value> Lookup(const Arguments& args);
   static Handle<Value> LookupSingle(const Arguments& args);
 
+  /* Hardware Queries */
+  static Handle<Value> HardwareQuery(const Arguments& args);
+
+  /* Renderer and Extension Information */
+  static Handle<Value> GetString(const Arguments& args);
+
   static Handle<Value> End(const Arguments& args);
   static Handle<Value> Rect(const Arguments& args);
   static Handle<Value> Ellipse(const Arguments& args);
