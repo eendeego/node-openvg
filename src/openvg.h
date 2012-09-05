@@ -123,6 +123,18 @@ namespace openvg {
   /* Renderer and Extension Information */
   static Handle<Value> GetString(const Arguments& args);
 
+  namespace vgu {
+    static Handle<Value> Line(const Arguments& args);
+    static Handle<Value> Polygon(const Arguments& args);
+    static Handle<Value> Rect(const Arguments& args);
+    static Handle<Value> RoundRect(const Arguments& args);
+    static Handle<Value> Ellipse(const Arguments& args);
+    static Handle<Value> Arc(const Arguments& args);
+    static Handle<Value> ComputeWarpQuadToSquare(const Arguments& args);
+    static Handle<Value> ComputeWarpSquareToQuad(const Arguments& args);
+    static Handle<Value> ComputeWarpQuadToQuad(const Arguments& args);
+  }
+
   static Handle<Value> End(const Arguments& args);
   static Handle<Value> Rect(const Arguments& args);
   static Handle<Value> Ellipse(const Arguments& args);

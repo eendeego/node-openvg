@@ -8,6 +8,8 @@
 #include "egl.h"
 #include "argchecks.h"
 
+#include <stdio.h>
+
 using namespace node;
 using namespace v8;
 
@@ -128,6 +130,20 @@ init(Handle<Object> target)
 
   /* Renderer and Extension Information */
   NODE_SET_METHOD(target, "getString", openvg::GetString);
+
+  /* Utilities */
+  Local<Object> VGU = Object::New();
+  target->Set(String::New("vgu"), VGU);
+
+  NODE_SET_METHOD(VGU, "line"                   , openvg::vgu::Line);
+  NODE_SET_METHOD(VGU, "polygon"                , openvg::vgu::Polygon);
+  NODE_SET_METHOD(VGU, "rect"                   , openvg::vgu::Rect);
+  NODE_SET_METHOD(VGU, "roundRect"              , openvg::vgu::RoundRect);
+  NODE_SET_METHOD(VGU, "ellipse"                , openvg::vgu::Ellipse);
+  NODE_SET_METHOD(VGU, "arc"                    , openvg::vgu::Arc);
+  NODE_SET_METHOD(VGU, "computeWarpQuadToSquare", openvg::vgu::ComputeWarpQuadToSquare);
+  NODE_SET_METHOD(VGU, "computeWarpSquareToQuad", openvg::vgu::ComputeWarpSquareToQuad);
+  NODE_SET_METHOD(VGU, "computeWarpQuadToQuad"  , openvg::vgu::ComputeWarpQuadToQuad);
 
   NODE_SET_METHOD(target, "end"            , openvg::End);
 
@@ -1448,6 +1464,165 @@ Handle<Value> openvg::GetString(const Arguments& args) {
 }
 
 
+/* Utilities */
+
+
+Handle<Value> openvg::vgu::Line(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs5(line, VGPath, Number, x0, Number, y0, Number, x1, Number, y1, Number);
+
+  return Uint32::New(vguLine((VGPath) args[0]->Uint32Value(),
+                             (VGfloat) args[1]->NumberValue(),
+                             (VGfloat) args[2]->NumberValue(),
+                             (VGfloat) args[3]->NumberValue(),
+                             (VGfloat) args[4]->NumberValue()));
+}
+
+Handle<Value> openvg::vgu::Polygon(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs4(polygon, VGPath, Number, Float32Array, Object, count, Int32, closed, Boolean);
+
+  Local<Object> pointsArray = args[1]->ToObject();
+  Handle<Object> pointsBuffer = pointsArray->Get(String::New("buffer"))->ToObject();
+
+  return Uint32::New(vguPolygon((VGPath) args[0]->Uint32Value(),
+                                (VGfloat*) pointsBuffer->GetIndexedPropertiesExternalArrayData(),
+                                (VGint) args[2]->Int32Value(),
+                                (VGboolean) args[3]->BooleanValue()));
+}
+
+Handle<Value> openvg::vgu::Rect(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs5(rect, VGPath, Number, x, Number, y, Number,
+             width, Number, height, Number);
+
+  return Uint32::New(vguRect((VGPath) args[0]->Uint32Value(),
+                             (VGfloat) args[1]->NumberValue(),
+                             (VGfloat) args[2]->NumberValue(),
+                             (VGfloat) args[3]->NumberValue(),
+                             (VGfloat) args[4]->NumberValue()));
+}
+
+Handle<Value> openvg::vgu::RoundRect(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs7(rect, VGPath,
+             Number, x, Number, y, Number, width, Number, height,
+             Number, arcWidth, Number, arcHeight, Number);
+
+  return Uint32::New(vguRoundRect((VGPath) args[0]->Uint32Value(),
+                                  (VGfloat) args[1]->NumberValue(),
+                                  (VGfloat) args[2]->NumberValue(),
+                                  (VGfloat) args[3]->NumberValue(),
+                                  (VGfloat) args[4]->NumberValue(),
+                                  (VGfloat) args[5]->NumberValue(),
+                                  (VGfloat) args[6]->NumberValue()));
+}
+
+Handle<Value> openvg::vgu::Ellipse(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs5(ellipse, VGPath, Number, x, Number, y, Number,
+             width, Number, height, Number);
+
+  return Uint32::New(vguEllipse((VGPath) args[0]->Uint32Value(),
+                                (VGfloat) args[1]->NumberValue(),
+                                (VGfloat) args[2]->NumberValue(),
+                                (VGfloat) args[3]->NumberValue(),
+                                (VGfloat) args[4]->NumberValue()));
+}
+
+Handle<Value> openvg::vgu::Arc(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs8(arc,
+             VGPath, Number, x, Number, y, Number,
+             width, Number, height, Number,
+             startAngle, Number, angleExtent, Number, VGUArcType, Uint32);
+
+  return Uint32::New(vguArc((VGPath) args[0]->Uint32Value(),
+                            (VGfloat) args[1]->NumberValue(),
+                            (VGfloat) args[2]->NumberValue(),
+                            (VGfloat) args[3]->NumberValue(),
+                            (VGfloat) args[4]->NumberValue(),
+                            (VGfloat) args[5]->NumberValue(),
+                            (VGfloat) args[6]->NumberValue(),
+                            static_cast<VGUArcType>(args[7]->Uint32Value())));
+}
+
+Handle<Value> openvg::vgu::ComputeWarpQuadToSquare(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs9(computeWarpQuadToSquare,
+             sx0, Number, sy0, Number, sx1, Number, sy1, Number,
+             sx2, Number, sy2, Number, sx3, Number, sy3, Number,
+             Float32Array, Object);
+
+  Local<Object> matrixArray = args[8]->ToObject();
+  Handle<Object> matrixBuffer = matrixArray->Get(String::New("buffer"))->ToObject();
+
+  return Uint32::New(vguComputeWarpQuadToSquare((VGfloat) args[0]->NumberValue(),
+                                                (VGfloat) args[1]->NumberValue(),
+                                                (VGfloat) args[2]->NumberValue(),
+                                                (VGfloat) args[3]->NumberValue(),
+                                                (VGfloat) args[4]->NumberValue(),
+                                                (VGfloat) args[5]->NumberValue(),
+                                                (VGfloat) args[6]->NumberValue(),
+                                                (VGfloat) args[7]->NumberValue(),
+                                                (VGfloat*) matrixBuffer->GetIndexedPropertiesExternalArrayData()));
+}
+
+Handle<Value> openvg::vgu::ComputeWarpSquareToQuad(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs9(computeWarpSquareToQuad,
+             sx0, Number, sy0, Number, sx1, Number, sy1, Number,
+             sx2, Number, sy2, Number, sx3, Number, sy3, Number,
+             Float32Array, Object);
+
+  Local<Object> matrixArray = args[8]->ToObject();
+  Handle<Object> matrixBuffer = matrixArray->Get(String::New("buffer"))->ToObject();
+
+  return Uint32::New(vguComputeWarpSquareToQuad((VGfloat) args[0]->NumberValue(),
+                                                (VGfloat) args[1]->NumberValue(),
+                                                (VGfloat) args[2]->NumberValue(),
+                                                (VGfloat) args[3]->NumberValue(),
+                                                (VGfloat) args[4]->NumberValue(),
+                                                (VGfloat) args[5]->NumberValue(),
+                                                (VGfloat) args[6]->NumberValue(),
+                                                (VGfloat) args[7]->NumberValue(),
+                                                (VGfloat*) matrixBuffer->GetIndexedPropertiesExternalArrayData()));
+}
+
+Handle<Value> openvg::vgu::ComputeWarpQuadToQuad(const Arguments& args) {
+  HandleScope scope;
+
+  // No arg check -> Would be a 17 arg function
+
+  Local<Object> matrixArray = args[8]->ToObject();
+  Handle<Object> matrixBuffer = matrixArray->Get(String::New("buffer"))->ToObject();
+
+  return Uint32::New(vguComputeWarpQuadToQuad((VGfloat) args[ 0]->NumberValue(),
+                                              (VGfloat) args[ 1]->NumberValue(),
+                                              (VGfloat) args[ 2]->NumberValue(),
+                                              (VGfloat) args[ 3]->NumberValue(),
+                                              (VGfloat) args[ 4]->NumberValue(),
+                                              (VGfloat) args[ 5]->NumberValue(),
+                                              (VGfloat) args[ 6]->NumberValue(),
+                                              (VGfloat) args[ 7]->NumberValue(),
+                                              (VGfloat) args[ 8]->NumberValue(),
+                                              (VGfloat) args[ 9]->NumberValue(),
+                                              (VGfloat) args[10]->NumberValue(),
+                                              (VGfloat) args[11]->NumberValue(),
+                                              (VGfloat) args[12]->NumberValue(),
+                                              (VGfloat) args[13]->NumberValue(),
+                                              (VGfloat) args[14]->NumberValue(),
+                                              (VGfloat) args[15]->NumberValue(),
+                                              (VGfloat*) matrixBuffer->GetIndexedPropertiesExternalArrayData()));
+}
 
 
 Handle<Value> openvg::End(const Arguments& args) {
