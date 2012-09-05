@@ -109,6 +109,14 @@ namespace openvg {
   static Handle<Value> DrawGlyph(const Arguments& args);
   static Handle<Value> DrawGlyphs(const Arguments& args);
 
+  /* Image Filters */
+  static Handle<Value> ColorMatrix(const Arguments& args);
+  static Handle<Value> Convolve(const Arguments& args);
+  static Handle<Value> SeparableConvolve(const Arguments& args);
+  static Handle<Value> GaussianBlur(const Arguments& args);
+  static Handle<Value> Lookup(const Arguments& args);
+  static Handle<Value> LookupSingle(const Arguments& args);
+
   static Handle<Value> End(const Arguments& args);
   static Handle<Value> Rect(const Arguments& args);
   static Handle<Value> Ellipse(const Arguments& args);

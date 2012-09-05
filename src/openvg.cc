@@ -115,6 +115,14 @@ init(Handle<Object> target)
   NODE_SET_METHOD(target, "drawGlyph"      , openvg::DrawGlyph);
   NODE_SET_METHOD(target, "drawGlyphs"     , openvg::DrawGlyphs);
 
+  /* Image Filters */
+  NODE_SET_METHOD(target, "colorMatrix"      , openvg::ColorMatrix);
+  NODE_SET_METHOD(target, "convolve"         , openvg::Convolve);
+  NODE_SET_METHOD(target, "separableConvolve", openvg::SeparableConvolve);
+  NODE_SET_METHOD(target, "gaussianBlur"     , openvg::GaussianBlur);
+  NODE_SET_METHOD(target, "lookup"           , openvg::Lookup);
+  NODE_SET_METHOD(target, "lookupSingle"     , openvg::LookupSingle);
+
 
   NODE_SET_METHOD(target, "end"            , openvg::End);
 
@@ -1268,6 +1276,148 @@ Handle<Value> openvg::DrawGlyphs(const Arguments& args) {
   return Undefined();
 }
 
+
+/* Image Filters */
+
+
+Handle<Value> openvg::ColorMatrix(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs3(colorMatrix, dstVGImage, Number, srcVGImage, Number, matrix, Object);
+
+  Local<Object> matrixArray = args[2]->ToObject();
+  Handle<Object> matrixBuffer = matrixArray->Get(String::New("buffer"))->ToObject();
+
+  vgColorMatrix((VGImage) args[0]->Uint32Value(),
+                (VGImage) args[1]->Uint32Value(),
+                (VGfloat*) matrixBuffer->GetIndexedPropertiesExternalArrayData());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::Convolve(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs10(convolve, dstVGImage, Number, srcVGImage, Number,
+              kernelWidth, Int32, kernelHeight, Int32,
+              shiftX, Int32, shiftY, Int32,
+              kernel, Object, scale, Number, bias, Number,
+              tilingMode, Uint32);
+
+  Local<Object> kernelArray = args[6]->ToObject();
+  Handle<Object> kernelBuffer = kernelArray->Get(String::New("buffer"))->ToObject();
+
+  vgConvolve((VGImage) args[0]->Uint32Value(),
+             (VGImage) args[1]->Uint32Value(),
+             (VGint) args[2]->Int32Value(),
+             (VGint) args[3]->Int32Value(),
+             (VGint) args[4]->Int32Value(),
+             (VGint) args[5]->Int32Value(),
+             (VGshort*) kernelBuffer->GetIndexedPropertiesExternalArrayData(),
+             (VGfloat) args[7]->NumberValue(),
+             (VGfloat) args[8]->NumberValue(),
+             static_cast<VGTilingMode>(args[9]->Uint32Value()));
+
+  return Undefined();
+}
+
+Handle<Value> openvg::SeparableConvolve(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs11(separableConvolve, dstVGImage, Number, srcVGImage, Number,
+              kernelWidth, Int32, kernelHeight, Int32,
+              shiftX, Int32, shiftY, Int32,
+              kernelX, Object, kernelY, Object,
+              scale, Number, bias, Number,
+              tilingMode, Uint32);
+
+  Local<Object> kernelXArray = args[6]->ToObject();
+  Handle<Object> kernelXBuffer = kernelXArray->Get(String::New("buffer"))->ToObject();
+
+  Local<Object> kernelYArray = args[7]->ToObject();
+  Handle<Object> kernelYBuffer = kernelYArray->Get(String::New("buffer"))->ToObject();
+
+  vgSeparableConvolve((VGImage) args[0]->Uint32Value(),
+                      (VGImage) args[1]->Uint32Value(),
+                      (VGint) args[2]->Int32Value(),
+                      (VGint) args[3]->Int32Value(),
+                      (VGint) args[4]->Int32Value(),
+                      (VGint) args[5]->Int32Value(),
+                      (VGshort*) kernelXBuffer->GetIndexedPropertiesExternalArrayData(),
+                      (VGshort*) kernelYBuffer->GetIndexedPropertiesExternalArrayData(),
+                      (VGfloat) args[8]->NumberValue(),
+                      (VGfloat) args[9]->NumberValue(),
+                      static_cast<VGTilingMode>(args[10]->Uint32Value()));
+
+  return Undefined();
+}
+
+Handle<Value> openvg::GaussianBlur(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs5(gaussianBlur, dstVGImage, Number, srcVGImage, Number,
+             stdDeviationX, Number, stdDeviationY, Number,
+             tilingMode, Uint32);
+
+  vgGaussianBlur((VGImage) args[0]->Uint32Value(),
+                 (VGImage) args[1]->Uint32Value(),
+                 (VGfloat) args[2]->NumberValue(),
+                 (VGfloat) args[3]->NumberValue(),
+                 static_cast<VGTilingMode>(args[4]->Uint32Value()));
+
+  return Undefined();
+}
+
+Handle<Value> openvg::Lookup(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs9(lookup, VGImage, Number, dstVGImage, Number, srcVGImage, Number,
+             redLUT, Object, greenLUT, Object, blueLUT, Object, alphaLUT, Object,
+             outputLinear, Boolean, outputPremultiplied, Boolean);
+
+  Local<Object> redLUTArray = args[2]->ToObject();
+  Handle<Object> redLUTBuffer = redLUTArray->Get(String::New("buffer"))->ToObject();
+
+  Local<Object> greenLUTArray = args[3]->ToObject();
+  Handle<Object> greenLUTBuffer = greenLUTArray->Get(String::New("buffer"))->ToObject();
+
+  Local<Object> blueLUTArray = args[4]->ToObject();
+  Handle<Object> blueLUTBuffer = blueLUTArray->Get(String::New("buffer"))->ToObject();
+
+  Local<Object> alphaLUTArray = args[5]->ToObject();
+  Handle<Object> alphaLUTBuffer = alphaLUTArray->Get(String::New("buffer"))->ToObject();
+
+  vgLookup((VGImage) args[0]->Uint32Value(),
+           (VGImage) args[1]->Uint32Value(),
+           (VGubyte*) redLUTBuffer->GetIndexedPropertiesExternalArrayData(),
+           (VGubyte*) greenLUTBuffer->GetIndexedPropertiesExternalArrayData(),
+           (VGubyte*) blueLUTBuffer->GetIndexedPropertiesExternalArrayData(),
+           (VGubyte*) alphaLUTBuffer->GetIndexedPropertiesExternalArrayData(),
+           (VGboolean) args[6]->BooleanValue(),
+           (VGboolean) args[7]->BooleanValue());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::LookupSingle(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs6(lookupSingle, dstVGImage, Number, srcVGImage, Number,
+             lookupTable, Object, sourceChannel, Uint32,
+             outputLinear, Boolean, outputPremultiplied, Boolean);
+
+  Local<Object> lookupTableArray = args[2]->ToObject();
+  Handle<Object> lookupTableBuffer = lookupTableArray->Get(String::New("buffer"))->ToObject();
+
+  vgLookupSingle((VGImage) args[0]->Uint32Value(),
+                 (VGImage) args[1]->Uint32Value(),
+                 (VGuint*) lookupTableBuffer->GetIndexedPropertiesExternalArrayData(),
+                 static_cast<VGImageChannel>(args[3]->Uint32Value()),
+                 (VGboolean) args[4]->BooleanValue(),
+                 (VGboolean) args[5]->BooleanValue());
+
+  return Undefined();
+}
 
 
 
