@@ -135,6 +135,22 @@ namespace openvg {
     static Handle<Value> ComputeWarpQuadToQuad(const Arguments& args);
   }
 
+  namespace ext {
+    static Handle<Value> CreateEGLImageTargetKHR(const Arguments& args);
+
+    static Handle<Value> IterativeAverageBlurKHR(const Arguments& args);
+
+    static Handle<Value> ParametricFilterKHR(const Arguments& args);
+    static Handle<Value> DropShadowKHR(const Arguments& args);
+    static Handle<Value> GlowKHR(const Arguments& args);
+    static Handle<Value> BevelKHR(const Arguments& args);
+    static Handle<Value> GradientGlowKHR(const Arguments& args);
+    static Handle<Value> GradientBevelKHR(const Arguments& args);
+
+    static Handle<Value> ProjectiveMatrixNDS(const Arguments& args);
+    static Handle<Value> TransformClipLineNDS(const Arguments& args);
+  }
+
   static Handle<Value> End(const Arguments& args);
   static Handle<Value> TextMiddle(const Arguments& args);
 }

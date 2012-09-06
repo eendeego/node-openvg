@@ -601,6 +601,145 @@ var VGUArcTypeReverse = openVG.VGUArcTypeReverse =
   }, {});
 
 
+var VGParamTypeKHR = openVG.VGParamTypeKHR = {
+  VG_MAX_AVERAGE_BLUR_DIMENSION_KHR        : 0x116B,
+  VG_AVERAGE_BLUR_DIMENSION_RESOLUTION_KHR : 0x116C,
+  VG_MAX_AVERAGE_BLUR_ITERATIONS_KHR       : 0x116D,
+};
+
+var VGParamTypeKHRReverse = openVG.VGParamTypeKHRReverse =
+  Object.keys(VGParamTypeKHR).reduce(function(previous, current) {
+    previous[VGParamTypeKHR[current]] = current;
+    return previous;
+  }, {});
+
+var VGBlendModeKHR = openVG.VGBlendModeKHR = {
+  VG_BLEND_OVERLAY_KHR        : 0x2010,
+  VG_BLEND_HARDLIGHT_KHR      : 0x2011,
+  VG_BLEND_SOFTLIGHT_SVG_KHR  : 0x2012,
+  VG_BLEND_SOFTLIGHT_KHR      : 0x2013,
+  VG_BLEND_COLORDODGE_KHR     : 0x2014,
+  VG_BLEND_COLORBURN_KHR      : 0x2015,
+  VG_BLEND_DIFFERENCE_KHR     : 0x2016,
+  VG_BLEND_SUBTRACT_KHR       : 0x2017,
+  VG_BLEND_INVERT_KHR         : 0x2018,
+  VG_BLEND_EXCLUSION_KHR      : 0x2019,
+  VG_BLEND_LINEARDODGE_KHR    : 0x201a,
+  VG_BLEND_LINEARBURN_KHR     : 0x201b,
+  VG_BLEND_VIVIDLIGHT_KHR     : 0x201c,
+  VG_BLEND_LINEARLIGHT_KHR    : 0x201d,
+  VG_BLEND_PINLIGHT_KHR       : 0x201e,
+  VG_BLEND_HARDMIX_KHR        : 0x201f,
+  VG_BLEND_CLEAR_KHR          : 0x2020,
+  VG_BLEND_DST_KHR            : 0x2021,
+  VG_BLEND_SRC_OUT_KHR        : 0x2022,
+  VG_BLEND_DST_OUT_KHR        : 0x2023,
+  VG_BLEND_SRC_ATOP_KHR       : 0x2024,
+  VG_BLEND_DST_ATOP_KHR       : 0x2025,
+  VG_BLEND_XOR_KHR            : 0x2026,
+};
+
+var VGBlendModeKHRReverse = openVG.VGBlendModeKHRReverse =
+  Object.keys(VGBlendModeKHR).reduce(function(previous, current) {
+    previous[VGBlendModeKHR[current]] = current;
+    return previous;
+  }, {});
+
+var VGPfTypeKHR = openVG.VGPfTypeKHR = {
+  VG_PF_OBJECT_VISIBLE_FLAG_KHR : (1 << 0),
+  VG_PF_KNOCKOUT_FLAG_KHR       : (1 << 1),
+  VG_PF_OUTER_FLAG_KHR          : (1 << 2),
+  VG_PF_INNER_FLAG_KHR          : (1 << 3),
+};
+
+var VGPfTypeKHRReverse = openVG.VGPfTypeKHRReverse =
+  Object.keys(VGPfTypeKHR).reduce(function(previous, current) {
+    previous[VGPfTypeKHR[current]] = current;
+    return previous;
+  }, {});
+
+var VGUErrorCodeKHR = openVG.VGUErrorCodeKHR = {
+  VGU_IMAGE_IN_USE_ERROR           : 0xF010,
+};
+
+var VGUErrorCodeKHRReverse = openVG.VGUErrorCodeKHRReverse =
+  Object.keys(VGUErrorCodeKHR).reduce(function(previous, current) {
+    previous[VGUErrorCodeKHR[current]] = current;
+    return previous;
+  }, {});
+
+var VGPaintParamTypeNds = openVG.VGPaintParamTypeNds = {
+  VG_PAINT_COLOR_RAMP_LINEAR_NDS            : 0x1A10,
+  VG_COLOR_MATRIX_NDS                       : 0x1A11,
+  VG_PAINT_COLOR_TRANSFORM_LINEAR_NDS       : 0x1A12,
+};
+
+var VGPaintParamTypeNdsReverse = openVG.VGPaintParamTypeNdsReverse =
+  Object.keys(VGPaintParamTypeNds).reduce(function(previous, current) {
+    previous[VGPaintParamTypeNds[current]] = current;
+    return previous;
+  }, {});
+
+var VGImageModeNds = openVG.VGImageModeNds = {
+  VG_DRAW_IMAGE_COLOR_MATRIX_NDS            : 0x1F10,
+};
+
+var VGImageModeNdsReverse = openVG.VGImageModeNdsReverse =
+  Object.keys(VGImageModeNds).reduce(function(previous, current) {
+    previous[VGImageModeNds[current]] = current;
+    return previous;
+  }, {});
+
+var VGParamTypeNds = openVG.VGParamTypeNds = {
+  VG_CLIP_MODE_NDS                          : 0x1180,
+  VG_CLIP_LINES_NDS                         : 0x1181,
+  VG_MAX_CLIP_LINES_NDS                     : 0x1182,
+};
+
+var VGParamTypeNdsReverse = openVG.VGParamTypeNdsReverse =
+  Object.keys(VGParamTypeNds).reduce(function(previous, current) {
+    previous[VGParamTypeNds[current]] = current;
+    return previous;
+  }, {});
+
+var VGClipModeNds = openVG.VGClipModeNds = {
+  VG_CLIPMODE_NONE_NDS                      : 0x3000,
+  VG_CLIPMODE_CLIP_CLOSED_NDS               : 0x3001,
+  VG_CLIPMODE_CLIP_OPEN_NDS                 : 0x3002,
+  VG_CLIPMODE_CULL_NDS                      : 0x3003,
+};
+
+var VGClipModeNdsReverse = openVG.VGClipModeNdsReverse =
+  Object.keys(VGClipModeNds).reduce(function(previous, current) {
+    previous[VGClipModeNds[current]] = current;
+    return previous;
+  }, {});
+
+var VGPathSegmentNds = openVG.VGPathSegmentNds = {
+  VG_RQUAD_TO_NDS              : ( 13 << 1 ),
+  VG_RCUBIC_TO_NDS             : ( 14 << 1 ),
+};
+
+var VGPathSegmentNdsReverse = openVG.VGPathSegmentNdsReverse =
+  Object.keys(VGPathSegmentNds).reduce(function(previous, current) {
+    previous[VGPathSegmentNds[current]] = current;
+    return previous;
+  }, {});
+
+var VGPathCommandNds = openVG.VGPathCommandNds = {
+  VG_RQUAD_TO_ABS_NDS            : (VGPathSegmentNds.VG_RQUAD_TO_NDS  | VGPathSegmentNds.VG_ABSOLUTE),
+  VG_RQUAD_TO_REL_NDS            : (VGPathSegmentNds.VG_RQUAD_TO_NDS  | VGPathSegmentNds.VG_RELATIVE),
+  VG_RCUBIC_TO_ABS_NDS           : (VGPathSegmentNds.VG_RCUBIC_TO_NDS | VGPathSegmentNds.VG_ABSOLUTE),
+  VG_RCUBIC_TO_REL_NDS           : (VGPathSegmentNds.VG_RCUBIC_TO_NDS | VGPathSegmentNds.VG_RELATIVE),
+};
+
+var VGPathCommandNdsReverse = openVG.VGPathCommandNdsReverse =
+  Object.keys(VGPathCommandNds).reduce(function(previous, current) {
+    previous[VGPathCommandNds[current]] = current;
+    return previous;
+  }, {});
+
+
 openVG.init = function() {
   openVG.startUp(screen);
 };

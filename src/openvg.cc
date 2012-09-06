@@ -2,6 +2,7 @@
 
 #include "VG/openvg.h"
 #include "VG/vgu.h"
+#include "VG/vgext.h"
 #include <v8.h>
 
 #include "openvg.h"
@@ -144,6 +145,24 @@ init(Handle<Object> target)
   NODE_SET_METHOD(VGU, "computeWarpQuadToSquare", openvg::vgu::ComputeWarpQuadToSquare);
   NODE_SET_METHOD(VGU, "computeWarpSquareToQuad", openvg::vgu::ComputeWarpSquareToQuad);
   NODE_SET_METHOD(VGU, "computeWarpQuadToQuad"  , openvg::vgu::ComputeWarpQuadToQuad);
+
+  /* KHR extensions */
+  Local<Object> ext = Object::New();
+  target->Set(String::New("ext"), ext);
+
+  NODE_SET_METHOD(ext, "createEGLImageTargetKHR", openvg::ext::CreateEGLImageTargetKHR);
+
+  NODE_SET_METHOD(ext, "iterativeAverageBlurKHR", openvg::ext::IterativeAverageBlurKHR);
+
+  NODE_SET_METHOD(ext, "parametricFilterKHR", openvg::ext::ParametricFilterKHR);
+  NODE_SET_METHOD(ext, "dropShadowKHR"      , openvg::ext::DropShadowKHR);
+  NODE_SET_METHOD(ext, "glowKHR"            , openvg::ext::GlowKHR);
+  NODE_SET_METHOD(ext, "bevelKHR"           , openvg::ext::BevelKHR);
+  NODE_SET_METHOD(ext, "gradientGlowKHR"    , openvg::ext::GradientGlowKHR);
+  NODE_SET_METHOD(ext, "gradientBevelKHR"   , openvg::ext::GradientBevelKHR);
+
+  NODE_SET_METHOD(ext, "projectiveMatrixNDS" , openvg::ext::ProjectiveMatrixNDS);
+  NODE_SET_METHOD(ext, "transformClipLineNDS", openvg::ext::TransformClipLineNDS);
 
   NODE_SET_METHOD(target, "end"            , openvg::End);
 
@@ -1600,6 +1619,252 @@ Handle<Value> openvg::vgu::ComputeWarpQuadToQuad(const Arguments& args) {
                                               (VGfloat*) matrixBuffer->GetIndexedPropertiesExternalArrayData()));
 }
 
+
+/* KHR extensions */
+
+
+Handle<Value> openvg::ext::CreateEGLImageTargetKHR(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs1(createEGLImageTargetKHR, VGeglImageKHR, Object);
+
+#ifdef VG_VGEXT_PROTOTYPES
+  VGeglImageKHR image = node::ObjectWrap::Unwrap<VGeglImageKHR>(args[0]->ToObject());
+  return Uint32::New(vgCreateEGLImageTargetKHR(image));
+#else
+  return Undefined();
+#endif
+}
+
+Handle<Value> openvg::ext::IterativeAverageBlurKHR(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs6(iterativeAverageBlurKHR,
+             dstVGImage, Number, srcVGImage, Number,
+             dimX, Number, dimY, Number, iterative, Number,
+             tilingMode, Object);
+
+#ifdef VG_VGEXT_PROTOTYPES
+  vgIterativeAverageBlurKHR((VGImage) args[0]->Uint32Value(),
+                            (VGImage) args[1]->Uint32Value(),
+                            (VGfloat) args[2]->NumberValue(),
+                            (VGfloat) args[3]->NumberValue(),
+                            (VGImage) args[4]->Uint32Value(),
+                            static_cast<VGTilingMode>((VGImage) args[5]->Uint32Value()));
+#endif
+  return Undefined();
+}
+
+Handle<Value> openvg::ext::ParametricFilterKHR(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs9(iterativeAverageBlurKHR,
+             dstVGImage, Number, srcVGImage, Number, blurVGImage, Number,
+             strength, Number, offsetX, Number, offsetY, Number,
+             filterFlags, Number, highlightPaint, Number, shadowPaint, Number);
+
+#ifdef VG_VGEXT_PROTOTYPES
+  vgParametricFilterKHR((VGImage) args[0]->Uint32Value(),
+                        (VGImage) args[1]->Uint32Value(),
+                        (VGImage) args[2]->Uint32Value(),
+                        (VGfloat) args[3]->NumberValue(),
+                        (VGfloat) args[4]->NumberValue(),
+                        (VGfloat) args[5]->NumberValue(),
+                        (VGbitfield) args[6]->Uint32Value(),
+                        (VGPaint) args[7]->Uint32Value(),
+                        (VGPaint) args[8]->Uint32Value());
+#endif
+
+  return Undefined();
+}
+
+Handle<Value> openvg::ext::DropShadowKHR(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs11(dropShadowKHR,
+              dstVGImage, Number, srcVGImage, Number,
+              dimX, Number, dimY, Number, iterative, Number,
+              strength, Number, distance, Number, angle, Number,
+              filterFlags, Number, allowedQuality, Number,
+              shadowColorRGBA, Number);
+
+#ifdef VG_VGEXT_PROTOTYPES
+  return Uint32::New(vguDropShadowKHR((VGImage) args[0]->Uint32Value(),
+                                      (VGImage) args[1]->Uint32Value(),
+                                      (VGfloat) args[2]->NumberValue(),
+                                      (VGfloat) args[3]->NumberValue(),
+                                      (VGuint) args[4]->Uint32Value(),
+                                      (VGfloat) args[5]->NumberValue(),
+                                      (VGfloat) args[6]->NumberValue(),
+                                      (VGfloat) args[7]->NumberValue(),
+                                      (VGbitfield) args[8]->Uint32Value(),
+                                      (VGbitfield) args[9]->Uint32Value(),
+                                      (VGuint) args[10]->Uint32Value()));
+#else
+  return Undefined();
+#endif
+}
+
+Handle<Value> openvg::ext::GlowKHR(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs9(glowKHR,
+             dstVGImage, Number, srcVGImage, Number,
+             dimX, Number, dimY, Number, iterative, Number,
+             strength, Number,
+             filterFlags, Number, allowedQuality, Number,
+             glowColorRGBA, Number);
+
+#ifdef VG_VGEXT_PROTOTYPES
+  return Uint32::New(vguGlowKHR((VGImage) args[0]->Uint32Value(),
+                                (VGImage) args[1]->Uint32Value(),
+                                (VGfloat) args[2]->NumberValue(),
+                                (VGfloat) args[3]->NumberValue(),
+                                (VGuint) args[4]->Uint32Value(),
+                                (VGfloat) args[5]->NumberValue(),
+                                (VGbitfield) args[6]->Uint32Value(),
+                                (VGbitfield) args[7]->Uint32Value(),
+                                (VGuint) args[8]->Uint32Value()));
+#else
+  return Undefined();
+#endif
+}
+
+Handle<Value> openvg::ext::BevelKHR(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs12(bevelKHR,
+              dstVGImage, Number, srcVGImage, Number,
+              dimX, Number, dimY, Number, iterative, Number,
+              strength, Number, distance, Number, angle, Number,
+              filterFlags, Number, allowedQuality, Number,
+              highlightColorRGBA, Number, shadowColorRGBA, Number);
+
+#ifdef VG_VGEXT_PROTOTYPES
+  return Uint32::New(vguBevelKHR((VGImage) args[0]->Uint32Value(),
+                                 (VGImage) args[1]->Uint32Value(),
+                                 (VGfloat) args[2]->NumberValue(),
+                                 (VGfloat) args[3]->NumberValue(),
+                                 (VGuint) args[4]->Uint32Value(),
+                                 (VGfloat) args[5]->NumberValue(),
+                                 (VGfloat) args[6]->NumberValue(),
+                                 (VGfloat) args[7]->NumberValue(),
+                                 (VGbitfield) args[8]->Uint32Value(),
+                                 (VGbitfield) args[9]->Uint32Value(),
+                                 (VGuint) args[10]->Uint32Value(),
+                                 (VGuint) args[11]->Uint32Value()));
+#else
+  return Undefined();
+#endif
+}
+
+Handle<Value> openvg::ext::GradientGlowKHR(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs12(gradientGlowKHR,
+              dstVGImage, Number, srcVGImage, Number,
+              dimX, Number, dimY, Number, iterative, Number,
+              strength, Number, distance, Number, angle, Number,
+              filterFlags, Number, allowedQuality, Number,
+              stopsCount, Number, Float32Array, Object);
+
+#ifdef VG_VGEXT_PROTOTYPES
+  Local<Object> glowColorRampStopsArray = args[11]->ToObject();
+  Handle<Object> glowColorRampStopsBuffer = glowColorRampStopsArray->Get(String::New("buffer"))->ToObject();
+
+  return Uint32::New(vguGradientGlowKHR((VGImage) args[0]->Uint32Value(),
+                                        (VGImage) args[1]->Uint32Value(),
+                                        (VGfloat) args[2]->NumberValue(),
+                                        (VGfloat) args[3]->NumberValue(),
+                                        (VGuint) args[4]->Uint32Value(),
+                                        (VGfloat) args[5]->NumberValue(),
+                                        (VGfloat) args[6]->NumberValue(),
+                                        (VGfloat) args[7]->NumberValue(),
+                                        (VGbitfield) args[8]->Uint32Value(),
+                                        (VGbitfield) args[9]->Uint32Value(),
+                                        (VGuint) args[10]->Uint32Value(),
+                                        (VGfloat*) glowColorRampStopsBuffer->GetIndexedPropertiesExternalArrayData()));
+#else
+  return Undefined();
+#endif
+}
+
+Handle<Value> openvg::ext::GradientBevelKHR(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs12(gradientBevelKHR,
+              dstVGImage, Number, srcVGImage, Number,
+              dimX, Number, dimY, Number, iterative, Number,
+              strength, Number, distance, Number, angle, Number,
+              filterFlags, Number, allowedQuality, Number,
+              stopsCount, Number, Float32Array, Object);
+
+#ifdef VG_VGEXT_PROTOTYPES
+  Local<Object> bevelColorRampStopsArray = args[11]->ToObject();
+  Handle<Object> bevelColorRampStopsBuffer = bevelColorRampStopsArray->Get(String::New("buffer"))->ToObject();
+
+  return Uint32::New(vguGradientBevelKHR((VGImage) args[0]->Uint32Value(),
+                                         (VGImage) args[1]->Uint32Value(),
+                                         (VGfloat) args[2]->NumberValue(),
+                                         (VGfloat) args[3]->NumberValue(),
+                                         (VGuint) args[4]->Uint32Value(),
+                                         (VGfloat) args[5]->NumberValue(),
+                                         (VGfloat) args[6]->NumberValue(),
+                                         (VGfloat) args[7]->NumberValue(),
+                                         (VGbitfield) args[8]->Uint32Value(),
+                                         (VGbitfield) args[9]->Uint32Value(),
+                                         (VGuint) args[10]->Uint32Value(),
+                                         (VGfloat*) bevelColorRampStopsBuffer->GetIndexedPropertiesExternalArrayData()));
+#else
+  return Undefined();
+#endif
+}
+
+Handle<Value> openvg::ext::ProjectiveMatrixNDS(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs1(projectiveMatrixNDS, enable, Boolean);
+
+#ifdef VG_VGEXT_PROTOTYPES
+  vgProjectiveMatrixNDS((VGboolean) args[0]->BooleanValue());
+#endif
+
+  return Undefined();
+}
+
+Handle<Value> openvg::ext::TransformClipLineNDS(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs8(gradientBevelKHR,
+             Ain, Number, Bin, Number, Cin, Number,
+             Float32Array, Object, inverse, Boolean,
+             Float32Array, Object, Float32Array, Object, Float32Array, Object);
+
+#ifdef VG_VGEXT_PROTOTYPES
+  Local<Object> matrixArray = args[3]->ToObject();
+  Handle<Object> matrixBuffer = matrixArray->Get(String::New("buffer"))->ToObject();
+
+  Local<Object> AoutArray = args[5]->ToObject();
+  Handle<Object> AoutBuffer = AoutArray->Get(String::New("buffer"))->ToObject();
+
+  Local<Object> BoutArray = args[6]->ToObject();
+  Handle<Object> BoutBuffer = BoutArray->Get(String::New("buffer"))->ToObject();
+
+  Local<Object> CoutArray = args[7]->ToObject();
+  Handle<Object> CoutBuffer = CoutArray->Get(String::New("buffer"))->ToObject();
+
+  return Uint32::New(vguTransformClipLineNDS((VGfloat) args[0]->NumberValue(),
+                                             (VGfloat) args[1]->NumberValue(),
+                                             (VGfloat) args[2]->NumberValue(),
+                                             (VGfloat*) matrixBuffer->GetIndexedPropertiesExternalArrayData(),
+                                             (VGboolean) args[4]->BooleanValue(),
+                                             (VGfloat*) AoutBuffer->GetIndexedPropertiesExternalArrayData(),
+                                             (VGfloat*) BoutBuffer->GetIndexedPropertiesExternalArrayData(),
+                                             (VGfloat*) CoutBuffer->GetIndexedPropertiesExternalArrayData()));
+#else
+  return Undefined();
+#endif
+}
 
 Handle<Value> openvg::End(const Arguments& args) {
   HandleScope scope;
