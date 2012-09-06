@@ -4,8 +4,8 @@
 
 var openVG = require('../openvg');
 
-var util = require('./util');
-var text = require('./text');
+var util = require('./modules/util');
+var text = require('./modules/text');
 
 var countdown = 5;
 (function terminator() {

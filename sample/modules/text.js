@@ -7,8 +7,8 @@ var text = module.exports;
 
 var fs = require('fs');
 
-var openVG = require('../openvg');
-var util = require('util');
+var openVG = require('../../openvg');
+var util = require('./util');
 
 // textwidth returns the width of a text string at the specified font and size.
 var textWidth = text.textWidth = function(s, f, size) {

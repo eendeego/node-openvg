@@ -5,7 +5,7 @@
 
 var util = module.exports;
 
-var openVG = require('../openvg');
+var openVG = require('../../openvg');
 var text = require('./text');
 
 util.sansTypeface = null;
