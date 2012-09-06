@@ -156,6 +156,25 @@ do {\
   }\
 } while(0)
 
+#define CheckArgs12(fn, arg0, type0, arg1, type1, arg2, type2, arg3, type3, arg4, type4, arg5, type5, arg6, type6, arg7, type7, arg8, type8, arg9, type9, arg10, type10, arg11, type11) \
+do {\
+  if (!(args.Length() == 12 &&\
+        args[0]->Is ## type0() &&\
+        args[1]->Is ## type1() &&\
+        args[2]->Is ## type2() &&\
+        args[3]->Is ## type3() &&\
+        args[4]->Is ## type4() &&\
+        args[5]->Is ## type5() &&\
+        args[6]->Is ## type6() &&\
+        args[7]->Is ## type7() &&\
+        args[8]->Is ## type8() &&\
+        args[9]->Is ## type9() &&\
+        args[10]->Is ## type10() &&\
+        args[11]->Is ## type11())) {\
+    THROW(fn, #arg0 "," #arg1 "," #arg2 "," #arg3 "," #arg4 "," #arg5 "," #arg6 "," #arg7 "," #arg8 "," #arg9 "," #arg10 "," #arg11);\
+  }\
+} while(0)
+
 #else
 
 #define CheckArgs0(fn)
@@ -170,6 +189,7 @@ do {\
 #define CheckArgs9(fn, arg0, type0, arg1, type1, arg2, type2, arg3, type3, arg4, type4, arg5, type5, arg6, type6, arg7, type7, arg8, type8)
 #define CheckArgs10(fn, arg0, type0, arg1, type1, arg2, type2, arg3, type3, arg4, type4, arg5, type5, arg6, type6, arg7, type7, arg8, type8, arg9, type9)
 #define CheckArgs11(fn, arg0, type0, arg1, type1, arg2, type2, arg3, type3, arg4, type4, arg5, type5, arg6, type6, arg7, type7, arg8, type8, arg9, type9, arg10, type10)
+#define CheckArgs12(fn, arg0, type0, arg1, type1, arg2, type2, arg3, type3, arg4, type4, arg5, type5, arg6, type6, arg7, type7, arg8, type8, arg9, type9, arg10, type10, arg11, type11)
 
 #endif
 
