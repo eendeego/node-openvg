@@ -1,13 +1,18 @@
+var fs = require('fs');
+
 var openVG = require('../openvg');
+
+function finish() {
+  unloadFont(sansTypeface);
+  unloadFont(serifTypeface);
+  unloadFont(sansMonoTypeface);
+  openVG.finish();
+}
 
 var countdown = 5;
 (function terminator() {
   countdown--;
-  if(countdown === 0) {
-    openVG.finish();
-  } else {
-    setTimeout(terminator, 1000);
-  }
+  setTimeout(countdown === 1 ? finish : terminator, 1000);
 })();
 
 // RGBA fills a color vectors from a RGBA quad.
@@ -98,9 +103,112 @@ function fill(r, g, b, a) {
   setFill(color);
 }
 
+function checkVGError(msg) {
+  var err = openVG.getError();
+  if (err !== 0) {
+    console.log("vgError: " + msg + " : " + openVG.VGErrorCodeReverse[err]);
+  }
+}
+
+// textwidth returns the width of a text string at the specified font and size.
+function textWidth(s, f, size) {
+  var tw = 0.0;
+  for (var i = 0; i < s.length; i++) {
+    var character = s.charCodeAt(i);
+    var glyph = f.characterMap[character];
+    if (glyph == -1) {
+      continue; //glyph is undefined
+    }
+    tw += size * f.glyphAdvances[glyph] / 65536.0;
+  }
+  return tw;
+}
+
+// Text renders a string of text at a specified location, size, using the specified font glyphs
+// derived from http://web.archive.org/web/20070808195131/http://developer.hybrid.fi/font2openvg/renderFont.cpp.txt
+function text(x, y, s, f, pointsize) {
+  var size = pointsize, xx = x, mm = new Float32Array(9);
+
+  openVG.getMatrix(mm);
+  checkVGError("getMatrix");
+  for (var i = 0; i < s.length; i++) {
+    var character = s.charCodeAt(i);
+    var glyph = f.characterMap[character];
+    if (glyph == -1) {
+      continue;  //glyph is undefined
+    }
+    var mat = new Float32Array([
+      size, 0.0, 0.0,
+      0.0, size, 0.0,
+      xx, y, 1.0
+    ]);
+    openVG.loadMatrix(mm);
+    checkVGError("loadMatrix.");
+    openVG.multMatrix(mat);
+    checkVGError("multMatrix.");
+    openVG.drawPath(f.glyphs[glyph], openVG.VGPaintMode.VG_FILL_PATH | openVG.VGPaintMode.VG_STROKE_PATH);
+    checkVGError("drawPath.");
+    xx += size * f.glyphAdvances[glyph] / 65536.0;
+  }
+  openVG.loadMatrix(mm);
+  checkVGError("loadMatrix");
+}
+
+function textMiddle(x, y, s, f, pointsize) {
+  var tw = textWidth(s, f, pointsize);
+  text(x - (tw / 2.0), y, s, f, pointsize);
+}
+
+var MAXFONTPATH = 256;
+
+function loadFont(name) {
+  var jsonf = JSON.parse(fs.readFileSync(name));
+  var f = { glyphs: new Uint32Array(MAXFONTPATH), characterMap: jsonf.characterMap, glyphAdvances: jsonf.glyphAdvances, count: jsonf.glyphCount };
+
+  var glyphPoints = new Int32Array(jsonf.glyphPoints);
+  var glyphInstructions = new Uint8Array(jsonf.glyphInstructions);
+
+  if (jsonf.glyphCount > MAXFONTPATH) {
+    // return f;
+    return { err: "Font is too big" };
+  }
+  for (var i = 0; i < jsonf.glyphCount; i++) {
+    var instructions      = glyphInstructions.subarray(jsonf.glyphInstructionIndices[i]);
+    var instructionCounts = jsonf.glyphInstructionCounts[i];
+
+    var path = openVG.createPath(openVG.VG_PATH_FORMAT_STANDARD, openVG.VGPathDatatype.VG_PATH_DATATYPE_S_32,
+                                 1.0 / 65536.0, 0.0, 0, 0,
+                                 openVG.VGPathCapabilities.VG_PATH_CAPABILITY_ALL);
+
+    f.glyphs[i] = path;
+    if (instructionCounts) {
+      var offset = 2 * jsonf.glyphPointIndices[i];
+      var points = glyphPoints.subarray(offset);
+
+      openVG.appendPathData(path, instructionCounts, instructions, points);
+    }
+  }
+  return f;
+}
+
+// unloadfont frees font path data
+function unloadFont(f) {
+  for (var i = 0; i < f.glyphs.length; i++) {
+    openVG.destroyPath(f.glyphs[i]);
+  }
+}
+
 var width, height;
 
 openVG.init();
+
+console.log("Reading fonts...");
+
+var sansTypeface     = loadFont("sample/sans.json");
+var serifTypeface    = loadFont("sample/serif.json");
+var sansMonoTypeface = loadFont("sample/sans-mono.json");
+
+console.log("Done.");
 
 width  = openVG.screen.width;
 height = openVG.screen.height;
@@ -129,7 +237,7 @@ background(0, 0, 0);                 // Black background
 fill(44, 77, 232, 1);                // Big blue marble
 circle(width/2, 0, width);           // The "world"
 fill(255, 255, 255, 1);              // White text
-// textMiddle(width/2, height/2,
-//            "hello, world",
-//            SerifTypeface, width/10); // Greetings 
+textMiddle(width/2, height/2,
+           "hello, world",
+           serifTypeface, width/10); // Greetings
 end();                               // End the picture
