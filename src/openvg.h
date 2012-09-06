@@ -152,7 +152,6 @@ namespace openvg {
   }
 
   static Handle<Value> End(const Arguments& args);
-  static Handle<Value> TextMiddle(const Arguments& args);
 }
 
 #endif

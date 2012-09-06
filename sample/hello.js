@@ -125,7 +125,7 @@ background(0, 0, 0);                 // Black background
 fill(44, 77, 232, 1);                // Big blue marble
 circle(width/2, 0, width);           // The "world"
 fill(255, 255, 255, 1);              // White text
-// openVG.textMiddle(width/2, height/2,
-//                   "hello, world",
-//                   SerifTypeface, width/10); // Greetings 
+// textMiddle(width/2, height/2,
+//            "hello, world",
+//            SerifTypeface, width/10); // Greetings 
 openVG.end();                               // End the picture

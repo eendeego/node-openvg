@@ -165,8 +165,6 @@ init(Handle<Object> target)
   NODE_SET_METHOD(ext, "transformClipLineNDS", openvg::ext::TransformClipLineNDS);
 
   NODE_SET_METHOD(target, "end"            , openvg::End);
-
-  NODE_SET_METHOD(target, "textMiddle"     , openvg::TextMiddle);
 }
 
 #define CHECK_VG_ERROR {\
@@ -1874,14 +1872,6 @@ Handle<Value> openvg::End(const Arguments& args) {
   CHECK_VG_ERROR;
   egl::swapBuffers(egl::State.display, egl::State.surface);
   assert(eglGetError() == EGL_SUCCESS);
-
-  return Undefined();
-}
-
-Handle<Value> openvg::TextMiddle(const Arguments& args) {
-  HandleScope scope;
-
-  CheckArgs5(textMiddle, x, Number, y, Number, text, String, typeface, String, pointsize, Number);
 
   return Undefined();
 }
