@@ -29,9 +29,9 @@ var end = util.end = function() {
 
 var init = util.init = function(screen) {
   openVG.init();
-  util.sansTypeface     = text.loadFont("sample/sans.json");
-  util.serifTypeface    = text.loadFont("sample/serif.json");
-  util.sansMonoTypeface = text.loadFont("sample/sans-mono.json");
+  util.sansTypeface     = text.loadFont("sample/fonts/sans.json");
+  util.serifTypeface    = text.loadFont("sample/fonts/serif.json");
+  util.sansMonoTypeface = text.loadFont("sample/fonts/sans-mono.json");
 }
 
 var finish = util.finish = function() {
