@@ -737,14 +737,16 @@ Handle<Value> openvg::AppendPathData(const Arguments& args) {
 
   Local<Object> segmentsArray = args[2]->ToObject();
   Handle<Object> segmentsBuffer = segmentsArray->Get(String::New("buffer"))->ToObject();
+  int segmentsOffset = segmentsArray->Get(String::New("byteOffset"))->Int32Value();
 
   Local<Object> dataArray = args[3]->ToObject();
   Handle<Object> dataBuffer = dataArray->Get(String::New("buffer"))->ToObject();
+  int dataOffset = dataArray->Get(String::New("byteOffset"))->Int32Value();
 
   vgAppendPathData((VGPath) args[0]->Uint32Value(),
                    (VGint) args[1]->Int32Value(),
-                   (VGubyte*) segmentsBuffer->GetIndexedPropertiesExternalArrayData(),
-                   (void*) dataBuffer->GetIndexedPropertiesExternalArrayData());
+                   &((VGubyte*) segmentsBuffer->GetIndexedPropertiesExternalArrayData())[segmentsOffset],
+                   (void*) &((VGubyte*) dataBuffer->GetIndexedPropertiesExternalArrayData())[dataOffset]);
 
   return Undefined();
 }
