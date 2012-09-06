@@ -19,12 +19,12 @@ namespace egl {
 
   extern state_t State;
 
-  void InitBindings(Handle<Object> target);
+  extern void InitBindings(Handle<Object> target);
 
   void Init();
   void Finish();
 
-  void swapBuffers(EGLDisplay dpy, EGLSurface surf);
+  Handle<Value> swapBuffers(const Arguments& args);
 }
 
 #define CHECK_EGL_ERROR {\

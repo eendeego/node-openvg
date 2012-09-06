@@ -34,6 +34,10 @@ function start() {
   openVG.loadIdentity();
 }
 
+function end() {
+  openVG.egl.swapBuffers(openVG.screen.display, openVG.screen.surface);
+}
+
 function setFill(color) {
   var fillPaint = openVG.createPaint();
   openVG.setParameterI(fillPaint, openVG.VGPaintParamType.VG_PAINT_TYPE, openVG.VGPaintType.VG_PAINT_TYPE_COLOR);
@@ -128,4 +132,4 @@ fill(255, 255, 255, 1);              // White text
 // textMiddle(width/2, height/2,
 //            "hello, world",
 //            SerifTypeface, width/10); // Greetings 
-openVG.end();                               // End the picture
+end();                               // End the picture

@@ -168,8 +168,6 @@ init(Handle<Object> target)
   Local<Object> egl = Object::New();
   target->Set(String::New("egl"), egl);
   egl::InitBindings(egl);
-
-  NODE_SET_METHOD(target, "end"            , openvg::End);
 }
 
 #define CHECK_VG_ERROR {\
@@ -192,7 +190,9 @@ Handle<Value> openvg::StartUp(const Arguments& args) {
   Local<Object> screen = args[0].As<Object>();
   screen->Set(String::NewSymbol("width" ), Integer::New(egl::State.screen_width));
   screen->Set(String::NewSymbol("height"), Integer::New(egl::State.screen_height));
-
+  screen->Set(String::NewSymbol("display"), External::Wrap(egl::State.display));
+  screen->Set(String::NewSymbol("surface"), External::Wrap(egl::State.surface));
+  
   return Undefined();
 }
 
@@ -1867,16 +1867,4 @@ Handle<Value> openvg::ext::TransformClipLineNDS(const Arguments& args) {
 #else
   return Undefined();
 #endif
-}
-
-Handle<Value> openvg::End(const Arguments& args) {
-  HandleScope scope;
-
-  CheckArgs0(end);
-
-  CHECK_VG_ERROR;
-  egl::swapBuffers(egl::State.display, egl::State.surface);
-  assert(eglGetError() == EGL_SUCCESS);
-
-  return Undefined();
 }

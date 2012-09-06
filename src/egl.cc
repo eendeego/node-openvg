@@ -3,12 +3,15 @@
 
 #include "egl.h"
 
+#include "argchecks.h"
+
 using namespace v8;
+using namespace node;
 
 egl::state_t egl::State;
 
-extern void InitBindings(Handle<Object> target) {
-  // Nothing for now
+extern void egl::InitBindings(Handle<Object> target) {
+  NODE_SET_METHOD(target, "swapBuffers", egl::swapBuffers);
 }
 
 extern void egl::Init() {
@@ -105,6 +108,15 @@ extern void egl::Finish() {
   eglTerminate(State.display);
 }
 
-extern void egl::swapBuffers(EGLDisplay dpy, EGLSurface surf) {
-  eglSwapBuffers(dpy, surf);
+Handle<Value> egl::swapBuffers(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs2(swapBuffers, display, External, surface, External);
+
+  EGLDisplay display = (EGLDisplay) External::Unwrap(args[0]);
+  EGLSurface surface = (EGLSurface) External::Unwrap(args[1]);
+
+  eglSwapBuffers(display, surface);
+
+  return Undefined();
 }

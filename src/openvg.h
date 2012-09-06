@@ -150,8 +150,6 @@ namespace openvg {
     static Handle<Value> ProjectiveMatrixNDS(const Arguments& args);
     static Handle<Value> TransformClipLineNDS(const Arguments& args);
   }
-
-  static Handle<Value> End(const Arguments& args);
 }
 
 #endif
