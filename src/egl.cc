@@ -7,6 +7,10 @@ using namespace v8;
 
 egl::state_t egl::State;
 
+extern void InitBindings(Handle<Object> target) {
+  // Nothing for now
+}
+
 extern void egl::Init() {
   EGLBoolean result;
   int32_t success = 0;

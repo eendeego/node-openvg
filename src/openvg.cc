@@ -164,6 +164,11 @@ init(Handle<Object> target)
   NODE_SET_METHOD(ext, "projectiveMatrixNDS" , openvg::ext::ProjectiveMatrixNDS);
   NODE_SET_METHOD(ext, "transformClipLineNDS", openvg::ext::TransformClipLineNDS);
 
+  /* EGL */
+  Local<Object> egl = Object::New();
+  target->Set(String::New("egl"), egl);
+  egl::InitBindings(egl);
+
   NODE_SET_METHOD(target, "end"            , openvg::End);
 }
 

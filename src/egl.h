@@ -19,6 +19,8 @@ namespace egl {
 
   extern state_t State;
 
+  void InitBindings(Handle<Object> target);
+
   void Init();
   void Finish();
 
