@@ -83,6 +83,14 @@ function newPath() {
                            openVG.VGPathCapabilities.VG_PATH_CAPABILITY_ALL);
 }
 
+// Line makes a line at connecting the specified locations
+var line = util.line = function(x0, y0, x1, y1) {
+  var path = newPath();
+  openVG.vgu.line(path, x0, y0, x1, y1);
+  openVG.drawPath(path, openVG.VGPaintMode.VG_FILL_PATH | openVG.VGPaintMode.VG_STROKE_PATH);
+  openVG.destroyPath(path);
+}
+
 // Rect makes a rectangle at the specified location and dimensions
 var rect = util.rect = function(x, y, w, h) {
   var path = newPath();
@@ -112,6 +120,12 @@ var fill = util.fill = function(r, g, b, a) {
   var color = new Float32Array(4);
   RGBA(r, g, b, a, color);
   setFill(color);
+}
+
+var stroke = util.stroke = function(r, g, b, a) {
+  var color = new Float32Array(4);
+  RGBA(r, g, b, a, color);
+  setStroke(color);
 }
 
 var checkVGError = util.checkVGError = function(msg) {
