@@ -2,7 +2,7 @@
   "author": "Luis Reis <luis@luismreis.com> (http://luismreis.com/)",
   "name": "openvg",
   "description": "OpenVG bindings for node",
-  "version": "0.1",
+  "version": "0.1.0",
   "repository": {
     "type": "git",
     "url": "git://github.com/luismreis/node-openvg.git"
