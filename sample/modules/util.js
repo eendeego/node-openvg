@@ -27,7 +27,7 @@ var end = util.end = function() {
   openVG.egl.swapBuffers(openVG.screen.display, openVG.screen.surface);
 }
 
-var init = util.init = function(screen) {
+var init = util.init = function() {
   openVG.init();
   util.sansTypeface     = text.loadFont("sample/fonts/sans.json");
   util.serifTypeface    = text.loadFont("sample/fonts/serif.json");
