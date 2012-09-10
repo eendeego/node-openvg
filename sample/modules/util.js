@@ -8,9 +8,9 @@ var util = module.exports;
 var openVG = require('../../openvg');
 var text = require('./text');
 
-util.sansTypeface = null;
-util.serifTypeface = null;
-util.sansMonoTypeface = null;
+var sansTypeface     = util.sansTypeface     = undefined;
+var serifTypeface    = util.serifTypeface    = undefined;
+var sansMonoTypeface = util.sansMonoTypeface = undefined;
 
 var start = util.start = function() {
   var color = new Float32Array([255, 255, 255, 1]);
@@ -27,17 +27,25 @@ var end = util.end = function() {
   openVG.egl.swapBuffers(openVG.screen.display, openVG.screen.surface);
 }
 
-var init = util.init = function() {
+var init = util.init = function(options) {
+  if (options === undefined) {
+    options = {};
+  }
+  if (options.loadFonts === undefined) { options.loadFonts = true; }
+
   openVG.init();
-  util.sansTypeface     = text.loadFont("sample/fonts/sans.json");
-  util.serifTypeface    = text.loadFont("sample/fonts/serif.json");
-  util.sansMonoTypeface = text.loadFont("sample/fonts/sans-mono.json");
+
+  if(options.loadFonts) {
+    util.sansTypeface     = text.loadFont("sample/fonts/sans.json");
+    util.serifTypeface    = text.loadFont("sample/fonts/serif.json");
+    util.sansMonoTypeface = text.loadFont("sample/fonts/sans-mono.json");
+  }
 }
 
 var finish = util.finish = function() {
-  text.unloadFont(util.sansTypeface);
-  text.unloadFont(util.serifTypeface);
-  text.unloadFont(util.sansMonoTypeface);
+  if (util.sansTypeface   ) { text.unloadFont(util.sansTypeface    ); }
+  if (util.serifTypeface  ) { text.unloadFont(util.serifTypeface   ); }
+  if (util.sansMonoypeface) { text.unloadFont(util.sansMonoTypeface); }
   openVG.finish();
 }
 
