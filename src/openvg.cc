@@ -964,7 +964,7 @@ Handle<Value> openvg::CreateImage(const Arguments& args) {
 Handle<Value> openvg::DestroyImage(const Arguments& args) {
   HandleScope scope;
 
-  CheckArgs1(destroyImage, VGImage, Uint32);
+  CheckArgs1(destroyImage, VGImage, Number);
 
   vgDestroyImage((VGImage) (VGPaint) args[0]->Uint32Value());
 
@@ -974,7 +974,7 @@ Handle<Value> openvg::DestroyImage(const Arguments& args) {
 Handle<Value> openvg::ClearImage(const Arguments& args) {
   HandleScope scope;
 
-  CheckArgs5(clearImage, VGImage, Uint32, x, Int32, y, Int32, width, Int32, height, Int32);
+  CheckArgs5(clearImage, VGImage, Number, x, Int32, y, Int32, width, Int32, height, Int32);
 
   vgClearImage((VGImage) args[0]->Uint32Value(),
                (VGint) args[1]->Int32Value(),
@@ -989,7 +989,7 @@ Handle<Value> openvg::ImageSubData(const Arguments& args) {
   HandleScope scope;
 
   CheckArgs8(imageSubData,
-             VGImage, Uint32, data, Object, dataStride, Int32, dataFormat, Uint32,
+             VGImage, Number, data, Object, dataStride, Int32, dataFormat, Uint32,
              x, Int32, y, Int32, width, Int32, height, Int32);
 
   Local<Object> dataArray = args[1]->ToObject();
@@ -1011,7 +1011,7 @@ Handle<Value> openvg::GetImageSubData(const Arguments& args) {
   HandleScope scope;
 
   CheckArgs8(getImageSubData,
-             VGImage, Uint32, data, Object, dataStride, Int32, dataFormat, Uint32,
+             VGImage, Number, data, Object, dataStride, Int32, dataFormat, Uint32,
              x, Int32, y, Int32, width, Int32, height, Int32);
 
   Local<Object> dataArray = args[1]->ToObject();
@@ -1032,7 +1032,7 @@ Handle<Value> openvg::GetImageSubData(const Arguments& args) {
 Handle<Value> openvg::ChildImage(const Arguments& args) {
   HandleScope scope;
 
-  CheckArgs5(childImage, VGImage, Uint32, x, Int32, y, Int32, width, Int32, height, Int32);
+  CheckArgs5(childImage, VGImage, Number, x, Int32, y, Int32, width, Int32, height, Int32);
 
   return Uint32::New(vgChildImage((VGImage) args[0]->Uint32Value(),
                                   (VGint) args[1]->Int32Value(),
@@ -1044,7 +1044,7 @@ Handle<Value> openvg::ChildImage(const Arguments& args) {
 Handle<Value> openvg::GetParent(const Arguments& args) {
   HandleScope scope;
 
-  CheckArgs1(getParent, VGImage, Int32);
+  CheckArgs1(getParent, VGImage, Number);
 
   return Uint32::New(vgGetParent((VGImage) args[0]->Uint32Value()));
 }
@@ -1053,8 +1053,8 @@ Handle<Value> openvg::CopyImage(const Arguments& args) {
   HandleScope scope;
 
   CheckArgs9(copyImage,
-             dstImage, Uint32, dx, Int32, dy, Int32,
-             srcImage, Uint32, sx, Int32, sy, Int32,
+             dstImage, Number, dx, Int32, dy, Int32,
+             srcImage, Number, sx, Int32, sy, Int32,
              width, Int32, height, Int32, dither, Boolean);
 
   vgCopyImage((VGImage) args[0]->Uint32Value(),
@@ -1073,7 +1073,7 @@ Handle<Value> openvg::CopyImage(const Arguments& args) {
 Handle<Value> openvg::DrawImage(const Arguments& args) {
   HandleScope scope;
 
-  CheckArgs1(drawImage, VGImage, Uint32);
+  CheckArgs1(drawImage, VGImage, Number);
 
   vgDrawImage((VGImage) args[0]->Uint32Value());
 
@@ -1085,7 +1085,7 @@ Handle<Value> openvg::SetPixels(const Arguments& args) {
 
   CheckArgs7(setPixels,
              dx, Int32, dy, Int32,
-             srcImage, Uint32, dx, Int32, dy, Int32,
+             srcImage, Number, dx, Int32, dy, Int32,
              width, Int32, height, Int32);
 
   vgSetPixels((VGint) args[0]->Int32Value(),
@@ -1124,7 +1124,7 @@ Handle<Value> openvg::GetPixels(const Arguments& args) {
   HandleScope scope;
 
   CheckArgs7(getPixels,
-             VGImage, Uint32,
+             VGImage, Number,
              dx, Int32, dy, Int32,
              sx, Int32, sy, Int32,
              width, Int32, height, Int32);
@@ -1227,7 +1227,7 @@ Handle<Value> openvg::SetGlyphToImage(const Arguments& args) {
   HandleScope scope;
 
   CheckArgs5(setGlyphToImage, VGFont, Number, glyphIndex, Uint32,
-             VGImage, Uint32,
+             VGImage, Number,
              glyphOrigin, Object, escapement, Object);
 
   Local<Object> glyphOriginArray = args[3]->ToObject();
