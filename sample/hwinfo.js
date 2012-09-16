@@ -21,4 +21,5 @@ Object.keys(openVG.VGStringID).map(function(string) {
   console.log("  [" + string + "]: " + openVG.getString(openVG.VGStringID[string]));
   });
 
+console.log("Gradient Max Stops: " + openVG.getI(openVG.VGParamType.VG_MAX_COLOR_RAMP_STOPS))
 openVG.finish();
