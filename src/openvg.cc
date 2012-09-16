@@ -4,6 +4,8 @@
 #include "VG/vgu.h"
 #include "VG/vgext.h"
 #include <v8.h>
+#include <node.h>
+#include <node_buffer.h>
 
 #include "openvg.h"
 #include "egl.h"
@@ -992,11 +994,21 @@ Handle<Value> openvg::ImageSubData(const Arguments& args) {
              VGImage, Number, data, Object, dataStride, Int32, dataFormat, Uint32,
              x, Int32, y, Int32, width, Int32, height, Int32);
 
-  Local<Object> dataArray = args[1]->ToObject();
-  Handle<Object> dataBuffer = dataArray->Get(String::New("buffer"))->ToObject();
+  Local<Object> data = args[1]->ToObject();
+  void *dataPointer;
+
+  Local<Value> nativeBuffer = data->Get(String::New("buffer"));
+  if (!nativeBuffer->IsUndefined()) {
+    // Native array
+    Handle<Object> dataBuffer = nativeBuffer->ToObject();
+    dataPointer = (void*) dataBuffer->GetIndexedPropertiesExternalArrayData();
+  } else {
+    // Node buffer
+    dataPointer = (void *) Buffer::Data(data);
+  }
 
   vgImageSubData((VGImage) args[0]->Uint32Value(),
-                 (void*) dataBuffer->GetIndexedPropertiesExternalArrayData(),
+                 dataPointer,
                  (VGint) args[2]->Int32Value(),
                  static_cast<VGImageFormat>(args[3]->Uint32Value()),
                  (VGint) args[4]->Int32Value(),
