@@ -1203,8 +1203,8 @@ Handle<Value> openvg::DestroyFont(const Arguments& args) {
 Handle<Value> openvg::SetGlyphToPath(const Arguments& args) {
   HandleScope scope;
 
-  CheckArgs6(setGlyphToPath, VGFont, Number, glyphIndex, Uint32,
-             VGPath, Uint32, isHinted, Boolean,
+  CheckArgs6(setGlyphToPath, VGFont, Number, glyphIndex, Number,
+             VGPath, Number, isHinted, Boolean,
              glyphOrigin, Object, escapement, Object);
 
   Local<Object> glyphOriginArray = args[4]->ToObject();
@@ -1226,7 +1226,7 @@ Handle<Value> openvg::SetGlyphToPath(const Arguments& args) {
 Handle<Value> openvg::SetGlyphToImage(const Arguments& args) {
   HandleScope scope;
 
-  CheckArgs5(setGlyphToImage, VGFont, Number, glyphIndex, Uint32,
+  CheckArgs5(setGlyphToImage, VGFont, Number, glyphIndex, Number,
              VGImage, Number,
              glyphOrigin, Object, escapement, Object);
 
