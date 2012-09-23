@@ -1,5 +1,14 @@
-#!/usr/bin/env sh
+#!/bin/sh
 
-DIRECTORY=`dirname $0`
+FULL=$PWD/$0
+CANONIC=`readlink -f $0`
 
-LD_PRELOAD=$DIRECTORY/../build/Release/init-egl.node node "$@"
+if [ "$CANONIC" = "$FULL" ]; then
+  BIN_DIR=`dirname $CANONIC`
+  MODULE_DIR=`dirname $BIN_DIR`
+else
+  NPM_DIR=`dirname $CANONIC`
+  MODULE_DIR=`dirname $NPM_DIR`
+fi
+
+LD_PRELOAD=$MODULE_DIR/build/Release/init-egl.node node "$@"
