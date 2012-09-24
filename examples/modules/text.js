@@ -1,4 +1,4 @@
-// Text functions shared by samples
+// Text functions shared by examples
 //
 // Based on https://github.com/ajstarks/openvg libshapes.c/go
 //

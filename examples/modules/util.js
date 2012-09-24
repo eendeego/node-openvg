@@ -1,4 +1,4 @@
-// Utility functions shared by samples
+// Utility functions shared by examples
 //
 // Based on https://github.com/ajstarks/openvg libshapes.c/go
 //
@@ -36,9 +36,9 @@ var init = util.init = function(options) {
   openVG.init();
 
   if(options.loadFonts) {
-    util.sansTypeface     = text.loadFont("sample/fonts/sans.json");
-    util.serifTypeface    = text.loadFont("sample/fonts/serif.json");
-    util.sansMonoTypeface = text.loadFont("sample/fonts/sans-mono.json");
+    util.sansTypeface     = text.loadFont("examples/fonts/sans.json");
+    util.serifTypeface    = text.loadFont("examples/fonts/serif.json");
+    util.sansMonoTypeface = text.loadFont("examples/fonts/sans-mono.json");
   }
 }
 
