@@ -7,9 +7,6 @@
   "bin": {
     "node-pi" : "./bin/node-pi"
   },
-  "scripts" : {
-    "preinstall": "node-waf clean || true; node-waf --targets=node-openvg,init-egl configure build"
-  },
   "main": "openvg.js",
   "repository": {
     "type": "git",
