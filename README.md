@@ -20,9 +20,9 @@ Fetch the source:
 Build the package:
 
     cd node-openvg
-    node-waf --targets=node-openvg,init-egl configure build
+    node-waf configure build
 
 To test:
 
-    bin/node-pi sample/hello.js
+    bin/node-openvg sample/hello.js
 
