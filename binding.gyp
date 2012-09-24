@@ -1,8 +1,7 @@
 {
   'targets': [
     {
-      # have to specify 'liblib' here since gyp will remove the first one :\
-      'target_name': 'libnode-openvg',
+      'target_name': 'node-openvg',
       'sources': [
         'src/openvg.cc',
         'src/egl.cc'
@@ -19,10 +18,9 @@
       ],
     },
     {
-      # have to specify 'liblib' here since gyp will remove the first one :\
-      'target_name': 'libinit-egl',
+      'target_name': 'init-egl',
       'sources': [
-        'src/init-egl.c'
+        'src/init-egl.cc'
       ],
       'ldflags': [
         "-L/opt/vc/lib",
