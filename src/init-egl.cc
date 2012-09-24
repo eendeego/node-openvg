@@ -1,5 +1,4 @@
 #include "EGL/egl.h"
-#include <iostream>
 
 namespace {
   struct initializer {
