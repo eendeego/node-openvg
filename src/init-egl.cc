@@ -13,7 +13,9 @@ namespace {
     }
 
     ~initializer() {
+#if defined(BCM_HOST_H) // FIXME Find something less brittle than BCM_HOST_H
       bcm_host_deinit();
+#endif
     }
   };
   static initializer i;
