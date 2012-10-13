@@ -23,7 +23,7 @@ extern void egl::Init() {
     EGL_GREEN_SIZE, 8,
     EGL_BLUE_SIZE, 8,
     EGL_ALPHA_SIZE, 8,
-    EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+    EGL_SURFACE_TYPE, EGL_WINDOW_BIT & EGL_SWAP_BEHAVIOR_PRESERVED_BIT,
     EGL_NONE
   };
 
@@ -88,6 +88,9 @@ extern void egl::Init() {
   // connect the context to the surface
   result = eglMakeCurrent(State.display, State.surface, State.surface, State.context);
   assert(EGL_FALSE != result);
+
+  // preserve color buffer when swapping
+  eglSurfaceAttrib(State.display, State.surface, EGL_SWAP_BEHAVIOR, EGL_BUFFER_PRESERVED);
 
   //DAVE - Set up screen ratio
   glViewport(0, 0, (GLsizei) State.screen_width, (GLsizei) State.screen_height);
