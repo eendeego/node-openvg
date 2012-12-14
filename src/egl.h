@@ -26,7 +26,7 @@ namespace egl {
   void InitOpenGLES();
   void Finish();
 
-  Handle<Value> swapBuffers(const Arguments& args);
+  Handle<Value> SwapBuffers(const Arguments& args);
   Handle<Value> CreatePbufferFromClientBuffer(const Arguments& args);
   Handle<Value> MakeCurrent(const Arguments& args);
 }

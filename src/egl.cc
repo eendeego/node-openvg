@@ -12,7 +12,7 @@ egl::state_t egl::State;
 EGLConfig egl::Config;
 
 extern void egl::InitBindings(Handle<Object> target) {
-  NODE_SET_METHOD(target, "swapBuffers", egl::swapBuffers);
+  NODE_SET_METHOD(target, "swapBuffers", egl::SwapBuffers);
   NODE_SET_METHOD(target, "createPbufferFromClientBuffer",
                   egl::CreatePbufferFromClientBuffer);
   NODE_SET_METHOD(target, "makeCurrent", egl::MakeCurrent);
@@ -119,7 +119,7 @@ extern void egl::Finish() {
   eglTerminate(State.display);
 }
 
-Handle<Value> egl::swapBuffers(const Arguments& args) {
+Handle<Value> egl::SwapBuffers(const Arguments& args) {
   HandleScope scope;
 
   CheckArgs2(swapBuffers, display, External, surface, External);
@@ -129,7 +129,7 @@ Handle<Value> egl::swapBuffers(const Arguments& args) {
 
   eglSwapBuffers(display, surface);
 
-  return Undefined();
+  return scope.Close(Undefined());
 }
 
 Handle<Value> egl::CreatePbufferFromClientBuffer(const Arguments& args) {
