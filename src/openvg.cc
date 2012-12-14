@@ -1,5 +1,3 @@
-#define BUILDING_NODE_EXTENSION
-
 #include "VG/openvg.h"
 #include "VG/vgu.h"
 #include "VG/vgext.h"
@@ -12,6 +10,8 @@
 #include "argchecks.h"
 
 #include <stdio.h>
+
+const bool kInitOpenGLES = false;
 
 using namespace node;
 using namespace v8;
@@ -187,6 +187,11 @@ Handle<Value> openvg::StartUp(const Arguments& args) {
   CheckArgs1(startUp, screen, Object);
 
   egl::Init();
+
+  if (kInitOpenGLES) {
+    egl::InitOpenGLES();
+  }
+
   CHECK_VG_ERROR;
 
   Local<Object> screen = args[0].As<Object>();

@@ -9,9 +9,13 @@ using namespace v8;
 using namespace node;
 
 egl::state_t egl::State;
+EGLConfig egl::Config;
 
 extern void egl::InitBindings(Handle<Object> target) {
   NODE_SET_METHOD(target, "swapBuffers", egl::swapBuffers);
+  NODE_SET_METHOD(target, "createPbufferFromClientBuffer",
+                  egl::CreatePbufferFromClientBuffer);
+  NODE_SET_METHOD(target, "makeCurrent", egl::MakeCurrent);
 }
 
 extern void egl::Init() {
@@ -28,7 +32,6 @@ extern void egl::Init() {
     EGL_NONE
   };
 
-  EGLConfig config;
   EGLint num_config;
 
   VC_RECT_T dst_rect;
@@ -49,11 +52,11 @@ extern void egl::Init() {
   eglBindAPI(EGL_OPENVG_API);
 
   // get an appropriate EGL frame buffer configuration
-  result = eglChooseConfig(State.display, attribute_list, &config, 1, &num_config);
+  result = eglChooseConfig(State.display, attribute_list, &egl::Config, 1, &num_config);
   assert(EGL_FALSE != result);
 
   // create an EGL rendering context
-  State.context = eglCreateContext(State.display, config, EGL_NO_CONTEXT, NULL);
+  State.context = eglCreateContext(State.display, egl::Config, EGL_NO_CONTEXT, NULL);
   assert(State.context != EGL_NO_CONTEXT);
 
   // create an EGL window surface
@@ -83,7 +86,7 @@ extern void egl::Init() {
   nativewindow.height  = State.screen_height;
   vc_dispmanx_update_submit_sync(dispman_update);
 
-  State.surface = eglCreateWindowSurface(State.display, config, &nativewindow, NULL);
+  State.surface = eglCreateWindowSurface(State.display, egl::Config, &nativewindow, NULL);
   assert(State.surface != EGL_NO_SURFACE);
 
   // connect the context to the surface
@@ -92,7 +95,11 @@ extern void egl::Init() {
 
   // preserve color buffer when swapping
   eglSurfaceAttrib(State.display, State.surface, EGL_SWAP_BEHAVIOR, EGL_BUFFER_PRESERVED);
+}
 
+// Code from https://github.com/ajstarks/openvg/blob/master/oglinit.c doesn't
+// seem necessary.
+extern void egl::InitOpenGLES() {
   //DAVE - Set up screen ratio
   glViewport(0, 0, (GLsizei) State.screen_width, (GLsizei) State.screen_height);
 
@@ -123,4 +130,44 @@ Handle<Value> egl::swapBuffers(const Arguments& args) {
   eglSwapBuffers(display, surface);
 
   return Undefined();
+}
+
+Handle<Value> egl::CreatePbufferFromClientBuffer(const Arguments& args) {
+  HandleScope scope;
+
+  // According to the spec (sec. 4.2.2 EGL Functions)
+  // The buffer is a VGImage: "The VGImage to be targeted is cast to the
+  // EGLClientBuffer type and passed as the buffer parameter."
+  // So, check for a Number (as VGImages are checked on openvg.cc) and
+  // cast to a EGLClientBuffer.
+
+  CheckArgs2(CreatePBuffer, display, External, vgImage, Number);
+
+  EGLDisplay display = (EGLDisplay) External::Unwrap(args[0]);
+  EGLClientBuffer buffer =
+    reinterpret_cast<EGLClientBuffer>(args[1]->Uint32Value());
+
+  EGLSurface surface =
+    eglCreatePbufferFromClientBuffer(display,
+                                     EGL_OPENVG_IMAGE,
+                                     buffer,
+                                     egl::Config,
+                                     NULL);
+
+  return scope.Close(External::Wrap(surface));
+}
+
+Handle<Value> egl::MakeCurrent(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs3(swapBuffers,
+             display, External, drawSurface, External, readSurface, External);
+
+  EGLDisplay display = (EGLDisplay) External::Unwrap(args[0]);
+  EGLSurface draw = (EGLSurface) External::Unwrap(args[1]);
+  EGLSurface read = (EGLSurface) External::Unwrap(args[2]);
+
+  EGLBoolean result = eglMakeCurrent(display, draw, read, State.context);
+
+  return scope.Close(Boolean::New(result));
 }

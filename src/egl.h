@@ -18,13 +18,17 @@ namespace egl {
   };
 
   extern state_t State;
+  extern EGLConfig Config;
 
   extern void InitBindings(Handle<Object> target);
 
   void Init();
+  void InitOpenGLES();
   void Finish();
 
   Handle<Value> swapBuffers(const Arguments& args);
+  Handle<Value> CreatePbufferFromClientBuffer(const Arguments& args);
+  Handle<Value> MakeCurrent(const Arguments& args);
 }
 
 #define CHECK_EGL_ERROR {\
