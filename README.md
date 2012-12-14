@@ -26,6 +26,12 @@ To test:
 
     bin/node-openvg sample/hello.js
 
+### NPM
+
+This module is currently available through npm, so, to install it do:
+
+    npm install openvg
+
 ## License
 
 (The MIT License)
