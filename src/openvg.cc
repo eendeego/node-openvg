@@ -16,109 +16,111 @@ const bool kInitOpenGLES = false;
 using namespace node;
 using namespace v8;
 
-extern "C" void
-init(Handle<Object> target)
-{
-  NODE_SET_METHOD(target, "startUp"        , openvg::StartUp);
-  NODE_SET_METHOD(target, "shutdown"       , openvg::Shutdown);
+extern "C" void init(Handle<Object> target) {
+  NODE_SET_METHOD(target, "startUp"          , openvg::StartUp);
+  NODE_SET_METHOD(target, "shutdown"         , openvg::Shutdown);
 
-  NODE_SET_METHOD(target, "getError"       , openvg::GetError);
+  NODE_SET_METHOD(target, "getError"         , openvg::GetError);
 
-  NODE_SET_METHOD(target, "flush"          , openvg::Flush);
-  NODE_SET_METHOD(target, "finish"         , openvg::Finish);
+  NODE_SET_METHOD(target, "flush"            , openvg::Flush);
+  NODE_SET_METHOD(target, "finish"           , openvg::Finish);
 
   /* Getters and Setters */
-  NODE_SET_METHOD(target, "setF"           , openvg::SetF);
-  NODE_SET_METHOD(target, "setI"           , openvg::SetI);
-  NODE_SET_METHOD(target, "setFV"          , openvg::SetFV);
-  NODE_SET_METHOD(target, "setIV"          , openvg::SetIV);
+  NODE_SET_METHOD(target, "setF"             , openvg::SetF);
+  NODE_SET_METHOD(target, "setI"             , openvg::SetI);
+  NODE_SET_METHOD(target, "setFV"            , openvg::SetFV);
+  NODE_SET_METHOD(target, "setIV"            , openvg::SetIV);
 
-  NODE_SET_METHOD(target, "getF"           , openvg::GetF);
-  NODE_SET_METHOD(target, "getI"           , openvg::GetI);
-  NODE_SET_METHOD(target, "getVectorSize"  , openvg::GetVectorSize);
-  NODE_SET_METHOD(target, "getFV"          , openvg::GetFV);
-  NODE_SET_METHOD(target, "getIV"          , openvg::GetIV);
+  NODE_SET_METHOD(target, "getF"             , openvg::GetF);
+  NODE_SET_METHOD(target, "getI"             , openvg::GetI);
+  NODE_SET_METHOD(target, "getVectorSize"    , openvg::GetVectorSize);
+  NODE_SET_METHOD(target, "getFV"            , openvg::GetFV);
+  NODE_SET_METHOD(target, "getIV"            , openvg::GetIV);
 
-  NODE_SET_METHOD(target, "setParameterF"           , openvg::SetParameterF);
-  NODE_SET_METHOD(target, "setParameterI"           , openvg::SetParameterI);
-  NODE_SET_METHOD(target, "setParameterFV"          , openvg::SetParameterFV);
-  NODE_SET_METHOD(target, "setParameterIV"          , openvg::SetParameterIV);
+  NODE_SET_METHOD(target, "setParameterF"    , openvg::SetParameterF);
+  NODE_SET_METHOD(target, "setParameterI"    , openvg::SetParameterI);
+  NODE_SET_METHOD(target, "setParameterFV"   , openvg::SetParameterFV);
+  NODE_SET_METHOD(target, "setParameterIV"   , openvg::SetParameterIV);
 
-  NODE_SET_METHOD(target, "getParameterF"           , openvg::GetParameterF);
-  NODE_SET_METHOD(target, "getParameterI"           , openvg::GetParameterI);
-  NODE_SET_METHOD(target, "getParameterVectorSize"  , openvg::GetParameterVectorSize);
-  NODE_SET_METHOD(target, "getParameterFV"          , openvg::GetParameterFV);
-  NODE_SET_METHOD(target, "getParameterIV"          , openvg::GetParameterIV);
+  NODE_SET_METHOD(target, "getParameterF"    , openvg::GetParameterF);
+  NODE_SET_METHOD(target, "getParameterI"    , openvg::GetParameterI);
+  NODE_SET_METHOD(target, "getParameterVectorSize",
+                          openvg::GetParameterVectorSize);
+  NODE_SET_METHOD(target, "getParameterFV"   , openvg::GetParameterFV);
+  NODE_SET_METHOD(target, "getParameterIV"   , openvg::GetParameterIV);
 
   /* Matrix Manipulation */
-  NODE_SET_METHOD(target, "loadIdentity"   , openvg::LoadIdentity);
-  NODE_SET_METHOD(target, "loadMatrix"     , openvg::LoadMatrix);
-  NODE_SET_METHOD(target, "getMatrix"      , openvg::GetMatrix);
-  NODE_SET_METHOD(target, "multMatrix"     , openvg::MultMatrix);
-  NODE_SET_METHOD(target, "translate"      , openvg::Translate);
-  NODE_SET_METHOD(target, "scale"          , openvg::Scale);
-  NODE_SET_METHOD(target, "shear"          , openvg::Shear);
-  NODE_SET_METHOD(target, "rotate"         , openvg::Rotate);
+  NODE_SET_METHOD(target, "loadIdentity"     , openvg::LoadIdentity);
+  NODE_SET_METHOD(target, "loadMatrix"       , openvg::LoadMatrix);
+  NODE_SET_METHOD(target, "getMatrix"        , openvg::GetMatrix);
+  NODE_SET_METHOD(target, "multMatrix"       , openvg::MultMatrix);
+  NODE_SET_METHOD(target, "translate"        , openvg::Translate);
+  NODE_SET_METHOD(target, "scale"            , openvg::Scale);
+  NODE_SET_METHOD(target, "shear"            , openvg::Shear);
+  NODE_SET_METHOD(target, "rotate"           , openvg::Rotate);
 
   /* Masking and Clearing */
-  NODE_SET_METHOD(target, "mask"            , openvg::Mask);
-  NODE_SET_METHOD(target, "renderToMask"    , openvg::RenderToMask);
-  NODE_SET_METHOD(target, "createMaskLayer" , openvg::CreateMaskLayer);
-  NODE_SET_METHOD(target, "destroyMaskLayer", openvg::DestroyMaskLayer);
-  NODE_SET_METHOD(target, "fillMaskLayer"   , openvg::FillMaskLayer);
-  NODE_SET_METHOD(target, "copyMask"        , openvg::CopyMask);
-  NODE_SET_METHOD(target, "clear"           , openvg::Clear);
+  NODE_SET_METHOD(target, "mask"             , openvg::Mask);
+  NODE_SET_METHOD(target, "renderToMask"     , openvg::RenderToMask);
+  NODE_SET_METHOD(target, "createMaskLayer"  , openvg::CreateMaskLayer);
+  NODE_SET_METHOD(target, "destroyMaskLayer" , openvg::DestroyMaskLayer);
+  NODE_SET_METHOD(target, "fillMaskLayer"    , openvg::FillMaskLayer);
+  NODE_SET_METHOD(target, "copyMask"         , openvg::CopyMask);
+  NODE_SET_METHOD(target, "clear"            , openvg::Clear);
 
   /* Paths */
-  NODE_SET_METHOD(target, "createPath"            , openvg::CreatePath);
-  NODE_SET_METHOD(target, "clearPath"             , openvg::ClearPath);
-  NODE_SET_METHOD(target, "destroyPath"           , openvg::DestroyPath);
-  NODE_SET_METHOD(target, "removePathCapabilities", openvg::RemovePathCapabilities);
-  NODE_SET_METHOD(target, "getPathCapabilities"   , openvg::GetPathCapabilities);
-  NODE_SET_METHOD(target, "appendPath"            , openvg::AppendPath);
-  NODE_SET_METHOD(target, "appendPathData"        , openvg::AppendPathData);
-  NODE_SET_METHOD(target, "modifyPathCoords"      , openvg::ModifyPathCoords);
-  NODE_SET_METHOD(target, "transformPath"         , openvg::TransformPath);
-  NODE_SET_METHOD(target, "interpolatePath"       , openvg::InterpolatePath);
-  NODE_SET_METHOD(target, "pathLength"            , openvg::PathLength);
-  NODE_SET_METHOD(target, "pointAlongPath"        , openvg::PointAlongPath);
-  NODE_SET_METHOD(target, "pathBounds"            , openvg::PathBounds);
-  NODE_SET_METHOD(target, "pathTransformedBounds" , openvg::PathTransformedBounds);
-  NODE_SET_METHOD(target, "drawPath"              , openvg::DrawPath);
+  NODE_SET_METHOD(target, "createPath"       , openvg::CreatePath);
+  NODE_SET_METHOD(target, "clearPath"        , openvg::ClearPath);
+  NODE_SET_METHOD(target, "destroyPath"      , openvg::DestroyPath);
+  NODE_SET_METHOD(target, "removePathCapabilities",
+                          openvg::RemovePathCapabilities);
+  NODE_SET_METHOD(target, "getPathCapabilities",
+                          openvg::GetPathCapabilities);
+  NODE_SET_METHOD(target, "appendPath"       , openvg::AppendPath);
+  NODE_SET_METHOD(target, "appendPathData"   , openvg::AppendPathData);
+  NODE_SET_METHOD(target, "modifyPathCoords" , openvg::ModifyPathCoords);
+  NODE_SET_METHOD(target, "transformPath"    , openvg::TransformPath);
+  NODE_SET_METHOD(target, "interpolatePath"  , openvg::InterpolatePath);
+  NODE_SET_METHOD(target, "pathLength"       , openvg::PathLength);
+  NODE_SET_METHOD(target, "pointAlongPath"   , openvg::PointAlongPath);
+  NODE_SET_METHOD(target, "pathBounds"       , openvg::PathBounds);
+  NODE_SET_METHOD(target, "pathTransformedBounds",
+                          openvg::PathTransformedBounds);
+  NODE_SET_METHOD(target, "drawPath"         , openvg::DrawPath);
 
   /* Paint */
-  NODE_SET_METHOD(target, "createPaint" , openvg::CreatePaint);
-  NODE_SET_METHOD(target, "destroyPaint", openvg::DestroyPaint);
-  NODE_SET_METHOD(target, "setPaint"    , openvg::SetPaint);
-  NODE_SET_METHOD(target, "getPaint"    , openvg::GetPaint);
-  NODE_SET_METHOD(target, "setColor"    , openvg::SetColor);
-  NODE_SET_METHOD(target, "getColor"    , openvg::GetColor);
-  NODE_SET_METHOD(target, "paintPattern", openvg::PaintPattern);
+  NODE_SET_METHOD(target, "createPaint"      , openvg::CreatePaint);
+  NODE_SET_METHOD(target, "destroyPaint"     , openvg::DestroyPaint);
+  NODE_SET_METHOD(target, "setPaint"         , openvg::SetPaint);
+  NODE_SET_METHOD(target, "getPaint"         , openvg::GetPaint);
+  NODE_SET_METHOD(target, "setColor"         , openvg::SetColor);
+  NODE_SET_METHOD(target, "getColor"         , openvg::GetColor);
+  NODE_SET_METHOD(target, "paintPattern"     , openvg::PaintPattern);
 
   /* Images */
-  NODE_SET_METHOD(target, "createImage"    , openvg::CreateImage);
-  NODE_SET_METHOD(target, "destroyImage"   , openvg::DestroyImage);
-  NODE_SET_METHOD(target, "clearImage"     , openvg::ClearImage);
-  NODE_SET_METHOD(target, "imageSubData"   , openvg::ImageSubData);
-  NODE_SET_METHOD(target, "getImageSubData", openvg::GetImageSubData);
-  NODE_SET_METHOD(target, "childImage"     , openvg::ChildImage);
-  NODE_SET_METHOD(target, "getParent"      , openvg::GetParent);
-  NODE_SET_METHOD(target, "copyImage"      , openvg::CopyImage);
-  NODE_SET_METHOD(target, "drawImage"      , openvg::DrawImage);
-  NODE_SET_METHOD(target, "setPixels"      , openvg::SetPixels);
-  NODE_SET_METHOD(target, "writePixels"    , openvg::WritePixels);
-  NODE_SET_METHOD(target, "getPixels"      , openvg::GetPixels);
-  NODE_SET_METHOD(target, "readPixels"     , openvg::ReadPixels);
-  NODE_SET_METHOD(target, "copyPixels"     , openvg::CopyPixels);
+  NODE_SET_METHOD(target, "createImage"      , openvg::CreateImage);
+  NODE_SET_METHOD(target, "destroyImage"     , openvg::DestroyImage);
+  NODE_SET_METHOD(target, "clearImage"       , openvg::ClearImage);
+  NODE_SET_METHOD(target, "imageSubData"     , openvg::ImageSubData);
+  NODE_SET_METHOD(target, "getImageSubData"  , openvg::GetImageSubData);
+  NODE_SET_METHOD(target, "childImage"       , openvg::ChildImage);
+  NODE_SET_METHOD(target, "getParent"        , openvg::GetParent);
+  NODE_SET_METHOD(target, "copyImage"        , openvg::CopyImage);
+  NODE_SET_METHOD(target, "drawImage"        , openvg::DrawImage);
+  NODE_SET_METHOD(target, "setPixels"        , openvg::SetPixels);
+  NODE_SET_METHOD(target, "writePixels"      , openvg::WritePixels);
+  NODE_SET_METHOD(target, "getPixels"        , openvg::GetPixels);
+  NODE_SET_METHOD(target, "readPixels"       , openvg::ReadPixels);
+  NODE_SET_METHOD(target, "copyPixels"       , openvg::CopyPixels);
 
   /* Text */
-  NODE_SET_METHOD(target, "createFont"     , openvg::CreateFont);
-  NODE_SET_METHOD(target, "destroyFont"    , openvg::DestroyFont);
-  NODE_SET_METHOD(target, "setGlyphToPath" , openvg::SetGlyphToPath);
-  NODE_SET_METHOD(target, "setGlyphToImage", openvg::SetGlyphToImage);
-  NODE_SET_METHOD(target, "clearGlyph"     , openvg::ClearGlyph);
-  NODE_SET_METHOD(target, "drawGlyph"      , openvg::DrawGlyph);
-  NODE_SET_METHOD(target, "drawGlyphs"     , openvg::DrawGlyphs);
+  NODE_SET_METHOD(target, "createFont"       , openvg::CreateFont);
+  NODE_SET_METHOD(target, "destroyFont"      , openvg::DestroyFont);
+  NODE_SET_METHOD(target, "setGlyphToPath"   , openvg::SetGlyphToPath);
+  NODE_SET_METHOD(target, "setGlyphToImage"  , openvg::SetGlyphToImage);
+  NODE_SET_METHOD(target, "clearGlyph"       , openvg::ClearGlyph);
+  NODE_SET_METHOD(target, "drawGlyph"        , openvg::DrawGlyph);
+  NODE_SET_METHOD(target, "drawGlyphs"       , openvg::DrawGlyphs);
 
   /* Image Filters */
   NODE_SET_METHOD(target, "colorMatrix"      , openvg::ColorMatrix);
@@ -129,10 +131,10 @@ init(Handle<Object> target)
   NODE_SET_METHOD(target, "lookupSingle"     , openvg::LookupSingle);
 
   /* Hardware Queries */
-  NODE_SET_METHOD(target, "hardwareQuery", openvg::HardwareQuery);
+  NODE_SET_METHOD(target, "hardwareQuery"    , openvg::HardwareQuery);
 
   /* Renderer and Extension Information */
-  NODE_SET_METHOD(target, "getString", openvg::GetString);
+  NODE_SET_METHOD(target, "getString"        , openvg::GetString);
 
   /* Utilities */
   Local<Object> VGU = Object::New();
@@ -144,17 +146,22 @@ init(Handle<Object> target)
   NODE_SET_METHOD(VGU, "roundRect"              , openvg::vgu::RoundRect);
   NODE_SET_METHOD(VGU, "ellipse"                , openvg::vgu::Ellipse);
   NODE_SET_METHOD(VGU, "arc"                    , openvg::vgu::Arc);
-  NODE_SET_METHOD(VGU, "computeWarpQuadToSquare", openvg::vgu::ComputeWarpQuadToSquare);
-  NODE_SET_METHOD(VGU, "computeWarpSquareToQuad", openvg::vgu::ComputeWarpSquareToQuad);
-  NODE_SET_METHOD(VGU, "computeWarpQuadToQuad"  , openvg::vgu::ComputeWarpQuadToQuad);
+  NODE_SET_METHOD(VGU, "computeWarpQuadToSquare",
+                       openvg::vgu::ComputeWarpQuadToSquare);
+  NODE_SET_METHOD(VGU, "computeWarpSquareToQuad",
+                       openvg::vgu::ComputeWarpSquareToQuad);
+  NODE_SET_METHOD(VGU, "computeWarpQuadToQuad",
+                       openvg::vgu::ComputeWarpQuadToQuad);
 
   /* KHR extensions */
   Local<Object> ext = Object::New();
   target->Set(String::New("ext"), ext);
 
-  NODE_SET_METHOD(ext, "createEGLImageTargetKHR", openvg::ext::CreateEGLImageTargetKHR);
+  NODE_SET_METHOD(ext, "createEGLImageTargetKHR",
+                       openvg::ext::CreateEGLImageTargetKHR);
 
-  NODE_SET_METHOD(ext, "iterativeAverageBlurKHR", openvg::ext::IterativeAverageBlurKHR);
+  NODE_SET_METHOD(ext, "iterativeAverageBlurKHR",
+                       openvg::ext::IterativeAverageBlurKHR);
 
   NODE_SET_METHOD(ext, "parametricFilterKHR", openvg::ext::ParametricFilterKHR);
   NODE_SET_METHOD(ext, "dropShadowKHR"      , openvg::ext::DropShadowKHR);
@@ -163,8 +170,10 @@ init(Handle<Object> target)
   NODE_SET_METHOD(ext, "gradientGlowKHR"    , openvg::ext::GradientGlowKHR);
   NODE_SET_METHOD(ext, "gradientBevelKHR"   , openvg::ext::GradientBevelKHR);
 
-  NODE_SET_METHOD(ext, "projectiveMatrixNDS" , openvg::ext::ProjectiveMatrixNDS);
-  NODE_SET_METHOD(ext, "transformClipLineNDS", openvg::ext::TransformClipLineNDS);
+  NODE_SET_METHOD(ext, "projectiveMatrixNDS",
+                       openvg::ext::ProjectiveMatrixNDS);
+  NODE_SET_METHOD(ext, "transformClipLineNDS",
+                       openvg::ext::TransformClipLineNDS);
 
   /* EGL */
   Local<Object> egl = Object::New();
@@ -195,11 +204,15 @@ Handle<Value> openvg::StartUp(const Arguments& args) {
   CHECK_VG_ERROR;
 
   Local<Object> screen = args[0].As<Object>();
-  screen->Set(String::NewSymbol("width" ), Integer::New(egl::State.screen_width));
-  screen->Set(String::NewSymbol("height"), Integer::New(egl::State.screen_height));
-  screen->Set(String::NewSymbol("display"), External::Wrap(egl::State.display));
-  screen->Set(String::NewSymbol("surface"), External::Wrap(egl::State.surface));
-  
+  screen->Set(String::NewSymbol("width" ),
+              Integer::New(egl::State.screen_width));
+  screen->Set(String::NewSymbol("height"),
+              Integer::New(egl::State.screen_height));
+  screen->Set(String::NewSymbol("display"),
+              External::Wrap(egl::State.display));
+  screen->Set(String::NewSymbol("surface"),
+              External::Wrap(egl::State.surface));
+
   return Undefined();
 }
 
@@ -381,7 +394,8 @@ Handle<Value> openvg::SetParameterI(const Arguments& args) {
 Handle<Value> openvg::SetParameterFV(const Arguments& args) {
   HandleScope scope;
 
-  CheckArgs3(setParameterFV, VGHandle, Int32, VGParamType, Int32, Float32Array, Object);
+  CheckArgs3(setParameterFV,
+             VGHandle, Int32, VGParamType, Int32, Float32Array, Object);
 
   Local<Object> array = args[2]->ToObject();
   Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
@@ -397,7 +411,8 @@ Handle<Value> openvg::SetParameterFV(const Arguments& args) {
 Handle<Value> openvg::SetParameterIV(const Arguments& args) {
   HandleScope scope;
 
-  CheckArgs3(setParameterIV, VGHandle, Int32, VGParamType, Int32, Int32Array, Object);
+  CheckArgs3(setParameterIV,
+             VGHandle, Int32, VGParamType, Int32, Int32Array, Object);
 
   Local<Object> array = args[2]->ToObject();
   Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
@@ -440,7 +455,8 @@ Handle<Value> openvg::GetParameterVectorSize(const Arguments& args) {
 Handle<Value> openvg::GetParameterFV(const Arguments& args) {
   HandleScope scope;
 
-  CheckArgs3(getParameterFV, VGHandle, Int32, VGParamType, Int32, Float32Array, Object);
+  CheckArgs3(getParameterFV,
+             VGHandle, Int32, VGParamType, Int32, Float32Array, Object);
 
   Local<Object> array = args[2]->ToObject();
   Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
@@ -456,7 +472,8 @@ Handle<Value> openvg::GetParameterFV(const Arguments& args) {
 Handle<Value> openvg::GetParameterIV(const Arguments& args) {
   HandleScope scope;
 
-  CheckArgs3(getParameterIV, VGHandle, Int32, VGParamType, Int32, Int32Array, Object);
+  CheckArgs3(getParameterIV,
+             VGHandle, Int32, VGParamType, Int32, Int32Array, Object);
 
   Local<Object> array = args[2]->ToObject();
   Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
@@ -740,7 +757,9 @@ Handle<Value> openvg::AppendPath(const Arguments& args) {
 Handle<Value> openvg::AppendPathData(const Arguments& args) {
   HandleScope scope;
 
-  CheckArgs4(appendPathData, dstPath, Number, numSegments, Int32, Uint8Array, Object, pathData, Object);
+  CheckArgs4(appendPathData,
+             dstPath, Number, numSegments, Int32, Uint8Array, Object,
+             pathData, Object);
 
   Local<Object> segmentsArray = args[2]->ToObject();
   Handle<Object> segmentsBuffer = segmentsArray->Get(String::New("buffer"))->ToObject();
@@ -761,7 +780,9 @@ Handle<Value> openvg::AppendPathData(const Arguments& args) {
 Handle<Value> openvg::ModifyPathCoords(const Arguments& args) {
   HandleScope scope;
 
-  CheckArgs4(modifyPathCoords, VGPath, Number, startIndex, Int32, numSegments, Int32, pathData, Object);
+  CheckArgs4(modifyPathCoords,
+             VGPath, Number, startIndex, Int32, numSegments, Int32,
+             pathData, Object);
 
   Local<Object> dataArray = args[3]->ToObject();
   Handle<Object> dataBuffer = dataArray->Get(String::New("buffer"))->ToObject();
@@ -960,7 +981,9 @@ Handle<Value> openvg::PaintPattern(const Arguments& args) {
 Handle<Value> openvg::CreateImage(const Arguments& args) {
   HandleScope scope;
 
-  CheckArgs4(createImage, VGImageFormat, Uint32, width, Int32, height, Int32, allowedQuality, Uint32);
+  CheckArgs4(createImage,
+             VGImageFormat, Uint32, width, Int32, height, Int32,
+             allowedQuality, Uint32);
 
   return Uint32::New(vgCreateImage(static_cast<VGImageFormat>(args[0]->Uint32Value()),
                                    (VGint) args[1]->Int32Value(),
@@ -981,7 +1004,8 @@ Handle<Value> openvg::DestroyImage(const Arguments& args) {
 Handle<Value> openvg::ClearImage(const Arguments& args) {
   HandleScope scope;
 
-  CheckArgs5(clearImage, VGImage, Number, x, Int32, y, Int32, width, Int32, height, Int32);
+  CheckArgs5(clearImage,
+             VGImage, Number, x, Int32, y, Int32, width, Int32, height, Int32);
 
   vgClearImage((VGImage) args[0]->Uint32Value(),
                (VGint) args[1]->Int32Value(),
@@ -996,7 +1020,8 @@ Handle<Value> openvg::ImageSubData(const Arguments& args) {
   HandleScope scope;
 
   CheckArgs8(imageSubData,
-             VGImage, Number, data, Object, dataStride, Int32, dataFormat, Uint32,
+             VGImage, Number, data, Object, dataStride, Int32,
+             dataFormat, Uint32,
              x, Int32, y, Int32, width, Int32, height, Int32);
 
   Local<Object> data = args[1]->ToObject();
@@ -1028,7 +1053,8 @@ Handle<Value> openvg::GetImageSubData(const Arguments& args) {
   HandleScope scope;
 
   CheckArgs8(getImageSubData,
-             VGImage, Number, data, Object, dataStride, Int32, dataFormat, Uint32,
+             VGImage, Number, data, Object, dataStride, Int32,
+             dataFormat, Uint32,
              x, Int32, y, Int32, width, Int32, height, Int32);
 
   Local<Object> dataArray = args[1]->ToObject();
@@ -1049,7 +1075,8 @@ Handle<Value> openvg::GetImageSubData(const Arguments& args) {
 Handle<Value> openvg::ChildImage(const Arguments& args) {
   HandleScope scope;
 
-  CheckArgs5(childImage, VGImage, Number, x, Int32, y, Int32, width, Int32, height, Int32);
+  CheckArgs5(childImage,
+             VGImage, Number, x, Int32, y, Int32, width, Int32, height, Int32);
 
   return Uint32::New(vgChildImage((VGImage) args[0]->Uint32Value(),
                                   (VGint) args[1]->Int32Value(),
@@ -1321,7 +1348,8 @@ Handle<Value> openvg::DrawGlyphs(const Arguments& args) {
 Handle<Value> openvg::ColorMatrix(const Arguments& args) {
   HandleScope scope;
 
-  CheckArgs3(colorMatrix, dstVGImage, Number, srcVGImage, Number, matrix, Object);
+  CheckArgs3(colorMatrix,
+             dstVGImage, Number, srcVGImage, Number, matrix, Object);
 
   Local<Object> matrixArray = args[2]->ToObject();
   Handle<Object> matrixBuffer = matrixArray->Get(String::New("buffer"))->ToObject();
@@ -1410,7 +1438,8 @@ Handle<Value> openvg::Lookup(const Arguments& args) {
   HandleScope scope;
 
   CheckArgs9(lookup, VGImage, Number, dstVGImage, Number, srcVGImage, Number,
-             redLUT, Object, greenLUT, Object, blueLUT, Object, alphaLUT, Object,
+             redLUT, Object, greenLUT, Object, blueLUT, Object,
+             alphaLUT, Object,
              outputLinear, Boolean, outputPremultiplied, Boolean);
 
   Local<Object> redLUTArray = args[2]->ToObject();
@@ -1487,7 +1516,8 @@ Handle<Value> openvg::GetString(const Arguments& args) {
 Handle<Value> openvg::vgu::Line(const Arguments& args) {
   HandleScope scope;
 
-  CheckArgs5(line, VGPath, Number, x0, Number, y0, Number, x1, Number, y1, Number);
+  CheckArgs5(line,
+             VGPath, Number, x0, Number, y0, Number, x1, Number, y1, Number);
 
   return Uint32::New(vguLine((VGPath) args[0]->Uint32Value(),
                              (VGfloat) args[1]->NumberValue(),
@@ -1499,7 +1529,9 @@ Handle<Value> openvg::vgu::Line(const Arguments& args) {
 Handle<Value> openvg::vgu::Polygon(const Arguments& args) {
   HandleScope scope;
 
-  CheckArgs4(polygon, VGPath, Number, Float32Array, Object, count, Int32, closed, Boolean);
+  CheckArgs4(polygon,
+             VGPath, Number, Float32Array, Object, count, Int32,
+             closed, Boolean);
 
   Local<Object> pointsArray = args[1]->ToObject();
   Handle<Object> pointsBuffer = pointsArray->Get(String::New("buffer"))->ToObject();
@@ -1617,7 +1649,7 @@ Handle<Value> openvg::vgu::ComputeWarpSquareToQuad(const Arguments& args) {
 Handle<Value> openvg::vgu::ComputeWarpQuadToQuad(const Arguments& args) {
   HandleScope scope;
 
-  // No arg check -> Would be a 17 arg function
+  // No arg check -> Would be a 17 arg macro
 
   Local<Object> matrixArray = args[8]->ToObject();
   Handle<Object> matrixBuffer = matrixArray->Get(String::New("buffer"))->ToObject();

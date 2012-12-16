@@ -8,28 +8,30 @@
 using namespace v8;
 
 namespace egl {
-  struct state_t {
-    EGLDisplay display;
-    EGLContext context;
-    EGLSurface surface;
 
-    uint32_t screen_width;
-    uint32_t screen_height;
-  };
+struct state_t {
+  EGLDisplay display;
+  EGLContext context;
+  EGLSurface surface;
 
-  extern state_t State;
-  extern EGLConfig Config;
+  uint32_t screen_width;
+  uint32_t screen_height;
+};
 
-  extern void InitBindings(Handle<Object> target);
+extern state_t State;
+extern EGLConfig Config;
 
-  void Init();
-  void InitOpenGLES();
-  void Finish();
+extern void InitBindings(Handle<Object> target);
 
-  Handle<Value> SwapBuffers(const Arguments& args);
-  Handle<Value> CreatePbufferFromClientBuffer(const Arguments& args);
-  Handle<Value> DestroySurface(const Arguments& args);
-  Handle<Value> MakeCurrent(const Arguments& args);
+void Init();
+void InitOpenGLES();
+void Finish();
+
+Handle<Value> SwapBuffers(const Arguments& args);
+Handle<Value> CreatePbufferFromClientBuffer(const Arguments& args);
+Handle<Value> DestroySurface(const Arguments& args);
+Handle<Value> MakeCurrent(const Arguments& args);
+
 }
 
 #define CHECK_EGL_ERROR {\

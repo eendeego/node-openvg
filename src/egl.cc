@@ -12,11 +12,11 @@ egl::state_t egl::State;
 EGLConfig egl::Config;
 
 extern void egl::InitBindings(Handle<Object> target) {
-  NODE_SET_METHOD(target, "swapBuffers", egl::SwapBuffers);
+  NODE_SET_METHOD(target, "swapBuffers"   , egl::SwapBuffers);
   NODE_SET_METHOD(target, "createPbufferFromClientBuffer",
-                  egl::CreatePbufferFromClientBuffer);
+                          egl::CreatePbufferFromClientBuffer);
   NODE_SET_METHOD(target, "destroySurface", egl::DestroySurface);
-  NODE_SET_METHOD(target, "makeCurrent", egl::MakeCurrent);
+  NODE_SET_METHOD(target, "makeCurrent"   , egl::MakeCurrent);
 }
 
 extern void egl::Init() {
@@ -53,11 +53,13 @@ extern void egl::Init() {
   eglBindAPI(EGL_OPENVG_API);
 
   // get an appropriate EGL frame buffer configuration
-  result = eglChooseConfig(State.display, attribute_list, &egl::Config, 1, &num_config);
+  result = eglChooseConfig(State.display, attribute_list,
+                           &egl::Config, 1, &num_config);
   assert(EGL_FALSE != result);
 
   // create an EGL rendering context
-  State.context = eglCreateContext(State.display, egl::Config, EGL_NO_CONTEXT, NULL);
+  State.context =
+    eglCreateContext(State.display, egl::Config, EGL_NO_CONTEXT, NULL);
   assert(State.context != EGL_NO_CONTEXT);
 
   // create an EGL window surface
@@ -78,24 +80,30 @@ extern void egl::Init() {
   dispman_display = vc_dispmanx_display_open(0 /* LCD */ );
   dispman_update  = vc_dispmanx_update_start(0);
 
-  dispman_element = vc_dispmanx_element_add(dispman_update, dispman_display, 0 /*layer */ , &dst_rect, 0 /*src */ ,
-                                            &src_rect, DISPMANX_PROTECTION_NONE, 0 /*alpha */ , 0 /*clamp */ ,
-                                            DISPMANX_NO_ROTATE /*transform */ );
+  dispman_element =
+    vc_dispmanx_element_add(dispman_update, dispman_display, 0 /*layer */ ,
+                            &dst_rect, 0 /*src */ , &src_rect,
+                            DISPMANX_PROTECTION_NONE,
+                            0 /*alpha */ , 0 /*clamp */ ,
+                            DISPMANX_NO_ROTATE /*transform */);
 
   nativewindow.element = dispman_element;
   nativewindow.width   = State.screen_width;
   nativewindow.height  = State.screen_height;
   vc_dispmanx_update_submit_sync(dispman_update);
 
-  State.surface = eglCreateWindowSurface(State.display, egl::Config, &nativewindow, NULL);
+  State.surface =
+    eglCreateWindowSurface(State.display, egl::Config, &nativewindow, NULL);
   assert(State.surface != EGL_NO_SURFACE);
 
   // connect the context to the surface
-  result = eglMakeCurrent(State.display, State.surface, State.surface, State.context);
+  result =
+    eglMakeCurrent(State.display, State.surface, State.surface, State.context);
   assert(EGL_FALSE != result);
 
   // preserve color buffer when swapping
-  eglSurfaceAttrib(State.display, State.surface, EGL_SWAP_BEHAVIOR, EGL_BUFFER_PRESERVED);
+  eglSurfaceAttrib(State.display, State.surface,
+                   EGL_SWAP_BEHAVIOR, EGL_BUFFER_PRESERVED);
 }
 
 // Code from https://github.com/ajstarks/openvg/blob/master/oglinit.c doesn't
