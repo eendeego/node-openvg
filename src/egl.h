@@ -28,6 +28,7 @@ namespace egl {
 
   Handle<Value> SwapBuffers(const Arguments& args);
   Handle<Value> CreatePbufferFromClientBuffer(const Arguments& args);
+  Handle<Value> DestroySurface(const Arguments& args);
   Handle<Value> MakeCurrent(const Arguments& args);
 }
 

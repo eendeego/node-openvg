@@ -15,6 +15,7 @@ extern void egl::InitBindings(Handle<Object> target) {
   NODE_SET_METHOD(target, "swapBuffers", egl::SwapBuffers);
   NODE_SET_METHOD(target, "createPbufferFromClientBuffer",
                   egl::CreatePbufferFromClientBuffer);
+  NODE_SET_METHOD(target, "destroySurface", egl::DestroySurface);
   NODE_SET_METHOD(target, "makeCurrent", egl::MakeCurrent);
 }
 
@@ -155,6 +156,20 @@ Handle<Value> egl::CreatePbufferFromClientBuffer(const Arguments& args) {
                                      NULL);
 
   return scope.Close(External::Wrap(surface));
+}
+
+Handle<Value> egl::DestroySurface(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs2(swapBuffers,
+             display, External, surface, External);
+
+  EGLDisplay display = (EGLDisplay) External::Unwrap(args[0]);
+  EGLSurface surface = (EGLSurface) External::Unwrap(args[1]);
+
+  EGLBoolean result = eglDestroySurface(display, surface);
+
+  return scope.Close(Boolean::New(result));
 }
 
 Handle<Value> egl::MakeCurrent(const Arguments& args) {
