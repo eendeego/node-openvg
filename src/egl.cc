@@ -187,10 +187,11 @@ Handle<Value> egl::MakeCurrent(const Arguments& args) {
              display, External, drawSurface, External, readSurface, External);
 
   EGLDisplay display = (EGLDisplay) External::Unwrap(args[0]);
-  EGLSurface draw = (EGLSurface) External::Unwrap(args[1]);
-  EGLSurface read = (EGLSurface) External::Unwrap(args[2]);
+  EGLSurface surface = (EGLSurface) External::Unwrap(args[1]);
 
-  EGLBoolean result = eglMakeCurrent(display, draw, read, State.context);
+  // According to EGL 1.4 spec, 3.7.3, for OpenVG contexts, draw and read
+  // surfaces must be the same
+  EGLBoolean result = eglMakeCurrent(display, surface, surface, State.context);
 
   return scope.Close(Boolean::New(result));
 }
