@@ -12,6 +12,7 @@ egl::state_t egl::State;
 EGLConfig egl::Config;
 
 extern void egl::InitBindings(Handle<Object> target) {
+  NODE_SET_METHOD(target, "getError"      , egl::GetError);
   NODE_SET_METHOD(target, "swapBuffers"   , egl::SwapBuffers);
   NODE_SET_METHOD(target, "createPbufferFromClientBuffer",
                           egl::CreatePbufferFromClientBuffer);
@@ -127,6 +128,16 @@ extern void egl::Finish() {
   eglDestroyContext(State.display, State.context);
   eglTerminate(State.display);
 }
+
+
+Handle<Value> egl::GetError(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs0(getError);
+
+  return scope.Close(Integer::New(eglGetError()));
+}
+
 
 Handle<Value> egl::SwapBuffers(const Arguments& args) {
   HandleScope scope;

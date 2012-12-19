@@ -27,6 +27,7 @@ void Init();
 void InitOpenGLES();
 void Finish();
 
+Handle<Value> GetError(const Arguments& args);
 Handle<Value> SwapBuffers(const Arguments& args);
 Handle<Value> CreatePbufferFromClientBuffer(const Arguments& args);
 Handle<Value> DestroySurface(const Arguments& args);
