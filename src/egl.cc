@@ -164,7 +164,7 @@ Handle<Value> egl::CreatePbufferFromClientBuffer(const Arguments& args) {
   // So, check for a Number (as VGImages are checked on openvg.cc) and
   // cast to a EGLClientBuffer.
 
-  CheckArgs2(CreatePBuffer, display, External, vgImage, Number);
+  CheckArgs2(CreatePbufferFromClientBuffer, display, External, vgImage, Number);
 
   EGLDisplay display = (EGLDisplay) External::Unwrap(args[0]);
   EGLClientBuffer buffer =
@@ -183,7 +183,7 @@ Handle<Value> egl::CreatePbufferFromClientBuffer(const Arguments& args) {
 Handle<Value> egl::DestroySurface(const Arguments& args) {
   HandleScope scope;
 
-  CheckArgs2(swapBuffers,
+  CheckArgs2(destroySurface,
              display, External, surface, External);
 
   EGLDisplay display = (EGLDisplay) External::Unwrap(args[0]);
