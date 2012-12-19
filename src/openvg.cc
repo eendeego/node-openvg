@@ -212,6 +212,8 @@ Handle<Value> openvg::StartUp(const Arguments& args) {
               External::Wrap(egl::State.display));
   screen->Set(String::NewSymbol("surface"),
               External::Wrap(egl::State.surface));
+  screen->Set(String::NewSymbol("context"),
+              External::Wrap(egl::State.context));
 
   return Undefined();
 }

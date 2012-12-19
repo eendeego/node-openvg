@@ -31,6 +31,9 @@ Handle<Value> GetError(const Arguments& args);
 Handle<Value> SwapBuffers(const Arguments& args);
 Handle<Value> CreatePbufferFromClientBuffer(const Arguments& args);
 Handle<Value> DestroySurface(const Arguments& args);
+
+Handle<Value> CreateContext(const Arguments& args);
+Handle<Value> DestroyContext(const Arguments& args);
 Handle<Value> MakeCurrent(const Arguments& args);
 
 }
