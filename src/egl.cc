@@ -145,14 +145,13 @@ Handle<Value> egl::GetError(const Arguments& args) {
 Handle<Value> egl::SwapBuffers(const Arguments& args) {
   HandleScope scope;
 
-  CheckArgs2(swapBuffers, display, External, surface, External);
+  CheckArgs1(swapBuffers, surface, External);
 
-  EGLDisplay display = (EGLDisplay) External::Unwrap(args[0]);
-  EGLSurface surface = (EGLSurface) External::Unwrap(args[1]);
+  EGLSurface surface = (EGLSurface) External::Unwrap(args[0]);
 
-  eglSwapBuffers(display, surface);
+  EGLBoolean result = eglSwapBuffers(State.display, surface);
 
-  return scope.Close(Undefined());
+  return scope.Close(Boolean::New(result));
 }
 
 Handle<Value> egl::CreatePbufferFromClientBuffer(const Arguments& args) {
@@ -164,18 +163,24 @@ Handle<Value> egl::CreatePbufferFromClientBuffer(const Arguments& args) {
   // So, check for a Number (as VGImages are checked on openvg.cc) and
   // cast to a EGLClientBuffer.
 
-  CheckArgs2(CreatePbufferFromClientBuffer, display, External, vgImage, Number);
+  CheckArgs1(CreatePbufferFromClientBuffer, vgImage, Number);
 
-  EGLDisplay display = (EGLDisplay) External::Unwrap(args[0]);
   EGLClientBuffer buffer =
-    reinterpret_cast<EGLClientBuffer>(args[1]->Uint32Value());
+    reinterpret_cast<EGLClientBuffer>(args[0]->Uint32Value());
+
+  static const EGLint attribute_list[] = {
+    EGL_TEXTURE_FORMAT, EGL_TEXTURE_RGBA,
+    EGL_TEXTURE_TARGET, EGL_TEXTURE_2D,
+    EGL_MIPMAP_TEXTURE, EGL_FALSE,
+    EGL_NONE
+  };
 
   EGLSurface surface =
-    eglCreatePbufferFromClientBuffer(display,
+    eglCreatePbufferFromClientBuffer(State.display,
                                      EGL_OPENVG_IMAGE,
                                      buffer,
                                      egl::Config,
-                                     NULL);
+                                     attribute_list);
 
   return scope.Close(External::Wrap(surface));
 }
@@ -183,13 +188,11 @@ Handle<Value> egl::CreatePbufferFromClientBuffer(const Arguments& args) {
 Handle<Value> egl::DestroySurface(const Arguments& args) {
   HandleScope scope;
 
-  CheckArgs2(destroySurface,
-             display, External, surface, External);
+  CheckArgs1(destroySurface, surface, External);
 
-  EGLDisplay display = (EGLDisplay) External::Unwrap(args[0]);
-  EGLSurface surface = (EGLSurface) External::Unwrap(args[1]);
+  EGLSurface surface = (EGLSurface) External::Unwrap(args[0]);
 
-  EGLBoolean result = eglDestroySurface(display, surface);
+  EGLBoolean result = eglDestroySurface(State.display, surface);
 
   return scope.Close(Boolean::New(result));
 }
@@ -197,16 +200,14 @@ Handle<Value> egl::DestroySurface(const Arguments& args) {
 Handle<Value> egl::MakeCurrent(const Arguments& args) {
   HandleScope scope;
 
-  CheckArgs3(makeCurrent,
-             display, External, surface, External, context, External);
+  CheckArgs2(makeCurrent, surface, External, context, External);
 
-  EGLDisplay display = (EGLDisplay) External::Unwrap(args[0]);
-  EGLSurface surface = (EGLSurface) External::Unwrap(args[1]);
-  EGLContext context = (EGLContext) External::Unwrap(args[2]);
+  EGLSurface surface = (EGLSurface) External::Unwrap(args[0]);
+  EGLContext context = (EGLContext) External::Unwrap(args[1]);
 
   // According to EGL 1.4 spec, 3.7.3, for OpenVG contexts, draw and read
   // surfaces must be the same
-  EGLBoolean result = eglMakeCurrent(display, surface, surface, context);
+  EGLBoolean result = eglMakeCurrent(State.display, surface, surface, context);
 
   return scope.Close(Boolean::New(result));
 }
@@ -216,15 +217,14 @@ Handle<Value> egl::CreateContext(const Arguments& args) {
 
   // No arg checks
 
-  EGLDisplay display = (EGLDisplay) External::Unwrap(args[0]);
-  EGLContext shareContext = args.Length() == 1 ?
+  EGLContext shareContext = args.Length() == 0 ?
     EGL_NO_CONTEXT :
-    (EGLContext) External::Unwrap(args[1]);
+    (EGLContext) External::Unwrap(args[0]);
 
   // According to EGL 1.4 spec, 3.7.3, for OpenVG contexts, draw and read
   // surfaces must be the same
   EGLContext result =
-    eglCreateContext(display, egl::Config, shareContext, NULL);
+    eglCreateContext(State.display, egl::Config, shareContext, NULL);
 
   return scope.Close(External::Wrap(result));
 }
@@ -232,15 +232,11 @@ Handle<Value> egl::CreateContext(const Arguments& args) {
 Handle<Value> egl::DestroyContext(const Arguments& args) {
   HandleScope scope;
 
-  CheckArgs2(destroyContext,
-             display, External, context, External);
+  CheckArgs1(destroyContext, context, External);
 
-  EGLDisplay display = (EGLDisplay) External::Unwrap(args[0]);
-  EGLContext context = (EGLContext) External::Unwrap(args[1]);
+  EGLContext context = (EGLContext) External::Unwrap(args[0]);
 
-  // According to EGL 1.4 spec, 3.7.3, for OpenVG contexts, draw and read
-  // surfaces must be the same
-  EGLBoolean result = eglDestroyContext(display, context);
+  EGLBoolean result = eglDestroyContext(State.display, context);
 
   return scope.Close(Boolean::New(result));
 }
