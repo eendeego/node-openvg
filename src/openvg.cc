@@ -210,11 +210,11 @@ Handle<Value> openvg::StartUp(const Arguments& args) {
   screen->Set(String::NewSymbol("height"),
               Integer::New(egl::State.screen_height));
   screen->Set(String::NewSymbol("display"),
-              External::Wrap(egl::State.display));
+              External::New(egl::State.display));
   screen->Set(String::NewSymbol("surface"),
-              External::Wrap(egl::State.surface));
+              External::New(egl::State.surface));
   screen->Set(String::NewSymbol("context"),
-              External::Wrap(egl::State.context));
+              External::New(egl::State.context));
 
   return Undefined();
 }

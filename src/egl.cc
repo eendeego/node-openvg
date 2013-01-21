@@ -147,7 +147,7 @@ Handle<Value> egl::SwapBuffers(const Arguments& args) {
 
   CheckArgs1(swapBuffers, surface, External);
 
-  EGLSurface surface = (EGLSurface) External::Unwrap(args[0]);
+  EGLSurface surface = (EGLSurface) External::Cast(*args[0])->Value();
 
   EGLBoolean result = eglSwapBuffers(State.display, surface);
 
@@ -182,7 +182,7 @@ Handle<Value> egl::CreatePbufferFromClientBuffer(const Arguments& args) {
                                      egl::Config,
                                      attribute_list);
 
-  return scope.Close(External::Wrap(surface));
+  return scope.Close(External::New(surface));
 }
 
 Handle<Value> egl::DestroySurface(const Arguments& args) {
@@ -190,7 +190,7 @@ Handle<Value> egl::DestroySurface(const Arguments& args) {
 
   CheckArgs1(destroySurface, surface, External);
 
-  EGLSurface surface = (EGLSurface) External::Unwrap(args[0]);
+  EGLSurface surface = (EGLSurface) External::Cast(*args[0])->Value();
 
   EGLBoolean result = eglDestroySurface(State.display, surface);
 
@@ -202,8 +202,8 @@ Handle<Value> egl::MakeCurrent(const Arguments& args) {
 
   CheckArgs2(makeCurrent, surface, External, context, External);
 
-  EGLSurface surface = (EGLSurface) External::Unwrap(args[0]);
-  EGLContext context = (EGLContext) External::Unwrap(args[1]);
+  EGLSurface surface = (EGLSurface) External::Cast(*args[0])->Value();
+  EGLContext context = (EGLContext) External::Cast(*args[1])->Value();
 
   // According to EGL 1.4 spec, 3.7.3, for OpenVG contexts, draw and read
   // surfaces must be the same
@@ -219,14 +219,14 @@ Handle<Value> egl::CreateContext(const Arguments& args) {
 
   EGLContext shareContext = args.Length() == 0 ?
     EGL_NO_CONTEXT :
-    (EGLContext) External::Unwrap(args[0]);
+    (EGLContext) External::Cast(*args[0])->Value();
 
   // According to EGL 1.4 spec, 3.7.3, for OpenVG contexts, draw and read
   // surfaces must be the same
   EGLContext result =
     eglCreateContext(State.display, egl::Config, shareContext, NULL);
 
-  return scope.Close(External::Wrap(result));
+  return scope.Close(External::New(result));
 }
 
 Handle<Value> egl::DestroyContext(const Arguments& args) {
@@ -234,7 +234,7 @@ Handle<Value> egl::DestroyContext(const Arguments& args) {
 
   CheckArgs1(destroyContext, context, External);
 
-  EGLContext context = (EGLContext) External::Unwrap(args[0]);
+  EGLContext context = (EGLContext) External::Cast(*args[0])->Value();
 
   EGLBoolean result = eglDestroyContext(State.display, context);
 
