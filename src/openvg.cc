@@ -16,7 +16,7 @@ const bool kInitOpenGLES = false;
 using namespace node;
 using namespace v8;
 
-extern "C" void init(Handle<Object> target) {
+void init(Handle<Object> target) {
   NODE_SET_METHOD(target, "startUp"          , openvg::StartUp);
   NODE_SET_METHOD(target, "shutdown"         , openvg::Shutdown);
 
@@ -180,6 +180,7 @@ extern "C" void init(Handle<Object> target) {
   target->Set(String::New("egl"), egl);
   egl::InitBindings(egl);
 }
+NODE_MODULE(openvg, init)
 
 #define CHECK_VG_ERROR {\
     VGErrorCode errorCode = vgGetError();\

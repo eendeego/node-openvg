@@ -1,4 +1,4 @@
-var openVG = module.exports = require('./build/Release/node-openvg.node');
+var openVG = module.exports = require('./build/Release/openvg.node');
 
 var screen = openVG.screen = {
   width : null,

@@ -1,7 +1,7 @@
 {
   'targets': [
     {
-      'target_name': 'node-openvg',
+      'target_name': 'openvg',
       'sources': [
         'src/openvg.cc',
         'src/egl.cc'
