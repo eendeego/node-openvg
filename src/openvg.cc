@@ -191,6 +191,28 @@ NODE_MODULE(openvg, init)
     }\
   }
 
+template<class C> class TypedArrayWrapper {
+ private:
+  Local<Object> array;
+  Handle<Object> buffer;
+  int offset;
+ public:
+  inline __attribute__((always_inline)) TypedArrayWrapper(const Local<Value>& arg) :
+    array(arg->ToObject()),
+    buffer(array->Get(String::New("buffer"))->ToObject()),
+    offset(array->Get(String::New("byteOffset"))->Int32Value()) {
+  }
+
+  inline __attribute__((always_inline)) C* pointer() {
+    return (C*) &((char*) buffer->GetIndexedPropertiesExternalArrayData())[offset];
+  }
+
+  inline __attribute__((always_inline)) int length() {
+    return array->Get(String::New("length"))->Uint32Value();
+  }
+};
+
+
 Handle<Value> openvg::StartUp(const Arguments& args) {
   HandleScope scope;
 
@@ -290,12 +312,11 @@ Handle<Value> openvg::SetFV(const Arguments& args) {
 
   CheckArgs2(setFV, type, Int32, Float32Array, Object);
 
-  Local<Object> array = args[1]->ToObject();
-  Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
+  TypedArrayWrapper<VGfloat> values(args[1]);
 
   vgSetfv((VGParamType) args[0]->Int32Value(),
-          (VGint) array->Get(String::New("length"))->Uint32Value(),
-          (VGfloat*) buffer->GetIndexedPropertiesExternalArrayData());
+          values.length(),
+          values.pointer());
 
   return Undefined();
 }
@@ -305,12 +326,11 @@ Handle<Value> openvg::SetIV(const Arguments& args) {
 
   CheckArgs2(setIV, type, Int32, Int32Array, Object);
 
-  Local<Object> array = args[1]->ToObject();
-  Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
+  TypedArrayWrapper<VGint> values(args[1]);
 
   vgSetiv((VGParamType) args[0]->Int32Value(),
-          (VGint) array->Get(String::New("length"))->Uint32Value(),
-          (VGint*) buffer->GetIndexedPropertiesExternalArrayData());
+          values.length(),
+          values.pointer());
 
   return Undefined();
 }
@@ -344,12 +364,11 @@ Handle<Value> openvg::GetFV(const Arguments& args) {
 
   CheckArgs2(getFV, type, Int32, Float32Array, Object);
 
-  Local<Object> array = args[1]->ToObject();
-  Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
+  TypedArrayWrapper<VGfloat> values(args[1]);
 
   vgGetfv((VGParamType) args[0]->Int32Value(),
-          (VGint) array->Get(String::New("length"))->Uint32Value(),
-          (VGfloat*) buffer->GetIndexedPropertiesExternalArrayData());
+          values.length(),
+          values.pointer());
 
   return Undefined();
 }
@@ -359,12 +378,11 @@ Handle<Value> openvg::GetIV(const Arguments& args) {
 
   CheckArgs2(getIV, type, Int32, Float32Array, Object);
 
-  Local<Object> array = args[1]->ToObject();
-  Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
+  TypedArrayWrapper<VGint> values(args[1]);
 
   vgGetiv((VGParamType) args[0]->Int32Value(),
-          (VGint) array->Get(String::New("length"))->Uint32Value(),
-          (VGint*) buffer->GetIndexedPropertiesExternalArrayData());
+          values.length(),
+          values.pointer());
 
   return Undefined();
 }
@@ -400,13 +418,12 @@ Handle<Value> openvg::SetParameterFV(const Arguments& args) {
   CheckArgs3(setParameterFV,
              VGHandle, Int32, VGParamType, Int32, Float32Array, Object);
 
-  Local<Object> array = args[2]->ToObject();
-  Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
+  TypedArrayWrapper<VGfloat> values(args[2]);
 
   vgSetParameterfv((VGHandle) args[0]->Int32Value(),
                    (VGParamType) args[1]->Int32Value(),
-                   (VGint) array->Get(String::New("length"))->Uint32Value(),
-                   (VGfloat*) buffer->GetIndexedPropertiesExternalArrayData());
+                   values.length(),
+                   values.pointer());
 
   return Undefined();
 }
@@ -417,13 +434,12 @@ Handle<Value> openvg::SetParameterIV(const Arguments& args) {
   CheckArgs3(setParameterIV,
              VGHandle, Int32, VGParamType, Int32, Int32Array, Object);
 
-  Local<Object> array = args[2]->ToObject();
-  Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
+  TypedArrayWrapper<VGint> values(args[2]);
 
   vgSetParameteriv((VGHandle) args[0]->Int32Value(),
                    (VGParamType) args[1]->Int32Value(),
-                   (VGint) array->Get(String::New("length"))->Uint32Value(),
-                   (VGint*) buffer->GetIndexedPropertiesExternalArrayData());
+                   values.length(),
+                   values.pointer());
 
   return Undefined();
 }
@@ -461,13 +477,12 @@ Handle<Value> openvg::GetParameterFV(const Arguments& args) {
   CheckArgs3(getParameterFV,
              VGHandle, Int32, VGParamType, Int32, Float32Array, Object);
 
-  Local<Object> array = args[2]->ToObject();
-  Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
+  TypedArrayWrapper<VGfloat> values(args[2]);
 
   vgGetParameterfv((VGHandle) args[0]->Int32Value(),
                    (VGParamType) args[1]->Int32Value(),
-                   (VGint) array->Get(String::New("length"))->Uint32Value(),
-                   (VGfloat*) buffer->GetIndexedPropertiesExternalArrayData());
+                   values.length(),
+                   values.pointer());
 
   return Undefined();
 }
@@ -478,13 +493,12 @@ Handle<Value> openvg::GetParameterIV(const Arguments& args) {
   CheckArgs3(getParameterIV,
              VGHandle, Int32, VGParamType, Int32, Int32Array, Object);
 
-  Local<Object> array = args[2]->ToObject();
-  Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
+  TypedArrayWrapper<VGint> values(args[2]);
 
   vgGetParameteriv((VGHandle) args[0]->Int32Value(),
                    (VGParamType) args[1]->Int32Value(),
-                   (VGint) array->Get(String::New("length"))->Uint32Value(),
-                   (VGint*) buffer->GetIndexedPropertiesExternalArrayData());
+                   values.length(),
+                   values.pointer());
 
   return Undefined();
 }
@@ -508,10 +522,9 @@ Handle<Value> openvg::LoadMatrix(const Arguments& args) {
 
   CheckArgs1(loadIdentity, Float32Array, Object);
 
-  Local<Object> array = args[0]->ToObject();
-  Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
+  TypedArrayWrapper<VGfloat> matrix(args[0]);
 
-  vgLoadMatrix((VGfloat*) buffer->GetIndexedPropertiesExternalArrayData());
+  vgLoadMatrix(matrix.pointer());
 
   return Undefined();
 }
@@ -521,10 +534,9 @@ Handle<Value> openvg::GetMatrix(const Arguments& args) {
 
   CheckArgs1(getMatrix, Float32Array, Object);
 
-  Local<Object> array = args[0]->ToObject();
-  Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
+  TypedArrayWrapper<VGfloat> matrix(args[0]);
 
-  vgGetMatrix((VGfloat*) buffer->GetIndexedPropertiesExternalArrayData());
+  vgGetMatrix(matrix.pointer());
 
   return Undefined();
 }
@@ -534,10 +546,9 @@ Handle<Value> openvg::MultMatrix(const Arguments& args) {
 
   CheckArgs1(multMatrix, Float32Array, Object);
 
-  Local<Object> array = args[0]->ToObject();
-  Handle<Object> buffer = array->Get(String::New("buffer"))->ToObject();
+  TypedArrayWrapper<VGfloat> matrix(args[0]);
 
-  vgMultMatrix((VGfloat*) buffer->GetIndexedPropertiesExternalArrayData());
+  vgMultMatrix(matrix.pointer());
 
   return Undefined();
 }
@@ -764,18 +775,13 @@ Handle<Value> openvg::AppendPathData(const Arguments& args) {
              dstPath, Number, numSegments, Int32, Uint8Array, Object,
              pathData, Object);
 
-  Local<Object> segmentsArray = args[2]->ToObject();
-  Handle<Object> segmentsBuffer = segmentsArray->Get(String::New("buffer"))->ToObject();
-  int segmentsOffset = segmentsArray->Get(String::New("byteOffset"))->Int32Value();
-
-  Local<Object> dataArray = args[3]->ToObject();
-  Handle<Object> dataBuffer = dataArray->Get(String::New("buffer"))->ToObject();
-  int dataOffset = dataArray->Get(String::New("byteOffset"))->Int32Value();
+  TypedArrayWrapper<VGubyte> segments(args[2]);
+  TypedArrayWrapper<void> data(args[3]);
 
   vgAppendPathData((VGPath) args[0]->Uint32Value(),
                    (VGint) args[1]->Int32Value(),
-                   &((VGubyte*) segmentsBuffer->GetIndexedPropertiesExternalArrayData())[segmentsOffset],
-                   (void*) &((VGubyte*) dataBuffer->GetIndexedPropertiesExternalArrayData())[dataOffset]);
+                   segments.pointer(),
+                   data.pointer());
 
   return Undefined();
 }
@@ -787,13 +793,12 @@ Handle<Value> openvg::ModifyPathCoords(const Arguments& args) {
              VGPath, Number, startIndex, Int32, numSegments, Int32,
              pathData, Object);
 
-  Local<Object> dataArray = args[3]->ToObject();
-  Handle<Object> dataBuffer = dataArray->Get(String::New("buffer"))->ToObject();
+  TypedArrayWrapper<void> data(args[3]);
 
   vgModifyPathCoords((VGPath) args[0]->Uint32Value(),
                      (VGint) args[1]->Int32Value(),
                      (VGint) args[2]->Int32Value(),
-                     (void*) dataBuffer->GetIndexedPropertiesExternalArrayData());
+                     data.pointer());
 
   return Undefined();
 }
@@ -1060,11 +1065,10 @@ Handle<Value> openvg::GetImageSubData(const Arguments& args) {
              dataFormat, Uint32,
              x, Int32, y, Int32, width, Int32, height, Int32);
 
-  Local<Object> dataArray = args[1]->ToObject();
-  Handle<Object> dataBuffer = dataArray->Get(String::New("buffer"))->ToObject();
+  TypedArrayWrapper<void> data(args[1]);
 
   vgGetImageSubData((VGImage) args[0]->Uint32Value(),
-                    (void*) dataBuffer->GetIndexedPropertiesExternalArrayData(),
+                    data.pointer(),
                     (VGint) args[2]->Int32Value(),
                     static_cast<VGImageFormat>(args[3]->Uint32Value()),
                     (VGint) args[4]->Int32Value(),
@@ -1153,10 +1157,9 @@ Handle<Value> openvg::WritePixels(const Arguments& args) {
              dataFormat, Uint32,
              dx, Int32, dy, Int32, width, Int32, height, Int32);
 
-  Local<Object> dataArray = args[0]->ToObject();
-  Handle<Object> dataBuffer = dataArray->Get(String::New("buffer"))->ToObject();
+  TypedArrayWrapper<void> data(args[0]);
 
-  vgWritePixels((void*) dataBuffer->GetIndexedPropertiesExternalArrayData(),
+  vgWritePixels(data.pointer(),
                 (VGint) args[1]->Int32Value(),
                 static_cast<VGImageFormat>(args[2]->Uint32Value()),
                 (VGint) args[3]->Int32Value(),
@@ -1194,10 +1197,9 @@ Handle<Value> openvg::ReadPixels(const Arguments& args) {
              data, Object, dataStride, Int32, dataFormat, Uint32,
              sx, Int32, sy, Int32, width, Int32, height, Int32);
 
-  Local<Object> dataArray = args[0]->ToObject();
-  Handle<Object> dataBuffer = dataArray->Get(String::New("buffer"))->ToObject();
+  TypedArrayWrapper<void> data(args[0]);
 
-  vgReadPixels((void*) dataBuffer->GetIndexedPropertiesExternalArrayData(),
+  vgReadPixels(data.pointer(),
                (VGint) args[1]->Int32Value(),
                static_cast<VGImageFormat>(args[2]->Uint32Value()),
                (VGint) args[3]->Int32Value(),
@@ -1254,18 +1256,15 @@ Handle<Value> openvg::SetGlyphToPath(const Arguments& args) {
              VGPath, Number, isHinted, Boolean,
              glyphOrigin, Object, escapement, Object);
 
-  Local<Object> glyphOriginArray = args[4]->ToObject();
-  Handle<Object> glyphOriginBuffer = glyphOriginArray->Get(String::New("buffer"))->ToObject();
-
-  Local<Object> escapementArray = args[5]->ToObject();
-  Handle<Object> escapementBuffer = escapementArray->Get(String::New("buffer"))->ToObject();
+  TypedArrayWrapper<VGfloat> glyphOrigin(args[4]);
+  TypedArrayWrapper<VGfloat> escapement(args[5]);
 
   vgSetGlyphToPath((VGFont) args[0]->Uint32Value(),
                    (VGuint) args[1]->Uint32Value(),
                    (VGPath) args[2]->Uint32Value(),
                    (VGboolean) args[3]->BooleanValue(),
-                   (VGfloat*) glyphOriginBuffer->GetIndexedPropertiesExternalArrayData(),
-                   (VGfloat*) escapementBuffer->GetIndexedPropertiesExternalArrayData());
+                   glyphOrigin.pointer(),
+                   escapement.pointer());
 
   return Undefined();
 }
@@ -1277,17 +1276,14 @@ Handle<Value> openvg::SetGlyphToImage(const Arguments& args) {
              VGImage, Number,
              glyphOrigin, Object, escapement, Object);
 
-  Local<Object> glyphOriginArray = args[3]->ToObject();
-  Handle<Object> glyphOriginBuffer = glyphOriginArray->Get(String::New("buffer"))->ToObject();
-
-  Local<Object> escapementArray = args[4]->ToObject();
-  Handle<Object> escapementBuffer = escapementArray->Get(String::New("buffer"))->ToObject();
+  TypedArrayWrapper<VGfloat> glyphOrigin(args[3]);
+  TypedArrayWrapper<VGfloat> escapement(args[4]);
 
   vgSetGlyphToImage((VGFont) args[0]->Uint32Value(),
                     (VGuint) args[1]->Uint32Value(),
                     (VGImage) args[2]->Uint32Value(),
-                    (VGfloat*) glyphOriginBuffer->GetIndexedPropertiesExternalArrayData(),
-                    (VGfloat*) escapementBuffer->GetIndexedPropertiesExternalArrayData());
+                    glyphOrigin.pointer(),
+                    escapement.pointer());
 
   return Undefined();
 }
@@ -1324,20 +1320,15 @@ Handle<Value> openvg::DrawGlyphs(const Arguments& args) {
              glyphIndices, Object, adjustments_x, Object, adjustments_y, Object,
              paintModes, Uint32, allowAutoHinting, Boolean);
 
-  Local<Object> glyphIndicesArray = args[2]->ToObject();
-  Handle<Object> glyphIndicesBuffer = glyphIndicesArray->Get(String::New("buffer"))->ToObject();
-
-  Local<Object> adjustments_xArray = args[3]->ToObject();
-  Handle<Object> adjustments_xBuffer = adjustments_xArray->Get(String::New("buffer"))->ToObject();
-
-  Local<Object> adjustments_yArray = args[4]->ToObject();
-  Handle<Object> adjustments_yBuffer = adjustments_yArray->Get(String::New("buffer"))->ToObject();
+  TypedArrayWrapper<VGuint> glyphIndices(args[2]);
+  TypedArrayWrapper<VGfloat> adjustments_x(args[3]);
+  TypedArrayWrapper<VGfloat> adjustments_y(args[4]);
 
   vgDrawGlyphs((VGFont) args[0]->Uint32Value(),
                (VGuint) args[1]->Uint32Value(),
-               (VGuint*) glyphIndicesBuffer->GetIndexedPropertiesExternalArrayData(),
-               (VGfloat*) adjustments_xBuffer->GetIndexedPropertiesExternalArrayData(),
-               (VGfloat*) adjustments_yBuffer->GetIndexedPropertiesExternalArrayData(),
+               glyphIndices.pointer(),
+               adjustments_x.pointer(),
+               adjustments_y.pointer(),
                (VGbitfield) args[5]->Uint32Value(),
                (VGboolean) args[6]->BooleanValue());
 
@@ -1354,12 +1345,11 @@ Handle<Value> openvg::ColorMatrix(const Arguments& args) {
   CheckArgs3(colorMatrix,
              dstVGImage, Number, srcVGImage, Number, matrix, Object);
 
-  Local<Object> matrixArray = args[2]->ToObject();
-  Handle<Object> matrixBuffer = matrixArray->Get(String::New("buffer"))->ToObject();
+  TypedArrayWrapper<VGfloat> matrix(args[2]);
 
   vgColorMatrix((VGImage) args[0]->Uint32Value(),
                 (VGImage) args[1]->Uint32Value(),
-                (VGfloat*) matrixBuffer->GetIndexedPropertiesExternalArrayData());
+                matrix.pointer());
 
   return Undefined();
 }
@@ -1373,8 +1363,7 @@ Handle<Value> openvg::Convolve(const Arguments& args) {
               kernel, Object, scale, Number, bias, Number,
               tilingMode, Uint32);
 
-  Local<Object> kernelArray = args[6]->ToObject();
-  Handle<Object> kernelBuffer = kernelArray->Get(String::New("buffer"))->ToObject();
+  TypedArrayWrapper<VGshort> kernel(args[6]);
 
   vgConvolve((VGImage) args[0]->Uint32Value(),
              (VGImage) args[1]->Uint32Value(),
@@ -1382,7 +1371,7 @@ Handle<Value> openvg::Convolve(const Arguments& args) {
              (VGint) args[3]->Int32Value(),
              (VGint) args[4]->Int32Value(),
              (VGint) args[5]->Int32Value(),
-             (VGshort*) kernelBuffer->GetIndexedPropertiesExternalArrayData(),
+             kernel.pointer(),
              (VGfloat) args[7]->NumberValue(),
              (VGfloat) args[8]->NumberValue(),
              static_cast<VGTilingMode>(args[9]->Uint32Value()));
@@ -1400,11 +1389,8 @@ Handle<Value> openvg::SeparableConvolve(const Arguments& args) {
               scale, Number, bias, Number,
               tilingMode, Uint32);
 
-  Local<Object> kernelXArray = args[6]->ToObject();
-  Handle<Object> kernelXBuffer = kernelXArray->Get(String::New("buffer"))->ToObject();
-
-  Local<Object> kernelYArray = args[7]->ToObject();
-  Handle<Object> kernelYBuffer = kernelYArray->Get(String::New("buffer"))->ToObject();
+  TypedArrayWrapper<VGshort> kernelX(args[6]);
+  TypedArrayWrapper<VGshort> kernelY(args[7]);
 
   vgSeparableConvolve((VGImage) args[0]->Uint32Value(),
                       (VGImage) args[1]->Uint32Value(),
@@ -1412,8 +1398,8 @@ Handle<Value> openvg::SeparableConvolve(const Arguments& args) {
                       (VGint) args[3]->Int32Value(),
                       (VGint) args[4]->Int32Value(),
                       (VGint) args[5]->Int32Value(),
-                      (VGshort*) kernelXBuffer->GetIndexedPropertiesExternalArrayData(),
-                      (VGshort*) kernelYBuffer->GetIndexedPropertiesExternalArrayData(),
+                      kernelX.pointer(),
+                      kernelY.pointer(),
                       (VGfloat) args[8]->NumberValue(),
                       (VGfloat) args[9]->NumberValue(),
                       static_cast<VGTilingMode>(args[10]->Uint32Value()));
@@ -1445,24 +1431,17 @@ Handle<Value> openvg::Lookup(const Arguments& args) {
              alphaLUT, Object,
              outputLinear, Boolean, outputPremultiplied, Boolean);
 
-  Local<Object> redLUTArray = args[2]->ToObject();
-  Handle<Object> redLUTBuffer = redLUTArray->Get(String::New("buffer"))->ToObject();
-
-  Local<Object> greenLUTArray = args[3]->ToObject();
-  Handle<Object> greenLUTBuffer = greenLUTArray->Get(String::New("buffer"))->ToObject();
-
-  Local<Object> blueLUTArray = args[4]->ToObject();
-  Handle<Object> blueLUTBuffer = blueLUTArray->Get(String::New("buffer"))->ToObject();
-
-  Local<Object> alphaLUTArray = args[5]->ToObject();
-  Handle<Object> alphaLUTBuffer = alphaLUTArray->Get(String::New("buffer"))->ToObject();
+  TypedArrayWrapper<VGubyte> redLUT(args[2]);
+  TypedArrayWrapper<VGubyte> greenLUT(args[3]);
+  TypedArrayWrapper<VGubyte> blueLUT(args[4]);
+  TypedArrayWrapper<VGubyte> alphaLUT(args[5]);
 
   vgLookup((VGImage) args[0]->Uint32Value(),
            (VGImage) args[1]->Uint32Value(),
-           (VGubyte*) redLUTBuffer->GetIndexedPropertiesExternalArrayData(),
-           (VGubyte*) greenLUTBuffer->GetIndexedPropertiesExternalArrayData(),
-           (VGubyte*) blueLUTBuffer->GetIndexedPropertiesExternalArrayData(),
-           (VGubyte*) alphaLUTBuffer->GetIndexedPropertiesExternalArrayData(),
+           redLUT.pointer(),
+           greenLUT.pointer(),
+           blueLUT.pointer(),
+           alphaLUT.pointer(),
            (VGboolean) args[6]->BooleanValue(),
            (VGboolean) args[7]->BooleanValue());
 
@@ -1476,12 +1455,11 @@ Handle<Value> openvg::LookupSingle(const Arguments& args) {
              lookupTable, Object, sourceChannel, Uint32,
              outputLinear, Boolean, outputPremultiplied, Boolean);
 
-  Local<Object> lookupTableArray = args[2]->ToObject();
-  Handle<Object> lookupTableBuffer = lookupTableArray->Get(String::New("buffer"))->ToObject();
+  TypedArrayWrapper<VGuint> lookupTable(args[2]);
 
   vgLookupSingle((VGImage) args[0]->Uint32Value(),
                  (VGImage) args[1]->Uint32Value(),
-                 (VGuint*) lookupTableBuffer->GetIndexedPropertiesExternalArrayData(),
+                 lookupTable.pointer(),
                  static_cast<VGImageChannel>(args[3]->Uint32Value()),
                  (VGboolean) args[4]->BooleanValue(),
                  (VGboolean) args[5]->BooleanValue());
@@ -1536,11 +1514,10 @@ Handle<Value> openvg::vgu::Polygon(const Arguments& args) {
              VGPath, Number, Float32Array, Object, count, Int32,
              closed, Boolean);
 
-  Local<Object> pointsArray = args[1]->ToObject();
-  Handle<Object> pointsBuffer = pointsArray->Get(String::New("buffer"))->ToObject();
+  TypedArrayWrapper<VGfloat> points(args[1]);
 
   return Uint32::New(vguPolygon((VGPath) args[0]->Uint32Value(),
-                                (VGfloat*) pointsBuffer->GetIndexedPropertiesExternalArrayData(),
+                                points.pointer(),
                                 (VGint) args[2]->Int32Value(),
                                 (VGboolean) args[3]->BooleanValue()));
 }
@@ -1613,8 +1590,7 @@ Handle<Value> openvg::vgu::ComputeWarpQuadToSquare(const Arguments& args) {
              sx2, Number, sy2, Number, sx3, Number, sy3, Number,
              Float32Array, Object);
 
-  Local<Object> matrixArray = args[8]->ToObject();
-  Handle<Object> matrixBuffer = matrixArray->Get(String::New("buffer"))->ToObject();
+  TypedArrayWrapper<VGfloat> matrix(args[8]);
 
   return Uint32::New(vguComputeWarpQuadToSquare((VGfloat) args[0]->NumberValue(),
                                                 (VGfloat) args[1]->NumberValue(),
@@ -1624,7 +1600,7 @@ Handle<Value> openvg::vgu::ComputeWarpQuadToSquare(const Arguments& args) {
                                                 (VGfloat) args[5]->NumberValue(),
                                                 (VGfloat) args[6]->NumberValue(),
                                                 (VGfloat) args[7]->NumberValue(),
-                                                (VGfloat*) matrixBuffer->GetIndexedPropertiesExternalArrayData()));
+                                                matrix.pointer()));
 }
 
 Handle<Value> openvg::vgu::ComputeWarpSquareToQuad(const Arguments& args) {
@@ -1635,8 +1611,7 @@ Handle<Value> openvg::vgu::ComputeWarpSquareToQuad(const Arguments& args) {
              sx2, Number, sy2, Number, sx3, Number, sy3, Number,
              Float32Array, Object);
 
-  Local<Object> matrixArray = args[8]->ToObject();
-  Handle<Object> matrixBuffer = matrixArray->Get(String::New("buffer"))->ToObject();
+  TypedArrayWrapper<VGfloat> matrix(args[8]);
 
   return Uint32::New(vguComputeWarpSquareToQuad((VGfloat) args[0]->NumberValue(),
                                                 (VGfloat) args[1]->NumberValue(),
@@ -1646,7 +1621,7 @@ Handle<Value> openvg::vgu::ComputeWarpSquareToQuad(const Arguments& args) {
                                                 (VGfloat) args[5]->NumberValue(),
                                                 (VGfloat) args[6]->NumberValue(),
                                                 (VGfloat) args[7]->NumberValue(),
-                                                (VGfloat*) matrixBuffer->GetIndexedPropertiesExternalArrayData()));
+                                                matrix.pointer()));
 }
 
 Handle<Value> openvg::vgu::ComputeWarpQuadToQuad(const Arguments& args) {
@@ -1654,8 +1629,7 @@ Handle<Value> openvg::vgu::ComputeWarpQuadToQuad(const Arguments& args) {
 
   // No arg check -> Would be a 17 arg macro
 
-  Local<Object> matrixArray = args[8]->ToObject();
-  Handle<Object> matrixBuffer = matrixArray->Get(String::New("buffer"))->ToObject();
+  TypedArrayWrapper<VGfloat> matrix(args[16]);
 
   return Uint32::New(vguComputeWarpQuadToQuad((VGfloat) args[ 0]->NumberValue(),
                                               (VGfloat) args[ 1]->NumberValue(),
@@ -1673,7 +1647,7 @@ Handle<Value> openvg::vgu::ComputeWarpQuadToQuad(const Arguments& args) {
                                               (VGfloat) args[13]->NumberValue(),
                                               (VGfloat) args[14]->NumberValue(),
                                               (VGfloat) args[15]->NumberValue(),
-                                              (VGfloat*) matrixBuffer->GetIndexedPropertiesExternalArrayData()));
+                                              matrix.pointer()));
 }
 
 
@@ -1826,8 +1800,7 @@ Handle<Value> openvg::ext::GradientGlowKHR(const Arguments& args) {
               stopsCount, Number, Float32Array, Object);
 
 #ifdef VG_VGEXT_PROTOTYPES
-  Local<Object> glowColorRampStopsArray = args[11]->ToObject();
-  Handle<Object> glowColorRampStopsBuffer = glowColorRampStopsArray->Get(String::New("buffer"))->ToObject();
+  TypedArrayWrapper<VGfloat> glowColorRampStops(args[11]);
 
   return Uint32::New(vguGradientGlowKHR((VGImage) args[0]->Uint32Value(),
                                         (VGImage) args[1]->Uint32Value(),
@@ -1840,7 +1813,7 @@ Handle<Value> openvg::ext::GradientGlowKHR(const Arguments& args) {
                                         (VGbitfield) args[8]->Uint32Value(),
                                         (VGbitfield) args[9]->Uint32Value(),
                                         (VGuint) args[10]->Uint32Value(),
-                                        (VGfloat*) glowColorRampStopsBuffer->GetIndexedPropertiesExternalArrayData()));
+                                        glowColorRampStops.pointer()));
 #else
   return Undefined();
 #endif
@@ -1857,8 +1830,7 @@ Handle<Value> openvg::ext::GradientBevelKHR(const Arguments& args) {
               stopsCount, Number, Float32Array, Object);
 
 #ifdef VG_VGEXT_PROTOTYPES
-  Local<Object> bevelColorRampStopsArray = args[11]->ToObject();
-  Handle<Object> bevelColorRampStopsBuffer = bevelColorRampStopsArray->Get(String::New("buffer"))->ToObject();
+  TypedArrayWrapper<VGfloat> bevelColorRampStops(args[11]);
 
   return Uint32::New(vguGradientBevelKHR((VGImage) args[0]->Uint32Value(),
                                          (VGImage) args[1]->Uint32Value(),
@@ -1871,7 +1843,7 @@ Handle<Value> openvg::ext::GradientBevelKHR(const Arguments& args) {
                                          (VGbitfield) args[8]->Uint32Value(),
                                          (VGbitfield) args[9]->Uint32Value(),
                                          (VGuint) args[10]->Uint32Value(),
-                                         (VGfloat*) bevelColorRampStopsBuffer->GetIndexedPropertiesExternalArrayData()));
+                                         bevelColorRampStops.pointer()));
 #else
   return Undefined();
 #endif
@@ -1898,26 +1870,19 @@ Handle<Value> openvg::ext::TransformClipLineNDS(const Arguments& args) {
              Float32Array, Object, Float32Array, Object, Float32Array, Object);
 
 #ifdef VG_VGEXT_PROTOTYPES
-  Local<Object> matrixArray = args[3]->ToObject();
-  Handle<Object> matrixBuffer = matrixArray->Get(String::New("buffer"))->ToObject();
-
-  Local<Object> AoutArray = args[5]->ToObject();
-  Handle<Object> AoutBuffer = AoutArray->Get(String::New("buffer"))->ToObject();
-
-  Local<Object> BoutArray = args[6]->ToObject();
-  Handle<Object> BoutBuffer = BoutArray->Get(String::New("buffer"))->ToObject();
-
-  Local<Object> CoutArray = args[7]->ToObject();
-  Handle<Object> CoutBuffer = CoutArray->Get(String::New("buffer"))->ToObject();
+  TypedArrayWrapper<VGfloat> matrix(args[3]);
+  TypedArrayWrapper<VGfloat> Aout(args[5]);
+  TypedArrayWrapper<VGfloat> Bout(args[6]);
+  TypedArrayWrapper<VGfloat> Cout(args[7]);
 
   return Uint32::New(vguTransformClipLineNDS((VGfloat) args[0]->NumberValue(),
                                              (VGfloat) args[1]->NumberValue(),
                                              (VGfloat) args[2]->NumberValue(),
-                                             (VGfloat*) matrixBuffer->GetIndexedPropertiesExternalArrayData(),
+                                             matrix.pointer(),
                                              (VGboolean) args[4]->BooleanValue(),
-                                             (VGfloat*) AoutBuffer->GetIndexedPropertiesExternalArrayData(),
-                                             (VGfloat*) BoutBuffer->GetIndexedPropertiesExternalArrayData(),
-                                             (VGfloat*) CoutBuffer->GetIndexedPropertiesExternalArrayData()));
+                                             Aout.pointer(),
+                                             Bout.pointer(),
+                                             Cout.pointer()));
 #else
   return Undefined();
 #endif
