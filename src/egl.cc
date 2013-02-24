@@ -2,6 +2,7 @@
 #include "GLES/gl.h"
 
 #include "egl.h"
+#include "bcm_host.h"
 
 #include "argchecks.h"
 
@@ -46,6 +47,9 @@ extern void egl::Init() {
   DISPMANX_UPDATE_HANDLE_T  dispman_update;
 
   static EGL_DISPMANX_WINDOW_T nativewindow;
+
+  // bcm_host_init() must be called before anything else
+  bcm_host_init();
 
   // get an EGL display connection
   State.display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
@@ -130,6 +134,10 @@ extern void egl::Finish() {
   eglDestroySurface(State.display, State.surface);
   eglDestroyContext(State.display, State.context);
   eglTerminate(State.display);
+
+#ifdef __VIDEOCORE__
+  bcm_host_deinit();
+#endif
 }
 
 
