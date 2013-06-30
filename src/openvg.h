@@ -22,23 +22,31 @@ static Handle<Value> SetF(const Arguments& args);
 static Handle<Value> SetI(const Arguments& args);
 static Handle<Value> SetFV(const Arguments& args);
 static Handle<Value> SetIV(const Arguments& args);
+static Handle<Value> SetFVOL(const Arguments& args);
+static Handle<Value> SetIVOL(const Arguments& args);
 
 static Handle<Value> GetF(const Arguments& args);
 static Handle<Value> GetI(const Arguments& args);
 static Handle<Value> GetVectorSize(const Arguments& args);
 static Handle<Value> GetFV(const Arguments& args);
 static Handle<Value> GetIV(const Arguments& args);
+static Handle<Value> GetFVOL(const Arguments& args);
+static Handle<Value> GetIVOL(const Arguments& args);
 
 static Handle<Value> SetParameterF(const Arguments& args);
 static Handle<Value> SetParameterI(const Arguments& args);
 static Handle<Value> SetParameterFV(const Arguments& args);
 static Handle<Value> SetParameterIV(const Arguments& args);
+static Handle<Value> SetParameterFVOL(const Arguments& args);
+static Handle<Value> SetParameterIVOL(const Arguments& args);
 
 static Handle<Value> GetParameterF(const Arguments& args);
 static Handle<Value> GetParameterI(const Arguments& args);
 static Handle<Value> GetParameterVectorSize(const Arguments& args);
 static Handle<Value> GetParameterFV(const Arguments& args);
 static Handle<Value> GetParameterIV(const Arguments& args);
+static Handle<Value> GetParameterFVOL(const Arguments& args);
+static Handle<Value> GetParameterIVOL(const Arguments& args);
 
 /* Matrix Manipulation */
 static Handle<Value> LoadIdentity(const Arguments& args);

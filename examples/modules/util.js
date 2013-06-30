@@ -14,7 +14,7 @@ var sansMonoTypeface = util.sansMonoTypeface = undefined;
 
 var start = util.start = function() {
   var color = new Float32Array([255, 255, 255, 1]);
-  openVG.setFV(openVG.VGParamType.VG_CLEAR_COLOR, color);
+  openVG.setFVOL(openVG.VGParamType.VG_CLEAR_COLOR, color, 0, 4);
   openVG.clear(0, 0, openVG.screen.width, openVG.screen.height);
   color[0] = 0, color[1] = 0, color[2] = 0;
   setFill(color);
@@ -65,7 +65,7 @@ var RGBA = util.RGBA = function(r, g, b, a, color) {
 var setFill = util.setFill = function(color) {
   var fillPaint = openVG.createPaint();
   openVG.setParameterI(fillPaint, openVG.VGPaintParamType.VG_PAINT_TYPE, openVG.VGPaintType.VG_PAINT_TYPE_COLOR);
-  openVG.setParameterFV(fillPaint, openVG.VGPaintParamType.VG_PAINT_COLOR, color);
+  openVG.setParameterFVOL(fillPaint, openVG.VGPaintParamType.VG_PAINT_COLOR, color, 0, 4);
   openVG.setPaint(fillPaint, openVG.VGPaintMode.VG_FILL_PATH);
   openVG.destroyPaint(fillPaint);
 }
@@ -73,7 +73,7 @@ var setFill = util.setFill = function(color) {
 var setStroke = util.setStroke = function(color) {
   var strokePaint = openVG.createPaint();
   openVG.setParameterI(strokePaint, openVG.VGPaintParamType.VG_PAINT_TYPE, openVG.VGPaintType.VG_PAINT_TYPE_COLOR);
-  openVG.setParameterFV(strokePaint, openVG.VGPaintParamType.VG_PAINT_COLOR, color);
+  openVG.setParameterFVOL(strokePaint, openVG.VGPaintParamType.VG_PAINT_COLOR, color, 0, 4);
   openVG.setPaint(strokePaint, openVG.VGPaintMode.VG_STROKE_PATH);
   openVG.destroyPaint(strokePaint);
 }

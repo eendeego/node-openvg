@@ -30,24 +30,31 @@ void init(Handle<Object> target) {
   NODE_SET_METHOD(target, "setI"             , openvg::SetI);
   NODE_SET_METHOD(target, "setFV"            , openvg::SetFV);
   NODE_SET_METHOD(target, "setIV"            , openvg::SetIV);
+  NODE_SET_METHOD(target, "setFVOL"          , openvg::SetFVOL); // Offset + Length
+  NODE_SET_METHOD(target, "setIVOL"          , openvg::SetIVOL); // Offset + Length
 
   NODE_SET_METHOD(target, "getF"             , openvg::GetF);
   NODE_SET_METHOD(target, "getI"             , openvg::GetI);
   NODE_SET_METHOD(target, "getVectorSize"    , openvg::GetVectorSize);
   NODE_SET_METHOD(target, "getFV"            , openvg::GetFV);
   NODE_SET_METHOD(target, "getIV"            , openvg::GetIV);
+  NODE_SET_METHOD(target, "getFVOL"          , openvg::GetFVOL); // Offset + Length
+  NODE_SET_METHOD(target, "getIVOL"          , openvg::GetIVOL); // Offset + Length
 
   NODE_SET_METHOD(target, "setParameterF"    , openvg::SetParameterF);
   NODE_SET_METHOD(target, "setParameterI"    , openvg::SetParameterI);
   NODE_SET_METHOD(target, "setParameterFV"   , openvg::SetParameterFV);
   NODE_SET_METHOD(target, "setParameterIV"   , openvg::SetParameterIV);
+  NODE_SET_METHOD(target, "setParameterFVOL" , openvg::SetParameterFVOL);
+  NODE_SET_METHOD(target, "setParameterIVOL" , openvg::SetParameterIVOL);
 
   NODE_SET_METHOD(target, "getParameterF"    , openvg::GetParameterF);
   NODE_SET_METHOD(target, "getParameterI"    , openvg::GetParameterI);
-  NODE_SET_METHOD(target, "getParameterVectorSize",
-                          openvg::GetParameterVectorSize);
+  NODE_SET_METHOD(target, "getParameterVectorSize", openvg::GetParameterVectorSize);
   NODE_SET_METHOD(target, "getParameterFV"   , openvg::GetParameterFV);
   NODE_SET_METHOD(target, "getParameterIV"   , openvg::GetParameterIV);
+  NODE_SET_METHOD(target, "getParameterFVOL" , openvg::GetParameterFVOL); // Offset + Length
+  NODE_SET_METHOD(target, "getParameterIVOL" , openvg::GetParameterIVOL); // Offset + Length
 
   /* Matrix Manipulation */
   NODE_SET_METHOD(target, "loadIdentity"     , openvg::LoadIdentity);
@@ -195,16 +202,16 @@ template<class C> class TypedArrayWrapper {
  private:
   Local<Object> array;
   Handle<Object> buffer;
-  int offset;
+  int byteOffset;
  public:
   inline __attribute__((always_inline)) TypedArrayWrapper(const Local<Value>& arg) :
     array(arg->ToObject()),
     buffer(array->Get(String::New("buffer"))->ToObject()),
-    offset(array->Get(String::New("byteOffset"))->Int32Value()) {
+    byteOffset(array->Get(String::New("byteOffset"))->Int32Value()) {
   }
 
-  inline __attribute__((always_inline)) C* pointer() {
-    return (C*) &((char*) buffer->GetIndexedPropertiesExternalArrayData())[offset];
+  inline __attribute__((always_inline)) C* pointer(int offset = 0) {
+    return (C*) &((char*) buffer->GetIndexedPropertiesExternalArrayData())[byteOffset + offset];
   }
 
   inline __attribute__((always_inline)) int length() {
@@ -335,6 +342,34 @@ Handle<Value> openvg::SetIV(const Arguments& args) {
   return Undefined();
 }
 
+Handle<Value> openvg::SetFVOL(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs4(setFVOL, type, Int32, Float32Array, Object, offset, Int32, length, Int32);
+
+  TypedArrayWrapper<VGfloat> values(args[1]);
+
+  vgSetfv((VGParamType) args[0]->Int32Value(),
+          (VGint) args[3]->Int32Value(),
+          values.pointer(args[2]->Int32Value()));
+
+  return Undefined();
+}
+
+Handle<Value> openvg::SetIVOL(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs4(setIV, type, Int32, Int32Array, Object, offset, Int32, length, Int32);
+
+  TypedArrayWrapper<VGint> values(args[1]);
+
+  vgSetiv((VGParamType) args[0]->Int32Value(),
+          (VGint) args[3]->Int32Value(),
+          values.pointer(args[2]->Int32Value()));
+
+  return Undefined();
+}
+
 Handle<Value> openvg::GetF(const Arguments& args) {
   HandleScope scope;
 
@@ -383,6 +418,34 @@ Handle<Value> openvg::GetIV(const Arguments& args) {
   vgGetiv((VGParamType) args[0]->Int32Value(),
           values.length(),
           values.pointer());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::GetFVOL(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs4(getFV, type, Int32, Float32Array, Object, offset, Int32, length, Int32);
+
+  TypedArrayWrapper<VGfloat> values(args[1]);
+
+  vgGetfv((VGParamType) args[0]->Int32Value(),
+          (VGint) args[3]->Int32Value(),
+          values.pointer(args[2]->Int32Value()));
+
+  return Undefined();
+}
+
+Handle<Value> openvg::GetIVOL(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs4(getIV, type, Int32, Float32Array, Object, offset, Int32, length, Int32);
+
+  TypedArrayWrapper<VGint> values(args[1]);
+
+  vgGetiv((VGParamType) args[0]->Int32Value(),
+          (VGint) args[3]->Int32Value(),
+          values.pointer(args[2]->Int32Value()));
 
   return Undefined();
 }
@@ -444,6 +507,40 @@ Handle<Value> openvg::SetParameterIV(const Arguments& args) {
   return Undefined();
 }
 
+Handle<Value> openvg::SetParameterFVOL(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs5(setParameterFV,
+             VGHandle, Int32, VGParamType, Int32, Float32Array, Object,
+             offset, Int32, length, Int32);
+
+  TypedArrayWrapper<VGfloat> values(args[2]);
+
+  vgSetParameterfv((VGHandle) args[0]->Int32Value(),
+                   (VGParamType) args[1]->Int32Value(),
+                   (VGint) args[4]->Int32Value(),
+                   values.pointer(args[3]->Int32Value()));
+
+  return Undefined();
+}
+
+Handle<Value> openvg::SetParameterIVOL(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs5(setParameterIV,
+             VGHandle, Int32, VGParamType, Int32, Int32Array, Object,
+             offset, Int32, length, Int32);
+
+  TypedArrayWrapper<VGint> values(args[2]);
+
+  vgSetParameteriv((VGHandle) args[0]->Int32Value(),
+                   (VGParamType) args[1]->Int32Value(),
+                   (VGint) args[4]->Int32Value(),
+                   values.pointer(args[3]->Int32Value()));
+
+  return Undefined();
+}
+
 Handle<Value> openvg::GetParameterF(const Arguments& args) {
   HandleScope scope;
 
@@ -499,6 +596,40 @@ Handle<Value> openvg::GetParameterIV(const Arguments& args) {
                    (VGParamType) args[1]->Int32Value(),
                    values.length(),
                    values.pointer());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::GetParameterFVOL(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs5(getParameterFV,
+             VGHandle, Int32, VGParamType, Int32, Float32Array, Object,
+             offset, Int32, length, Int32);
+
+  TypedArrayWrapper<VGfloat> values(args[2]);
+
+  vgGetParameterfv((VGHandle) args[0]->Int32Value(),
+                   (VGParamType) args[1]->Int32Value(),
+                   (VGint) args[4]->Int32Value(),
+                   values.pointer(args[3]->Int32Value()));
+
+  return Undefined();
+}
+
+Handle<Value> openvg::GetParameterIVOL(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs5(getParameterIV,
+             VGHandle, Int32, VGParamType, Int32, Int32Array, Object,
+             offset, Int32, length, Int32);
+
+  TypedArrayWrapper<VGint> values(args[2]);
+
+  vgGetParameteriv((VGHandle) args[0]->Int32Value(),
+                   (VGParamType) args[1]->Int32Value(),
+                   (VGint) args[4]->Int32Value(),
+                   values.pointer(args[3]->Int32Value()));
 
   return Undefined();
 }
