@@ -85,6 +85,7 @@ void init(Handle<Object> target) {
                           openvg::GetPathCapabilities);
   NODE_SET_METHOD(target, "appendPath"       , openvg::AppendPath);
   NODE_SET_METHOD(target, "appendPathData"   , openvg::AppendPathData);
+  NODE_SET_METHOD(target, "appendPathDataO"  , openvg::AppendPathDataO); // Offsets
   NODE_SET_METHOD(target, "modifyPathCoords" , openvg::ModifyPathCoords);
   NODE_SET_METHOD(target, "transformPath"    , openvg::TransformPath);
   NODE_SET_METHOD(target, "interpolatePath"  , openvg::InterpolatePath);
@@ -913,6 +914,24 @@ Handle<Value> openvg::AppendPathData(const Arguments& args) {
                    (VGint) args[1]->Int32Value(),
                    segments.pointer(),
                    data.pointer());
+
+  return Undefined();
+}
+
+Handle<Value> openvg::AppendPathDataO(const Arguments& args) {
+  HandleScope scope;
+
+  CheckArgs4(appendPathData,
+             dstPath, Number, numSegments, Int32, Uint8Array, Object,
+             pathData, Object);
+
+  TypedArrayWrapper<VGubyte> segments(args[2]);
+  TypedArrayWrapper<void> data(args[4]);
+
+  vgAppendPathData((VGPath) args[0]->Uint32Value(),
+                   (VGint) args[1]->Int32Value(),
+                   segments.pointer(args[3]->Uint32Value()),
+                   data.pointer(args[5]->Int32Value()));
 
   return Undefined();
 }

@@ -75,6 +75,7 @@ static Handle<Value> RemovePathCapabilities(const Arguments& args);
 static Handle<Value> GetPathCapabilities(const Arguments& args);
 static Handle<Value> AppendPath(const Arguments& args);
 static Handle<Value> AppendPathData(const Arguments& args);
+static Handle<Value> AppendPathDataO(const Arguments& args);
 static Handle<Value> ModifyPathCoords(const Arguments& args);
 static Handle<Value> TransformPath(const Arguments& args);
 static Handle<Value> InterpolatePath(const Arguments& args);
