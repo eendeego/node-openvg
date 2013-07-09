@@ -1,7 +1,7 @@
 {
   "name": "openvg",
   "preferGlobal" : "true",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "author": "Luis Reis <luis@luismreis.com> (http://luismreis.com/)",
   "description": "OpenVG bindings for node",
   "bin": {
