@@ -1,9 +1,11 @@
 #ifndef NODE_OPENVG_EGL_H_
 #define NODE_OPENVG_EGL_H_
 
-#include <node.h>
 #include <v8.h>
+#include <node.h>
 #include "EGL/egl.h"
+
+#include "v8_helpers.h"
 
 using namespace v8;
 
@@ -27,14 +29,14 @@ void Init();
 void InitOpenGLES();
 void Finish();
 
-Handle<Value> GetError(const Arguments& args);
-Handle<Value> SwapBuffers(const Arguments& args);
-Handle<Value> CreatePbufferFromClientBuffer(const Arguments& args);
-Handle<Value> DestroySurface(const Arguments& args);
+V8_FUNCTION_DECL(GetError);
+V8_FUNCTION_DECL(SwapBuffers);
+V8_FUNCTION_DECL(CreatePbufferFromClientBuffer);
+V8_FUNCTION_DECL(DestroySurface);
 
-Handle<Value> CreateContext(const Arguments& args);
-Handle<Value> DestroyContext(const Arguments& args);
-Handle<Value> MakeCurrent(const Arguments& args);
+V8_FUNCTION_DECL(CreateContext);
+V8_FUNCTION_DECL(DestroyContext);
+V8_FUNCTION_DECL(MakeCurrent);
 
 }
 

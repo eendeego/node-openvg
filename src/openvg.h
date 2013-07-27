@@ -5,163 +5,165 @@
 #include <v8.h>
 #include "EGL/egl.h"
 
+#include "v8_helpers.h"
+
 using namespace v8;
 
 namespace openvg {
 
-static Handle<Value> StartUp(const Arguments& args);
-static Handle<Value> Shutdown(const Arguments& args);
+V8_METHOD_DECL(StartUp);
+V8_METHOD_DECL(Shutdown);
 
-static Handle<Value> GetError(const Arguments& args);
+V8_METHOD_DECL(GetError);
 
-static Handle<Value> Flush(const Arguments& args);
-static Handle<Value> Finish(const Arguments& args);
+V8_METHOD_DECL(Flush);
+V8_METHOD_DECL(Finish);
 
 /* Getters and Setters */
-static Handle<Value> SetF(const Arguments& args);
-static Handle<Value> SetI(const Arguments& args);
-static Handle<Value> SetFV(const Arguments& args);
-static Handle<Value> SetIV(const Arguments& args);
-static Handle<Value> SetFVOL(const Arguments& args);
-static Handle<Value> SetIVOL(const Arguments& args);
+V8_METHOD_DECL(SetF);
+V8_METHOD_DECL(SetI);
+V8_METHOD_DECL(SetFV);
+V8_METHOD_DECL(SetIV);
+V8_METHOD_DECL(SetFVOL);
+V8_METHOD_DECL(SetIVOL);
 
-static Handle<Value> GetF(const Arguments& args);
-static Handle<Value> GetI(const Arguments& args);
-static Handle<Value> GetVectorSize(const Arguments& args);
-static Handle<Value> GetFV(const Arguments& args);
-static Handle<Value> GetIV(const Arguments& args);
-static Handle<Value> GetFVOL(const Arguments& args);
-static Handle<Value> GetIVOL(const Arguments& args);
+V8_METHOD_DECL(GetF);
+V8_METHOD_DECL(GetI);
+V8_METHOD_DECL(GetVectorSize);
+V8_METHOD_DECL(GetFV);
+V8_METHOD_DECL(GetIV);
+V8_METHOD_DECL(GetFVOL);
+V8_METHOD_DECL(GetIVOL);
 
-static Handle<Value> SetParameterF(const Arguments& args);
-static Handle<Value> SetParameterI(const Arguments& args);
-static Handle<Value> SetParameterFV(const Arguments& args);
-static Handle<Value> SetParameterIV(const Arguments& args);
-static Handle<Value> SetParameterFVOL(const Arguments& args);
-static Handle<Value> SetParameterIVOL(const Arguments& args);
+V8_METHOD_DECL(SetParameterF);
+V8_METHOD_DECL(SetParameterI);
+V8_METHOD_DECL(SetParameterFV);
+V8_METHOD_DECL(SetParameterIV);
+V8_METHOD_DECL(SetParameterFVOL);
+V8_METHOD_DECL(SetParameterIVOL);
 
-static Handle<Value> GetParameterF(const Arguments& args);
-static Handle<Value> GetParameterI(const Arguments& args);
-static Handle<Value> GetParameterVectorSize(const Arguments& args);
-static Handle<Value> GetParameterFV(const Arguments& args);
-static Handle<Value> GetParameterIV(const Arguments& args);
-static Handle<Value> GetParameterFVOL(const Arguments& args);
-static Handle<Value> GetParameterIVOL(const Arguments& args);
+V8_METHOD_DECL(GetParameterF);
+V8_METHOD_DECL(GetParameterI);
+V8_METHOD_DECL(GetParameterVectorSize);
+V8_METHOD_DECL(GetParameterFV);
+V8_METHOD_DECL(GetParameterIV);
+V8_METHOD_DECL(GetParameterFVOL);
+V8_METHOD_DECL(GetParameterIVOL);
 
 /* Matrix Manipulation */
-static Handle<Value> LoadIdentity(const Arguments& args);
-static Handle<Value> LoadMatrix(const Arguments& args);
-static Handle<Value> GetMatrix(const Arguments& args);
-static Handle<Value> MultMatrix(const Arguments& args);
-static Handle<Value> Translate(const Arguments& args);
-static Handle<Value> Scale(const Arguments& args);
-static Handle<Value> Shear(const Arguments& args);
-static Handle<Value> Rotate(const Arguments& args);
+V8_METHOD_DECL(LoadIdentity);
+V8_METHOD_DECL(LoadMatrix);
+V8_METHOD_DECL(GetMatrix);
+V8_METHOD_DECL(MultMatrix);
+V8_METHOD_DECL(Translate);
+V8_METHOD_DECL(Scale);
+V8_METHOD_DECL(Shear);
+V8_METHOD_DECL(Rotate);
 
 /* Masking and Clearing */
-static Handle<Value> Mask(const Arguments& args);
-static Handle<Value> RenderToMask(const Arguments& args);
-static Handle<Value> CreateMaskLayer(const Arguments& args);
-static Handle<Value> DestroyMaskLayer(const Arguments& args);
-static Handle<Value> FillMaskLayer(const Arguments& args);
-static Handle<Value> CopyMask(const Arguments& args);
-static Handle<Value> Clear(const Arguments& args);
+V8_METHOD_DECL(Mask);
+V8_METHOD_DECL(RenderToMask);
+V8_METHOD_DECL(CreateMaskLayer);
+V8_METHOD_DECL(DestroyMaskLayer);
+V8_METHOD_DECL(FillMaskLayer);
+V8_METHOD_DECL(CopyMask);
+V8_METHOD_DECL(Clear);
 
 /* Paths */
-static Handle<Value> CreatePath(const Arguments& args);
-static Handle<Value> ClearPath(const Arguments& args);
-static Handle<Value> DestroyPath(const Arguments& args);
-static Handle<Value> RemovePathCapabilities(const Arguments& args);
-static Handle<Value> GetPathCapabilities(const Arguments& args);
-static Handle<Value> AppendPath(const Arguments& args);
-static Handle<Value> AppendPathData(const Arguments& args);
-static Handle<Value> AppendPathDataO(const Arguments& args);
-static Handle<Value> ModifyPathCoords(const Arguments& args);
-static Handle<Value> TransformPath(const Arguments& args);
-static Handle<Value> InterpolatePath(const Arguments& args);
-static Handle<Value> PathLength(const Arguments& args);
-static Handle<Value> PointAlongPath(const Arguments& args);
-static Handle<Value> PathBounds(const Arguments& args);
-static Handle<Value> PathTransformedBounds(const Arguments& args);
-static Handle<Value> DrawPath(const Arguments& args);
+V8_METHOD_DECL(CreatePath);
+V8_METHOD_DECL(ClearPath);
+V8_METHOD_DECL(DestroyPath);
+V8_METHOD_DECL(RemovePathCapabilities);
+V8_METHOD_DECL(GetPathCapabilities);
+V8_METHOD_DECL(AppendPath);
+V8_METHOD_DECL(AppendPathData);
+V8_METHOD_DECL(AppendPathDataO);
+V8_METHOD_DECL(ModifyPathCoords);
+V8_METHOD_DECL(TransformPath);
+V8_METHOD_DECL(InterpolatePath);
+V8_METHOD_DECL(PathLength);
+V8_METHOD_DECL(PointAlongPath);
+V8_METHOD_DECL(PathBounds);
+V8_METHOD_DECL(PathTransformedBounds);
+V8_METHOD_DECL(DrawPath);
 
 /* Paint */
-static Handle<Value> CreatePaint(const Arguments& args);
-static Handle<Value> DestroyPaint(const Arguments& args);
-static Handle<Value> SetPaint(const Arguments& args);
-static Handle<Value> GetPaint(const Arguments& args);
-static Handle<Value> SetColor(const Arguments& args);
-static Handle<Value> GetColor(const Arguments& args);
-static Handle<Value> PaintPattern(const Arguments& args);
+V8_METHOD_DECL(CreatePaint);
+V8_METHOD_DECL(DestroyPaint);
+V8_METHOD_DECL(SetPaint);
+V8_METHOD_DECL(GetPaint);
+V8_METHOD_DECL(SetColor);
+V8_METHOD_DECL(GetColor);
+V8_METHOD_DECL(PaintPattern);
 
 /* Images */
-static Handle<Value> CreateImage(const Arguments& args);
-static Handle<Value> DestroyImage(const Arguments& args);
-static Handle<Value> ClearImage(const Arguments& args);
-static Handle<Value> ImageSubData(const Arguments& args);
-static Handle<Value> GetImageSubData(const Arguments& args);
-static Handle<Value> ChildImage(const Arguments& args);
-static Handle<Value> GetParent(const Arguments& args);
-static Handle<Value> CopyImage(const Arguments& args);
-static Handle<Value> DrawImage(const Arguments& args);
-static Handle<Value> SetPixels(const Arguments& args);
-static Handle<Value> WritePixels(const Arguments& args);
-static Handle<Value> GetPixels(const Arguments& args);
-static Handle<Value> ReadPixels(const Arguments& args);
-static Handle<Value> CopyPixels(const Arguments& args);
+V8_METHOD_DECL(CreateImage);
+V8_METHOD_DECL(DestroyImage);
+V8_METHOD_DECL(ClearImage);
+V8_METHOD_DECL(ImageSubData);
+V8_METHOD_DECL(GetImageSubData);
+V8_METHOD_DECL(ChildImage);
+V8_METHOD_DECL(GetParent);
+V8_METHOD_DECL(CopyImage);
+V8_METHOD_DECL(DrawImage);
+V8_METHOD_DECL(SetPixels);
+V8_METHOD_DECL(WritePixels);
+V8_METHOD_DECL(GetPixels);
+V8_METHOD_DECL(ReadPixels);
+V8_METHOD_DECL(CopyPixels);
 
 /* Text */
-static Handle<Value> CreateFont(const Arguments& args);
-static Handle<Value> DestroyFont(const Arguments& args);
-static Handle<Value> SetGlyphToPath(const Arguments& args);
-static Handle<Value> SetGlyphToImage(const Arguments& args);
-static Handle<Value> ClearGlyph(const Arguments& args);
-static Handle<Value> DrawGlyph(const Arguments& args);
-static Handle<Value> DrawGlyphs(const Arguments& args);
+V8_METHOD_DECL(CreateFont);
+V8_METHOD_DECL(DestroyFont);
+V8_METHOD_DECL(SetGlyphToPath);
+V8_METHOD_DECL(SetGlyphToImage);
+V8_METHOD_DECL(ClearGlyph);
+V8_METHOD_DECL(DrawGlyph);
+V8_METHOD_DECL(DrawGlyphs);
 
 /* Image Filters */
-static Handle<Value> ColorMatrix(const Arguments& args);
-static Handle<Value> Convolve(const Arguments& args);
-static Handle<Value> SeparableConvolve(const Arguments& args);
-static Handle<Value> GaussianBlur(const Arguments& args);
-static Handle<Value> Lookup(const Arguments& args);
-static Handle<Value> LookupSingle(const Arguments& args);
+V8_METHOD_DECL(ColorMatrix);
+V8_METHOD_DECL(Convolve);
+V8_METHOD_DECL(SeparableConvolve);
+V8_METHOD_DECL(GaussianBlur);
+V8_METHOD_DECL(Lookup);
+V8_METHOD_DECL(LookupSingle);
 
 /* Hardware Queries */
-static Handle<Value> HardwareQuery(const Arguments& args);
+V8_METHOD_DECL(HardwareQuery);
 
 /* Renderer and Extension Information */
-static Handle<Value> GetString(const Arguments& args);
+V8_METHOD_DECL(GetString);
 
 namespace vgu {
 
-static Handle<Value> Line(const Arguments& args);
-static Handle<Value> Polygon(const Arguments& args);
-static Handle<Value> Rect(const Arguments& args);
-static Handle<Value> RoundRect(const Arguments& args);
-static Handle<Value> Ellipse(const Arguments& args);
-static Handle<Value> Arc(const Arguments& args);
-static Handle<Value> ComputeWarpQuadToSquare(const Arguments& args);
-static Handle<Value> ComputeWarpSquareToQuad(const Arguments& args);
-static Handle<Value> ComputeWarpQuadToQuad(const Arguments& args);
+V8_METHOD_DECL(Line);
+V8_METHOD_DECL(Polygon);
+V8_METHOD_DECL(Rect);
+V8_METHOD_DECL(RoundRect);
+V8_METHOD_DECL(Ellipse);
+V8_METHOD_DECL(Arc);
+V8_METHOD_DECL(ComputeWarpQuadToSquare);
+V8_METHOD_DECL(ComputeWarpSquareToQuad);
+V8_METHOD_DECL(ComputeWarpQuadToQuad);
 
 }
 
 namespace ext {
 
-static Handle<Value> CreateEGLImageTargetKHR(const Arguments& args);
+V8_METHOD_DECL(CreateEGLImageTargetKHR);
 
-static Handle<Value> IterativeAverageBlurKHR(const Arguments& args);
+V8_METHOD_DECL(IterativeAverageBlurKHR);
 
-static Handle<Value> ParametricFilterKHR(const Arguments& args);
-static Handle<Value> DropShadowKHR(const Arguments& args);
-static Handle<Value> GlowKHR(const Arguments& args);
-static Handle<Value> BevelKHR(const Arguments& args);
-static Handle<Value> GradientGlowKHR(const Arguments& args);
-static Handle<Value> GradientBevelKHR(const Arguments& args);
+V8_METHOD_DECL(ParametricFilterKHR);
+V8_METHOD_DECL(DropShadowKHR);
+V8_METHOD_DECL(GlowKHR);
+V8_METHOD_DECL(BevelKHR);
+V8_METHOD_DECL(GradientGlowKHR);
+V8_METHOD_DECL(GradientBevelKHR);
 
-static Handle<Value> ProjectiveMatrixNDS(const Arguments& args);
-static Handle<Value> TransformClipLineNDS(const Arguments& args);
+V8_METHOD_DECL(ProjectiveMatrixNDS);
+V8_METHOD_DECL(TransformClipLineNDS);
 
 }
 

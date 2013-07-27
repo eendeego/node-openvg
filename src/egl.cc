@@ -141,16 +141,16 @@ extern void egl::Finish() {
 }
 
 
-Handle<Value> egl::GetError(const Arguments& args) {
+V8_METHOD(egl::GetError) {
   HandleScope scope;
 
   CheckArgs0(getError);
 
-  return scope.Close(Integer::New(eglGetError()));
+  V8_RETURN(scope.Close(Integer::New(eglGetError())));
 }
 
 
-Handle<Value> egl::SwapBuffers(const Arguments& args) {
+V8_METHOD(egl::SwapBuffers) {
   HandleScope scope;
 
   CheckArgs1(swapBuffers, surface, External);
@@ -159,10 +159,10 @@ Handle<Value> egl::SwapBuffers(const Arguments& args) {
 
   EGLBoolean result = eglSwapBuffers(State.display, surface);
 
-  return scope.Close(Boolean::New(result));
+  V8_RETURN(scope.Close(Boolean::New(result)));
 }
 
-Handle<Value> egl::CreatePbufferFromClientBuffer(const Arguments& args) {
+V8_METHOD(egl::CreatePbufferFromClientBuffer) {
   HandleScope scope;
 
   // According to the spec (sec. 4.2.2 EGL Functions)
@@ -190,10 +190,10 @@ Handle<Value> egl::CreatePbufferFromClientBuffer(const Arguments& args) {
                                      egl::Config,
                                      attribute_list);
 
-  return scope.Close(External::New(surface));
+  V8_RETURN(scope.Close(External::New(surface)));
 }
 
-Handle<Value> egl::DestroySurface(const Arguments& args) {
+V8_METHOD(egl::DestroySurface) {
   HandleScope scope;
 
   CheckArgs1(destroySurface, surface, External);
@@ -202,10 +202,10 @@ Handle<Value> egl::DestroySurface(const Arguments& args) {
 
   EGLBoolean result = eglDestroySurface(State.display, surface);
 
-  return scope.Close(Boolean::New(result));
+  V8_RETURN(scope.Close(Boolean::New(result)));
 }
 
-Handle<Value> egl::MakeCurrent(const Arguments& args) {
+V8_METHOD(egl::MakeCurrent) {
   HandleScope scope;
 
   CheckArgs2(makeCurrent, surface, External, context, External);
@@ -217,10 +217,10 @@ Handle<Value> egl::MakeCurrent(const Arguments& args) {
   // surfaces must be the same
   EGLBoolean result = eglMakeCurrent(State.display, surface, surface, context);
 
-  return scope.Close(Boolean::New(result));
+  V8_RETURN(scope.Close(Boolean::New(result)));
 }
 
-Handle<Value> egl::CreateContext(const Arguments& args) {
+V8_METHOD(egl::CreateContext) {
   HandleScope scope;
 
   // No arg checks
@@ -234,10 +234,10 @@ Handle<Value> egl::CreateContext(const Arguments& args) {
   EGLContext result =
     eglCreateContext(State.display, egl::Config, shareContext, NULL);
 
-  return scope.Close(External::New(result));
+  V8_RETURN(scope.Close(External::New(result)));
 }
 
-Handle<Value> egl::DestroyContext(const Arguments& args) {
+V8_METHOD(egl::DestroyContext) {
   HandleScope scope;
 
   CheckArgs1(destroyContext, context, External);
@@ -246,5 +246,5 @@ Handle<Value> egl::DestroyContext(const Arguments& args) {
 
   EGLBoolean result = eglDestroyContext(State.display, context);
 
-  return scope.Close(Boolean::New(result));
+  V8_RETURN(scope.Close(Boolean::New(result)));
 }

@@ -1,6 +1,9 @@
+#include <stdio.h>
+
 #include "VG/openvg.h"
 #include "VG/vgu.h"
 #include "VG/vgext.h"
+
 #include <v8.h>
 #include <node.h>
 #include <node_buffer.h>
@@ -9,7 +12,7 @@
 #include "egl.h"
 #include "argchecks.h"
 
-#include <stdio.h>
+#include "v8_helpers.h"
 
 const bool kInitOpenGLES = false;
 
@@ -199,6 +202,7 @@ NODE_MODULE(openvg, init)
     }\
   }
 
+#ifdef TYPED_ARRAY_TYPE_PRE_0_11
 template<class C> class TypedArrayWrapper {
  private:
   Local<Object> array;
@@ -219,9 +223,29 @@ template<class C> class TypedArrayWrapper {
     return array->Get(String::New("length"))->Uint32Value();
   }
 };
+#else
+template<class C> class TypedArrayWrapper {
+ private:
+  Local<TypedArray> array;
+  int byteOffset;
+ public:
+  inline __attribute__((always_inline)) TypedArrayWrapper(const Local<Value>& arg) :
+    array(Handle<TypedArray>::Cast(arg->ToObject())),
+    byteOffset(array->ByteOffset()) {
+  }
 
+  inline __attribute__((always_inline)) C* pointer(int offset = 0) {
+    return (C*) &((char*) array->BaseAddress())[offset];
+    // return (C*) &((char*) array->BaseAddress())[byteOffset + offset];
+  }
 
-Handle<Value> openvg::StartUp(const Arguments& args) {
+  inline __attribute__((always_inline)) int length() {
+    return array->ByteLength();
+  }
+};
+#endif
+
+V8_METHOD(openvg::StartUp) {
   HandleScope scope;
 
   CheckArgs1(startUp, screen, Object);
@@ -246,54 +270,54 @@ Handle<Value> openvg::StartUp(const Arguments& args) {
   screen->Set(String::NewSymbol("context"),
               External::New(egl::State.context));
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::Shutdown(const Arguments& args) {
+V8_METHOD(openvg::Shutdown) {
   HandleScope scope;
 
   CheckArgs0(shutdown);
 
   egl::Finish();
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
 
-Handle<Value> openvg::GetError(const Arguments& args) {
+V8_METHOD(openvg::GetError) {
   HandleScope scope;
 
   CheckArgs0(getError);
 
-  return Integer::New(vgGetError());
+  V8_RETURN(Integer::New(vgGetError()));
 }
 
 
-Handle<Value> openvg::Flush(const Arguments& args) {
+V8_METHOD(openvg::Flush) {
   HandleScope scope;
 
   CheckArgs0(flush);
 
   vgFlush();
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::Finish(const Arguments& args) {
+V8_METHOD(openvg::Finish) {
   HandleScope scope;
 
   CheckArgs0(finish);
 
   vgFinish();
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
 
 /* Getters and Setters */
 
 
-Handle<Value> openvg::SetF(const Arguments& args) {
+V8_METHOD(openvg::SetF) {
   HandleScope scope;
 
   CheckArgs2(setF, type, Int32, value, Number);
@@ -301,10 +325,10 @@ Handle<Value> openvg::SetF(const Arguments& args) {
   vgSetf((VGParamType) args[0]->Int32Value(),
          (VGfloat) args[1]->NumberValue());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::SetI(const Arguments& args) {
+V8_METHOD(openvg::SetI) {
   HandleScope scope;
 
   CheckArgs2(setI, type, Int32, value, Int32);
@@ -312,10 +336,10 @@ Handle<Value> openvg::SetI(const Arguments& args) {
   vgSeti((VGParamType) args[0]->Int32Value(),
          (VGint) args[1]->Int32Value());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::SetFV(const Arguments& args) {
+V8_METHOD(openvg::SetFV) {
   HandleScope scope;
 
   CheckArgs2(setFV, type, Int32, Float32Array, Object);
@@ -326,10 +350,10 @@ Handle<Value> openvg::SetFV(const Arguments& args) {
           values.length(),
           values.pointer());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::SetIV(const Arguments& args) {
+V8_METHOD(openvg::SetIV) {
   HandleScope scope;
 
   CheckArgs2(setIV, type, Int32, Int32Array, Object);
@@ -340,10 +364,10 @@ Handle<Value> openvg::SetIV(const Arguments& args) {
           values.length(),
           values.pointer());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::SetFVOL(const Arguments& args) {
+V8_METHOD(openvg::SetFVOL) {
   HandleScope scope;
 
   CheckArgs4(setFVOL, type, Int32, Float32Array, Object, offset, Int32, length, Int32);
@@ -354,10 +378,10 @@ Handle<Value> openvg::SetFVOL(const Arguments& args) {
           (VGint) args[3]->Int32Value(),
           values.pointer(args[2]->Int32Value()));
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::SetIVOL(const Arguments& args) {
+V8_METHOD(openvg::SetIVOL) {
   HandleScope scope;
 
   CheckArgs4(setIV, type, Int32, Int32Array, Object, offset, Int32, length, Int32);
@@ -368,34 +392,34 @@ Handle<Value> openvg::SetIVOL(const Arguments& args) {
           (VGint) args[3]->Int32Value(),
           values.pointer(args[2]->Int32Value()));
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::GetF(const Arguments& args) {
+V8_METHOD(openvg::GetF) {
   HandleScope scope;
 
   CheckArgs1(getF, type, Int32);
 
-  return Number::New(vgGetf((VGParamType) args[0]->Int32Value()));
+  V8_RETURN(Number::New(vgGetf((VGParamType) args[0]->Int32Value())));
 }
 
-Handle<Value> openvg::GetI(const Arguments& args) {
+V8_METHOD(openvg::GetI) {
   HandleScope scope;
 
   CheckArgs1(getI, type, Int32);
 
-  return Integer::New(vgGeti((VGParamType) args[0]->Int32Value()));
+  V8_RETURN(Integer::New(vgGeti((VGParamType) args[0]->Int32Value())));
 }
 
-Handle<Value> openvg::GetVectorSize(const Arguments& args) {
+V8_METHOD(openvg::GetVectorSize) {
   HandleScope scope;
 
   CheckArgs1(getVectorSize, type, Int32);
 
-  return Integer::New(vgGetVectorSize((VGParamType) args[0]->Int32Value()));
+  V8_RETURN(Integer::New(vgGetVectorSize((VGParamType) args[0]->Int32Value())));
 }
 
-Handle<Value> openvg::GetFV(const Arguments& args) {
+V8_METHOD(openvg::GetFV) {
   HandleScope scope;
 
   CheckArgs2(getFV, type, Int32, Float32Array, Object);
@@ -406,10 +430,10 @@ Handle<Value> openvg::GetFV(const Arguments& args) {
           values.length(),
           values.pointer());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::GetIV(const Arguments& args) {
+V8_METHOD(openvg::GetIV) {
   HandleScope scope;
 
   CheckArgs2(getIV, type, Int32, Float32Array, Object);
@@ -420,10 +444,10 @@ Handle<Value> openvg::GetIV(const Arguments& args) {
           values.length(),
           values.pointer());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::GetFVOL(const Arguments& args) {
+V8_METHOD(openvg::GetFVOL) {
   HandleScope scope;
 
   CheckArgs4(getFV, type, Int32, Float32Array, Object, offset, Int32, length, Int32);
@@ -434,10 +458,10 @@ Handle<Value> openvg::GetFVOL(const Arguments& args) {
           (VGint) args[3]->Int32Value(),
           values.pointer(args[2]->Int32Value()));
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::GetIVOL(const Arguments& args) {
+V8_METHOD(openvg::GetIVOL) {
   HandleScope scope;
 
   CheckArgs4(getIV, type, Int32, Float32Array, Object, offset, Int32, length, Int32);
@@ -448,11 +472,11 @@ Handle<Value> openvg::GetIVOL(const Arguments& args) {
           (VGint) args[3]->Int32Value(),
           values.pointer(args[2]->Int32Value()));
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
 
-Handle<Value> openvg::SetParameterF(const Arguments& args) {
+V8_METHOD(openvg::SetParameterF) {
   HandleScope scope;
 
   CheckArgs3(setParameterF, VGHandle, Int32, VGParamType, Int32, value, Number);
@@ -461,10 +485,10 @@ Handle<Value> openvg::SetParameterF(const Arguments& args) {
                   (VGParamType) args[1]->Int32Value(),
                   (VGfloat) args[2]->NumberValue());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::SetParameterI(const Arguments& args) {
+V8_METHOD(openvg::SetParameterI) {
   HandleScope scope;
 
   CheckArgs3(setParameterI, VGHandle, Int32, VGParamType, Int32, value, Int32);
@@ -473,10 +497,10 @@ Handle<Value> openvg::SetParameterI(const Arguments& args) {
                   (VGParamType) args[1]->Int32Value(),
                   (VGint) args[2]->Int32Value());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::SetParameterFV(const Arguments& args) {
+V8_METHOD(openvg::SetParameterFV) {
   HandleScope scope;
 
   CheckArgs3(setParameterFV,
@@ -489,10 +513,10 @@ Handle<Value> openvg::SetParameterFV(const Arguments& args) {
                    values.length(),
                    values.pointer());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::SetParameterIV(const Arguments& args) {
+V8_METHOD(openvg::SetParameterIV) {
   HandleScope scope;
 
   CheckArgs3(setParameterIV,
@@ -505,10 +529,10 @@ Handle<Value> openvg::SetParameterIV(const Arguments& args) {
                    values.length(),
                    values.pointer());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::SetParameterFVOL(const Arguments& args) {
+V8_METHOD(openvg::SetParameterFVOL) {
   HandleScope scope;
 
   CheckArgs5(setParameterFV,
@@ -522,10 +546,10 @@ Handle<Value> openvg::SetParameterFVOL(const Arguments& args) {
                    (VGint) args[4]->Int32Value(),
                    values.pointer(args[3]->Int32Value()));
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::SetParameterIVOL(const Arguments& args) {
+V8_METHOD(openvg::SetParameterIVOL) {
   HandleScope scope;
 
   CheckArgs5(setParameterIV,
@@ -539,37 +563,37 @@ Handle<Value> openvg::SetParameterIVOL(const Arguments& args) {
                    (VGint) args[4]->Int32Value(),
                    values.pointer(args[3]->Int32Value()));
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::GetParameterF(const Arguments& args) {
+V8_METHOD(openvg::GetParameterF) {
   HandleScope scope;
 
   CheckArgs2(getParameterF, VGHandle, Int32, VGParamType, Int32);
 
-  return Number::New(vgGetParameterf((VGHandle) args[0]->Int32Value(),
-                                     (VGParamType) args[1]->Int32Value()));
+  V8_RETURN(Number::New(vgGetParameterf((VGHandle) args[0]->Int32Value(),
+                                        (VGParamType) args[1]->Int32Value())));
 }
 
-Handle<Value> openvg::GetParameterI(const Arguments& args) {
+V8_METHOD(openvg::GetParameterI) {
   HandleScope scope;
 
   CheckArgs2(getParameterI, VGHandle, Int32, VGParamType, Int32);
 
-  return Integer::New(vgGetParameteri((VGHandle) args[0]->Int32Value(),
-                                      (VGParamType) args[1]->Int32Value()));
+  V8_RETURN(Integer::New(vgGetParameteri((VGHandle) args[0]->Int32Value(),
+                                         (VGParamType) args[1]->Int32Value())));
 }
 
-Handle<Value> openvg::GetParameterVectorSize(const Arguments& args) {
+V8_METHOD(openvg::GetParameterVectorSize) {
   HandleScope scope;
 
   CheckArgs2(getParameterVectorSize, VGHandle, Int32, VGParamType, Int32);
 
-  return Integer::New(vgGetParameterVectorSize((VGHandle) args[0]->Int32Value(),
-                                               (VGParamType) args[1]->Int32Value()));
+  V8_RETURN(Integer::New(vgGetParameterVectorSize((VGHandle) args[0]->Int32Value(),
+                                                  (VGParamType) args[1]->Int32Value())));
 }
 
-Handle<Value> openvg::GetParameterFV(const Arguments& args) {
+V8_METHOD(openvg::GetParameterFV) {
   HandleScope scope;
 
   CheckArgs3(getParameterFV,
@@ -582,10 +606,10 @@ Handle<Value> openvg::GetParameterFV(const Arguments& args) {
                    values.length(),
                    values.pointer());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::GetParameterIV(const Arguments& args) {
+V8_METHOD(openvg::GetParameterIV) {
   HandleScope scope;
 
   CheckArgs3(getParameterIV,
@@ -598,10 +622,10 @@ Handle<Value> openvg::GetParameterIV(const Arguments& args) {
                    values.length(),
                    values.pointer());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::GetParameterFVOL(const Arguments& args) {
+V8_METHOD(openvg::GetParameterFVOL) {
   HandleScope scope;
 
   CheckArgs5(getParameterFV,
@@ -615,10 +639,10 @@ Handle<Value> openvg::GetParameterFVOL(const Arguments& args) {
                    (VGint) args[4]->Int32Value(),
                    values.pointer(args[3]->Int32Value()));
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::GetParameterIVOL(const Arguments& args) {
+V8_METHOD(openvg::GetParameterIVOL) {
   HandleScope scope;
 
   CheckArgs5(getParameterIV,
@@ -632,24 +656,24 @@ Handle<Value> openvg::GetParameterIVOL(const Arguments& args) {
                    (VGint) args[4]->Int32Value(),
                    values.pointer(args[3]->Int32Value()));
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
 
 /* Matrix Manipulation */
 
 
-Handle<Value> openvg::LoadIdentity(const Arguments& args) {
+V8_METHOD(openvg::LoadIdentity) {
   HandleScope scope;
 
   CheckArgs0(loadIdentity);
 
   vgLoadIdentity();
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::LoadMatrix(const Arguments& args) {
+V8_METHOD(openvg::LoadMatrix) {
   HandleScope scope;
 
   CheckArgs1(loadIdentity, Float32Array, Object);
@@ -658,10 +682,10 @@ Handle<Value> openvg::LoadMatrix(const Arguments& args) {
 
   vgLoadMatrix(matrix.pointer());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::GetMatrix(const Arguments& args) {
+V8_METHOD(openvg::GetMatrix) {
   HandleScope scope;
 
   CheckArgs1(getMatrix, Float32Array, Object);
@@ -670,10 +694,10 @@ Handle<Value> openvg::GetMatrix(const Arguments& args) {
 
   vgGetMatrix(matrix.pointer());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::MultMatrix(const Arguments& args) {
+V8_METHOD(openvg::MultMatrix) {
   HandleScope scope;
 
   CheckArgs1(multMatrix, Float32Array, Object);
@@ -682,10 +706,10 @@ Handle<Value> openvg::MultMatrix(const Arguments& args) {
 
   vgMultMatrix(matrix.pointer());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::Translate(const Arguments& args) {
+V8_METHOD(openvg::Translate) {
   HandleScope scope;
 
   CheckArgs2(translate, x, Number, y, Number);
@@ -693,10 +717,10 @@ Handle<Value> openvg::Translate(const Arguments& args) {
   vgTranslate((VGfloat) args[0]->NumberValue(),
               (VGfloat) args[1]->NumberValue());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::Scale(const Arguments& args) {
+V8_METHOD(openvg::Scale) {
   HandleScope scope;
 
   CheckArgs2(scale, x, Number, y, Number);
@@ -704,10 +728,10 @@ Handle<Value> openvg::Scale(const Arguments& args) {
   vgScale((VGfloat) args[0]->NumberValue(),
           (VGfloat) args[1]->NumberValue());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::Shear(const Arguments& args) {
+V8_METHOD(openvg::Shear) {
   HandleScope scope;
 
   CheckArgs2(shear, x, Number, y, Number);
@@ -715,24 +739,24 @@ Handle<Value> openvg::Shear(const Arguments& args) {
   vgShear((VGfloat) args[0]->NumberValue(),
           (VGfloat) args[1]->NumberValue());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::Rotate(const Arguments& args) {
+V8_METHOD(openvg::Rotate) {
   HandleScope scope;
 
   CheckArgs1(shear, angle, Number);
 
   vgRotate((VGfloat) args[0]->NumberValue());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
 
 /* Masking and Clearing */
 
 
-Handle<Value> openvg::Mask(const Arguments& args) {
+V8_METHOD(openvg::Mask) {
   HandleScope scope;
 
   CheckArgs6(mask,
@@ -746,10 +770,10 @@ Handle<Value> openvg::Mask(const Arguments& args) {
          (VGint) args[4]->Int32Value(),
          (VGint) args[5]->Int32Value());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::RenderToMask(const Arguments& args) {
+V8_METHOD(openvg::RenderToMask) {
   HandleScope scope;
 
   CheckArgs3(renderToMask,
@@ -761,29 +785,29 @@ Handle<Value> openvg::RenderToMask(const Arguments& args) {
                  (VGbitfield) args[1]->Uint32Value(),
                  (VGMaskOperation) args[2]->Uint32Value());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::CreateMaskLayer(const Arguments& args) {
+V8_METHOD(openvg::CreateMaskLayer) {
   HandleScope scope;
 
   CheckArgs2(createMaskLayer, width, Int32, height, Int32);
 
-  return Integer::New(vgCreateMaskLayer((VGint) args[0]->Int32Value(),
-                                        (VGint) args[1]->Int32Value()));
+  V8_RETURN(Integer::New(vgCreateMaskLayer((VGint) args[0]->Int32Value(),
+                                           (VGint) args[1]->Int32Value())));
 }
 
-Handle<Value> openvg::DestroyMaskLayer(const Arguments& args) {
+V8_METHOD(openvg::DestroyMaskLayer) {
   HandleScope scope;
 
   CheckArgs1(destroyMaskLayer, VGMaskLayer, Uint32);
 
   vgDestroyMaskLayer((VGMaskLayer) args[0]->Uint32Value());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::FillMaskLayer(const Arguments& args) {
+V8_METHOD(openvg::FillMaskLayer) {
   HandleScope scope;
 
   CheckArgs6(fillMaskLayer,
@@ -798,10 +822,10 @@ Handle<Value> openvg::FillMaskLayer(const Arguments& args) {
                   (VGint) args[4]->Int32Value(),
                   (VGfloat) args[5]->NumberValue());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::CopyMask(const Arguments& args) {
+V8_METHOD(openvg::CopyMask) {
   HandleScope scope;
 
   CheckArgs7(fillMaskLayer,
@@ -814,10 +838,10 @@ Handle<Value> openvg::CopyMask(const Arguments& args) {
              (VGint) args[3]->Int32Value(), (VGint) args[4]->Int32Value(),
              (VGint) args[5]->Int32Value(), (VGint) args[6]->Int32Value());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::Clear(const Arguments& args) {
+V8_METHOD(openvg::Clear) {
   HandleScope scope;
 
   CheckArgs4(clear, x, Int32, y, Int32, width, Int32, height, Int32);
@@ -825,14 +849,14 @@ Handle<Value> openvg::Clear(const Arguments& args) {
   vgClear((VGint) args[0]->Int32Value(), (VGint) args[1]->Int32Value(),
           (VGint) args[2]->Int32Value(), (VGint) args[3]->Int32Value());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
 
 /* Paths */
 
 
-Handle<Value> openvg::CreatePath(const Arguments& args) {
+V8_METHOD(openvg::CreatePath) {
   HandleScope scope;
 
   CheckArgs7(createPath,
@@ -840,16 +864,16 @@ Handle<Value> openvg::CreatePath(const Arguments& args) {
              scale, Number, bias, Number, segmentCapacityHint, Int32,
              coordCapacityHint, Int32, capabilities, Uint32);
 
-  return Uint32::New(vgCreatePath((VGint) args[0]->Int32Value(),
-                                  static_cast<VGPathDatatype>(args[1]->Uint32Value()),
-                                  (VGfloat) args[2]->NumberValue(),
-                                  (VGfloat) args[3]->NumberValue(),
-                                  (VGint) args[4]->Int32Value(),
-                                  (VGint) args[5]->Int32Value(),
-                                  (VGbitfield) args[6]->Uint32Value()));
+  V8_RETURN(Uint32::New(vgCreatePath((VGint) args[0]->Int32Value(),
+                                     static_cast<VGPathDatatype>(args[1]->Uint32Value()),
+                                     (VGfloat) args[2]->NumberValue(),
+                                     (VGfloat) args[3]->NumberValue(),
+                                     (VGint) args[4]->Int32Value(),
+                                     (VGint) args[5]->Int32Value(),
+                                     (VGbitfield) args[6]->Uint32Value())));
 }
 
-Handle<Value> openvg::ClearPath(const Arguments& args) {
+V8_METHOD(openvg::ClearPath) {
   HandleScope scope;
 
   CheckArgs2(clearPath, VGPath, Number, capabilities, Uint32);
@@ -857,20 +881,20 @@ Handle<Value> openvg::ClearPath(const Arguments& args) {
   vgClearPath((VGPath) args[0]->Uint32Value(),
               (VGbitfield) args[1]->Uint32Value());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::DestroyPath(const Arguments& args) {
+V8_METHOD(openvg::DestroyPath) {
   HandleScope scope;
 
   CheckArgs1(destroyPath, VGPath, Number);
 
   vgDestroyPath((VGPath) args[0]->Uint32Value());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::RemovePathCapabilities(const Arguments& args) {
+V8_METHOD(openvg::RemovePathCapabilities) {
   HandleScope scope;
 
   CheckArgs2(removePathCapabilities, VGPath, Number, capabilities, Uint32);
@@ -878,18 +902,18 @@ Handle<Value> openvg::RemovePathCapabilities(const Arguments& args) {
   vgRemovePathCapabilities((VGPath) args[0]->Uint32Value(),
                            (VGbitfield) args[1]->Uint32Value());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::GetPathCapabilities(const Arguments& args) {
+V8_METHOD(openvg::GetPathCapabilities) {
   HandleScope scope;
 
   CheckArgs1(getPathCapabilities, VGPath, Number);
 
-  return Uint32::New(vgGetPathCapabilities((VGPath) args[0]->Int32Value()));
+  V8_RETURN(Uint32::New(vgGetPathCapabilities((VGPath) args[0]->Int32Value())));
 }
 
-Handle<Value> openvg::AppendPath(const Arguments& args) {
+V8_METHOD(openvg::AppendPath) {
   HandleScope scope;
 
   CheckArgs2(appendPath, dstPath, Number, srcPath, Number);
@@ -897,10 +921,10 @@ Handle<Value> openvg::AppendPath(const Arguments& args) {
   vgAppendPath((VGPath) args[0]->Uint32Value(),
                (VGPath) args[1]->Uint32Value());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::AppendPathData(const Arguments& args) {
+V8_METHOD(openvg::AppendPathData) {
   HandleScope scope;
 
   CheckArgs4(appendPathData,
@@ -915,10 +939,10 @@ Handle<Value> openvg::AppendPathData(const Arguments& args) {
                    segments.pointer(),
                    data.pointer());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::AppendPathDataO(const Arguments& args) {
+V8_METHOD(openvg::AppendPathDataO) {
   HandleScope scope;
 
   CheckArgs4(appendPathData,
@@ -933,10 +957,10 @@ Handle<Value> openvg::AppendPathDataO(const Arguments& args) {
                    segments.pointer(args[3]->Uint32Value()),
                    data.pointer(args[5]->Int32Value()));
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::ModifyPathCoords(const Arguments& args) {
+V8_METHOD(openvg::ModifyPathCoords) {
   HandleScope scope;
 
   CheckArgs4(modifyPathCoords,
@@ -950,10 +974,10 @@ Handle<Value> openvg::ModifyPathCoords(const Arguments& args) {
                      (VGint) args[2]->Int32Value(),
                      data.pointer());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::TransformPath(const Arguments& args) {
+V8_METHOD(openvg::TransformPath) {
   HandleScope scope;
 
   CheckArgs2(transformPath, dstPath, Number, srcPath, Number);
@@ -961,34 +985,34 @@ Handle<Value> openvg::TransformPath(const Arguments& args) {
   vgTransformPath((VGPath) args[0]->Uint32Value(),
                   (VGPath) args[1]->Uint32Value());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::InterpolatePath(const Arguments& args) {
+V8_METHOD(openvg::InterpolatePath) {
   HandleScope scope;
 
   CheckArgs4(interpolatePath,
              dstPath, Number, startPath, Number, endPath, Number,
              amount, Number);
 
-  return Boolean::New(vgInterpolatePath((VGPath) args[0]->Uint32Value(),
-                                        (VGPath) args[1]->Uint32Value(),
-                                        (VGPath) args[2]->Uint32Value(),
-                                        (VGfloat) args[3]->NumberValue()));
+  V8_RETURN(Boolean::New(vgInterpolatePath((VGPath) args[0]->Uint32Value(),
+                                           (VGPath) args[1]->Uint32Value(),
+                                           (VGPath) args[2]->Uint32Value(),
+                                           (VGfloat) args[3]->NumberValue())));
 }
 
-Handle<Value> openvg::PathLength(const Arguments& args) {
+V8_METHOD(openvg::PathLength) {
   HandleScope scope;
 
   CheckArgs3(pathLength, path, Number,
              startSegment, Int32, numSegments, Int32);
 
-  return Number::New(vgPathLength((VGPath) args[0]->Uint32Value(),
-                                  (VGint) args[1]->Int32Value(),
-                                  (VGint) args[2]->Int32Value()));
+  V8_RETURN(Number::New(vgPathLength((VGPath) args[0]->Uint32Value(),
+                                     (VGint) args[1]->Int32Value(),
+                                     (VGint) args[2]->Int32Value())));
 }
 
-Handle<Value> openvg::PointAlongPath(const Arguments& args) {
+V8_METHOD(openvg::PointAlongPath) {
   HandleScope scope;
 
   CheckArgs5(pointAlongPath, path, Number,
@@ -1009,10 +1033,10 @@ Handle<Value> openvg::PointAlongPath(const Arguments& args) {
   point->Set(String::NewSymbol("tx"), Number::New(tx));
   point->Set(String::NewSymbol("ty"), Number::New(ty));
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::PathBounds(const Arguments& args) {
+V8_METHOD(openvg::PathBounds) {
   HandleScope scope;
 
   CheckArgs2(pathBounds, VGPath, Number, bounds, Object);
@@ -1028,10 +1052,10 @@ Handle<Value> openvg::PathBounds(const Arguments& args) {
   bounds->Set(String::NewSymbol("w"), Number::New(width));
   bounds->Set(String::NewSymbol("h"), Number::New(height));
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::PathTransformedBounds(const Arguments& args) {
+V8_METHOD(openvg::PathTransformedBounds) {
   HandleScope scope;
 
   CheckArgs2(pathTransformedBounds, VGPath, Number, bounds, Object);
@@ -1047,10 +1071,10 @@ Handle<Value> openvg::PathTransformedBounds(const Arguments& args) {
   bounds->Set(String::NewSymbol("w"), Number::New(width));
   bounds->Set(String::NewSymbol("h"), Number::New(height));
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::DrawPath(const Arguments& args) {
+V8_METHOD(openvg::DrawPath) {
   HandleScope scope;
 
   CheckArgs2(drawPath, VGPath, Number, paintModes, Number);
@@ -1058,32 +1082,32 @@ Handle<Value> openvg::DrawPath(const Arguments& args) {
   vgDrawPath((VGPath) args[0]->Uint32Value(),
              (VGbitfield) args[1]->Uint32Value());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
 
 /* Paint */
 
 
-Handle<Value> openvg::CreatePaint(const Arguments& args) {
+V8_METHOD(openvg::CreatePaint) {
   HandleScope scope;
 
   CheckArgs0(createPaint);
 
-  return Uint32::New(vgCreatePaint());
+  V8_RETURN(Uint32::New(vgCreatePaint()));
 }
 
-Handle<Value> openvg::DestroyPaint(const Arguments& args) {
+V8_METHOD(openvg::DestroyPaint) {
   HandleScope scope;
 
   CheckArgs1(destroyPaint, VGPaint, Number);
 
   vgDestroyPaint((VGPaint) args[0]->Uint32Value());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::SetPaint(const Arguments& args) {
+V8_METHOD(openvg::SetPaint) {
   HandleScope scope;
 
   CheckArgs2(setPaint, VGPaint, Number, paintModes, Number);
@@ -1091,18 +1115,18 @@ Handle<Value> openvg::SetPaint(const Arguments& args) {
   vgSetPaint((VGPaint) args[0]->Uint32Value(),
              (VGbitfield) args[1]->Uint32Value());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::GetPaint(const Arguments& args) {
+V8_METHOD(openvg::GetPaint) {
   HandleScope scope;
 
   CheckArgs1(getPaint, VGPaint, Uint32);
 
-  return Uint32::New(vgGetPaint(static_cast<VGPaintMode>(args[0]->Uint32Value())));
+  V8_RETURN(Uint32::New(vgGetPaint(static_cast<VGPaintMode>(args[0]->Uint32Value()))));
 }
 
-Handle<Value> openvg::SetColor(const Arguments& args) {
+V8_METHOD(openvg::SetColor) {
   HandleScope scope;
 
   CheckArgs2(setColor, VGPaint, Uint32, rgba, Uint32);
@@ -1110,18 +1134,18 @@ Handle<Value> openvg::SetColor(const Arguments& args) {
   vgSetColor((VGPaint) args[0]->Uint32Value(),
              (VGuint) args[1]->Uint32Value());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::GetColor(const Arguments& args) {
+V8_METHOD(openvg::GetColor) {
   HandleScope scope;
 
   CheckArgs1(getColor, VGPaint, Uint32);
 
-  return Uint32::New(vgGetColor((VGPaint) args[0]->Uint32Value()));
+  V8_RETURN(Uint32::New(vgGetColor((VGPaint) args[0]->Uint32Value())));
 }
 
-Handle<Value> openvg::PaintPattern(const Arguments& args) {
+V8_METHOD(openvg::PaintPattern) {
   HandleScope scope;
 
   CheckArgs2(paintPattern, VGPaint, Uint32, VGImage, Uint32);
@@ -1129,37 +1153,37 @@ Handle<Value> openvg::PaintPattern(const Arguments& args) {
   vgPaintPattern((VGPaint) args[0]->Uint32Value(),
                  (VGImage) args[1]->Uint32Value());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
 
 /* Images */
 
 
-Handle<Value> openvg::CreateImage(const Arguments& args) {
+V8_METHOD(openvg::CreateImage) {
   HandleScope scope;
 
   CheckArgs4(createImage,
              VGImageFormat, Uint32, width, Int32, height, Int32,
              allowedQuality, Uint32);
 
-  return Uint32::New(vgCreateImage(static_cast<VGImageFormat>(args[0]->Uint32Value()),
-                                   (VGint) args[1]->Int32Value(),
-                                   (VGint) args[2]->Int32Value(),
-                                   (VGuint) args[3]->Uint32Value()));
+  V8_RETURN(Uint32::New(vgCreateImage(static_cast<VGImageFormat>(args[0]->Uint32Value()),
+                                      (VGint) args[1]->Int32Value(),
+                                      (VGint) args[2]->Int32Value(),
+                                      (VGuint) args[3]->Uint32Value())));
 }
 
-Handle<Value> openvg::DestroyImage(const Arguments& args) {
+V8_METHOD(openvg::DestroyImage) {
   HandleScope scope;
 
   CheckArgs1(destroyImage, VGImage, Number);
 
   vgDestroyImage((VGImage) (VGPaint) args[0]->Uint32Value());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::ClearImage(const Arguments& args) {
+V8_METHOD(openvg::ClearImage) {
   HandleScope scope;
 
   CheckArgs5(clearImage,
@@ -1171,10 +1195,10 @@ Handle<Value> openvg::ClearImage(const Arguments& args) {
                (VGint) args[3]->Int32Value(),
                (VGint) args[4]->Int32Value());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::ImageSubData(const Arguments& args) {
+V8_METHOD(openvg::ImageSubData) {
   HandleScope scope;
 
   CheckArgs8(imageSubData,
@@ -1204,10 +1228,10 @@ Handle<Value> openvg::ImageSubData(const Arguments& args) {
                  (VGint) args[6]->Int32Value(),
                  (VGint) args[7]->Int32Value());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::GetImageSubData(const Arguments& args) {
+V8_METHOD(openvg::GetImageSubData) {
   HandleScope scope;
 
   CheckArgs8(getImageSubData,
@@ -1226,31 +1250,31 @@ Handle<Value> openvg::GetImageSubData(const Arguments& args) {
                     (VGint) args[6]->Int32Value(),
                     (VGint) args[7]->Int32Value());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::ChildImage(const Arguments& args) {
+V8_METHOD(openvg::ChildImage) {
   HandleScope scope;
 
   CheckArgs5(childImage,
              VGImage, Number, x, Int32, y, Int32, width, Int32, height, Int32);
 
-  return Uint32::New(vgChildImage((VGImage) args[0]->Uint32Value(),
-                                  (VGint) args[1]->Int32Value(),
-                                  (VGint) args[2]->Int32Value(),
-                                  (VGint) args[3]->Int32Value(),
-                                  (VGint) args[4]->Int32Value()));
+  V8_RETURN(Uint32::New(vgChildImage((VGImage) args[0]->Uint32Value(),
+                                     (VGint) args[1]->Int32Value(),
+                                     (VGint) args[2]->Int32Value(),
+                                     (VGint) args[3]->Int32Value(),
+                                     (VGint) args[4]->Int32Value())));
 }
 
-Handle<Value> openvg::GetParent(const Arguments& args) {
+V8_METHOD(openvg::GetParent) {
   HandleScope scope;
 
   CheckArgs1(getParent, VGImage, Number);
 
-  return Uint32::New(vgGetParent((VGImage) args[0]->Uint32Value()));
+  V8_RETURN(Uint32::New(vgGetParent((VGImage) args[0]->Uint32Value())));
 }
 
-Handle<Value> openvg::CopyImage(const Arguments& args) {
+V8_METHOD(openvg::CopyImage) {
   HandleScope scope;
 
   CheckArgs9(copyImage,
@@ -1268,20 +1292,20 @@ Handle<Value> openvg::CopyImage(const Arguments& args) {
               (VGint) args[7]->Int32Value(),
               (VGboolean) args[8]->BooleanValue());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::DrawImage(const Arguments& args) {
+V8_METHOD(openvg::DrawImage) {
   HandleScope scope;
 
   CheckArgs1(drawImage, VGImage, Number);
 
   vgDrawImage((VGImage) args[0]->Uint32Value());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::SetPixels(const Arguments& args) {
+V8_METHOD(openvg::SetPixels) {
   HandleScope scope;
 
   CheckArgs7(setPixels,
@@ -1297,10 +1321,10 @@ Handle<Value> openvg::SetPixels(const Arguments& args) {
               (VGint) args[5]->Int32Value(),
               (VGint) args[6]->Int32Value());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::WritePixels(const Arguments& args) {
+V8_METHOD(openvg::WritePixels) {
   HandleScope scope;
 
   CheckArgs7(writePixels, data, Object, dataStride, Int32,
@@ -1317,10 +1341,10 @@ Handle<Value> openvg::WritePixels(const Arguments& args) {
                 (VGint) args[5]->Int32Value(),
                 (VGint) args[6]->Int32Value());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::GetPixels(const Arguments& args) {
+V8_METHOD(openvg::GetPixels) {
   HandleScope scope;
 
   CheckArgs7(getPixels,
@@ -1337,10 +1361,10 @@ Handle<Value> openvg::GetPixels(const Arguments& args) {
               (VGint) args[5]->Int32Value(),
               (VGint) args[6]->Int32Value());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::ReadPixels(const Arguments& args) {
+V8_METHOD(openvg::ReadPixels) {
   HandleScope scope;
 
   CheckArgs7(readPixels,
@@ -1357,10 +1381,10 @@ Handle<Value> openvg::ReadPixels(const Arguments& args) {
                (VGint) args[5]->Int32Value(),
                (VGint) args[6]->Int32Value());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::CopyPixels(const Arguments& args) {
+V8_METHOD(openvg::CopyPixels) {
   HandleScope scope;
 
   CheckArgs6(copyPixels,
@@ -1374,32 +1398,32 @@ Handle<Value> openvg::CopyPixels(const Arguments& args) {
                (VGint) args[4]->Int32Value(),
                (VGint) args[5]->Int32Value());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
 
 /* Text */
 
 
-Handle<Value> openvg::CreateFont(const Arguments& args) {
+V8_METHOD(openvg::CreateFont) {
   HandleScope scope;
 
   CheckArgs1(createFont, glyphCapacityHint, Int32);
 
-  return Uint32::New(vgCreateFont((VGint) args[0]->Int32Value()));
+  V8_RETURN(Uint32::New(vgCreateFont((VGint) args[0]->Int32Value())));
 }
 
-Handle<Value> openvg::DestroyFont(const Arguments& args) {
+V8_METHOD(openvg::DestroyFont) {
   HandleScope scope;
 
   CheckArgs1(destroyFont, VGFont, Number);
 
   vgDestroyFont((VGFont) args[0]->Uint32Value());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::SetGlyphToPath(const Arguments& args) {
+V8_METHOD(openvg::SetGlyphToPath) {
   HandleScope scope;
 
   CheckArgs6(setGlyphToPath, VGFont, Number, glyphIndex, Number,
@@ -1416,10 +1440,10 @@ Handle<Value> openvg::SetGlyphToPath(const Arguments& args) {
                    glyphOrigin.pointer(),
                    escapement.pointer());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::SetGlyphToImage(const Arguments& args) {
+V8_METHOD(openvg::SetGlyphToImage) {
   HandleScope scope;
 
   CheckArgs5(setGlyphToImage, VGFont, Number, glyphIndex, Number,
@@ -1435,10 +1459,10 @@ Handle<Value> openvg::SetGlyphToImage(const Arguments& args) {
                     glyphOrigin.pointer(),
                     escapement.pointer());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::ClearGlyph(const Arguments& args) {
+V8_METHOD(openvg::ClearGlyph) {
   HandleScope scope;
 
   CheckArgs2(clearGlyph, VGFont, Number, glyphIndex, Uint32);
@@ -1446,10 +1470,10 @@ Handle<Value> openvg::ClearGlyph(const Arguments& args) {
   vgClearGlyph((VGFont) args[0]->Uint32Value(),
                (VGuint) args[1]->Uint32Value());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::DrawGlyph(const Arguments& args) {
+V8_METHOD(openvg::DrawGlyph) {
   HandleScope scope;
 
   CheckArgs4(drawGlyph, VGFont, Number, glyphIndex, Uint32,
@@ -1460,10 +1484,10 @@ Handle<Value> openvg::DrawGlyph(const Arguments& args) {
               (VGbitfield) args[2]->Uint32Value(),
               (VGboolean) args[3]->BooleanValue());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::DrawGlyphs(const Arguments& args) {
+V8_METHOD(openvg::DrawGlyphs) {
   HandleScope scope;
 
   CheckArgs7(drawGlyphs, VGFont, Number, glyphCount, Int32,
@@ -1482,14 +1506,14 @@ Handle<Value> openvg::DrawGlyphs(const Arguments& args) {
                (VGbitfield) args[5]->Uint32Value(),
                (VGboolean) args[6]->BooleanValue());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
 
 /* Image Filters */
 
 
-Handle<Value> openvg::ColorMatrix(const Arguments& args) {
+V8_METHOD(openvg::ColorMatrix) {
   HandleScope scope;
 
   CheckArgs3(colorMatrix,
@@ -1501,10 +1525,10 @@ Handle<Value> openvg::ColorMatrix(const Arguments& args) {
                 (VGImage) args[1]->Uint32Value(),
                 matrix.pointer());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::Convolve(const Arguments& args) {
+V8_METHOD(openvg::Convolve) {
   HandleScope scope;
 
   CheckArgs10(convolve, dstVGImage, Number, srcVGImage, Number,
@@ -1526,10 +1550,10 @@ Handle<Value> openvg::Convolve(const Arguments& args) {
              (VGfloat) args[8]->NumberValue(),
              static_cast<VGTilingMode>(args[9]->Uint32Value()));
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::SeparableConvolve(const Arguments& args) {
+V8_METHOD(openvg::SeparableConvolve) {
   HandleScope scope;
 
   CheckArgs11(separableConvolve, dstVGImage, Number, srcVGImage, Number,
@@ -1554,10 +1578,10 @@ Handle<Value> openvg::SeparableConvolve(const Arguments& args) {
                       (VGfloat) args[9]->NumberValue(),
                       static_cast<VGTilingMode>(args[10]->Uint32Value()));
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::GaussianBlur(const Arguments& args) {
+V8_METHOD(openvg::GaussianBlur) {
   HandleScope scope;
 
   CheckArgs5(gaussianBlur, dstVGImage, Number, srcVGImage, Number,
@@ -1570,10 +1594,10 @@ Handle<Value> openvg::GaussianBlur(const Arguments& args) {
                  (VGfloat) args[3]->NumberValue(),
                  static_cast<VGTilingMode>(args[4]->Uint32Value()));
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::Lookup(const Arguments& args) {
+V8_METHOD(openvg::Lookup) {
   HandleScope scope;
 
   CheckArgs9(lookup, VGImage, Number, dstVGImage, Number, srcVGImage, Number,
@@ -1595,10 +1619,10 @@ Handle<Value> openvg::Lookup(const Arguments& args) {
            (VGboolean) args[6]->BooleanValue(),
            (VGboolean) args[7]->BooleanValue());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::LookupSingle(const Arguments& args) {
+V8_METHOD(openvg::LookupSingle) {
   HandleScope scope;
 
   CheckArgs6(lookupSingle, dstVGImage, Number, srcVGImage, Number,
@@ -1614,50 +1638,50 @@ Handle<Value> openvg::LookupSingle(const Arguments& args) {
                  (VGboolean) args[4]->BooleanValue(),
                  (VGboolean) args[5]->BooleanValue());
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
 
 /* Hardware Queries */
-Handle<Value> openvg::HardwareQuery(const Arguments& args) {
+V8_METHOD(openvg::HardwareQuery) {
   HandleScope scope;
 
   CheckArgs2(hardwareQuery, key, Uint32, setting, Int32);
 
-  return Uint32::New(vgHardwareQuery(static_cast<VGHardwareQueryType>(args[0]->Uint32Value()),
-                                     (VGint) args[1]->Int32Value()));
+  V8_RETURN(Uint32::New(vgHardwareQuery(static_cast<VGHardwareQueryType>(args[0]->Uint32Value()),
+                                        (VGint) args[1]->Int32Value())));
 }
 
 
 /* Renderer and Extension Information */
 VG_API_CALL const VGubyte * VG_API_ENTRY vgGetString(VGStringID name) VG_API_EXIT;
 
-Handle<Value> openvg::GetString(const Arguments& args) {
+V8_METHOD(openvg::GetString) {
   HandleScope scope;
 
   CheckArgs1(getString, key, Uint32);
 
-  return String::New((char*) vgGetString(static_cast<VGStringID>(args[0]->Uint32Value())));
+  V8_RETURN(String::New((char*) vgGetString(static_cast<VGStringID>(args[0]->Uint32Value()))));
 }
 
 
 /* Utilities */
 
 
-Handle<Value> openvg::vgu::Line(const Arguments& args) {
+V8_METHOD(openvg::vgu::Line) {
   HandleScope scope;
 
   CheckArgs5(line,
              VGPath, Number, x0, Number, y0, Number, x1, Number, y1, Number);
 
-  return Uint32::New(vguLine((VGPath) args[0]->Uint32Value(),
-                             (VGfloat) args[1]->NumberValue(),
-                             (VGfloat) args[2]->NumberValue(),
-                             (VGfloat) args[3]->NumberValue(),
-                             (VGfloat) args[4]->NumberValue()));
+  V8_RETURN(Uint32::New(vguLine((VGPath) args[0]->Uint32Value(),
+                                (VGfloat) args[1]->NumberValue(),
+                                (VGfloat) args[2]->NumberValue(),
+                                (VGfloat) args[3]->NumberValue(),
+                                (VGfloat) args[4]->NumberValue())));
 }
 
-Handle<Value> openvg::vgu::Polygon(const Arguments& args) {
+V8_METHOD(openvg::vgu::Polygon) {
   HandleScope scope;
 
   CheckArgs4(polygon,
@@ -1666,55 +1690,55 @@ Handle<Value> openvg::vgu::Polygon(const Arguments& args) {
 
   TypedArrayWrapper<VGfloat> points(args[1]);
 
-  return Uint32::New(vguPolygon((VGPath) args[0]->Uint32Value(),
-                                points.pointer(),
-                                (VGint) args[2]->Int32Value(),
-                                (VGboolean) args[3]->BooleanValue()));
+  V8_RETURN(Uint32::New(vguPolygon((VGPath) args[0]->Uint32Value(),
+                                   points.pointer(),
+                                   (VGint) args[2]->Int32Value(),
+                                   (VGboolean) args[3]->BooleanValue())));
 }
 
-Handle<Value> openvg::vgu::Rect(const Arguments& args) {
+V8_METHOD(openvg::vgu::Rect) {
   HandleScope scope;
 
   CheckArgs5(rect, VGPath, Number, x, Number, y, Number,
              width, Number, height, Number);
 
-  return Uint32::New(vguRect((VGPath) args[0]->Uint32Value(),
-                             (VGfloat) args[1]->NumberValue(),
-                             (VGfloat) args[2]->NumberValue(),
-                             (VGfloat) args[3]->NumberValue(),
-                             (VGfloat) args[4]->NumberValue()));
+  V8_RETURN(Uint32::New(vguRect((VGPath) args[0]->Uint32Value(),
+                                (VGfloat) args[1]->NumberValue(),
+                                (VGfloat) args[2]->NumberValue(),
+                                (VGfloat) args[3]->NumberValue(),
+                                (VGfloat) args[4]->NumberValue())));
 }
 
-Handle<Value> openvg::vgu::RoundRect(const Arguments& args) {
+V8_METHOD(openvg::vgu::RoundRect) {
   HandleScope scope;
 
   CheckArgs7(rect, VGPath,
              Number, x, Number, y, Number, width, Number, height,
              Number, arcWidth, Number, arcHeight, Number);
 
-  return Uint32::New(vguRoundRect((VGPath) args[0]->Uint32Value(),
-                                  (VGfloat) args[1]->NumberValue(),
-                                  (VGfloat) args[2]->NumberValue(),
-                                  (VGfloat) args[3]->NumberValue(),
-                                  (VGfloat) args[4]->NumberValue(),
-                                  (VGfloat) args[5]->NumberValue(),
-                                  (VGfloat) args[6]->NumberValue()));
+  V8_RETURN(Uint32::New(vguRoundRect((VGPath) args[0]->Uint32Value(),
+                                     (VGfloat) args[1]->NumberValue(),
+                                     (VGfloat) args[2]->NumberValue(),
+                                     (VGfloat) args[3]->NumberValue(),
+                                     (VGfloat) args[4]->NumberValue(),
+                                     (VGfloat) args[5]->NumberValue(),
+                                     (VGfloat) args[6]->NumberValue())));
 }
 
-Handle<Value> openvg::vgu::Ellipse(const Arguments& args) {
+V8_METHOD(openvg::vgu::Ellipse) {
   HandleScope scope;
 
   CheckArgs5(ellipse, VGPath, Number, x, Number, y, Number,
              width, Number, height, Number);
 
-  return Uint32::New(vguEllipse((VGPath) args[0]->Uint32Value(),
-                                (VGfloat) args[1]->NumberValue(),
-                                (VGfloat) args[2]->NumberValue(),
-                                (VGfloat) args[3]->NumberValue(),
-                                (VGfloat) args[4]->NumberValue()));
+  V8_RETURN(Uint32::New(vguEllipse((VGPath) args[0]->Uint32Value(),
+                                   (VGfloat) args[1]->NumberValue(),
+                                   (VGfloat) args[2]->NumberValue(),
+                                   (VGfloat) args[3]->NumberValue(),
+                                   (VGfloat) args[4]->NumberValue())));
 }
 
-Handle<Value> openvg::vgu::Arc(const Arguments& args) {
+V8_METHOD(openvg::vgu::Arc) {
   HandleScope scope;
 
   CheckArgs8(arc,
@@ -1722,17 +1746,17 @@ Handle<Value> openvg::vgu::Arc(const Arguments& args) {
              width, Number, height, Number,
              startAngle, Number, angleExtent, Number, VGUArcType, Uint32);
 
-  return Uint32::New(vguArc((VGPath) args[0]->Uint32Value(),
-                            (VGfloat) args[1]->NumberValue(),
-                            (VGfloat) args[2]->NumberValue(),
-                            (VGfloat) args[3]->NumberValue(),
-                            (VGfloat) args[4]->NumberValue(),
-                            (VGfloat) args[5]->NumberValue(),
-                            (VGfloat) args[6]->NumberValue(),
-                            static_cast<VGUArcType>(args[7]->Uint32Value())));
+  V8_RETURN(Uint32::New(vguArc((VGPath) args[0]->Uint32Value(),
+                               (VGfloat) args[1]->NumberValue(),
+                               (VGfloat) args[2]->NumberValue(),
+                               (VGfloat) args[3]->NumberValue(),
+                               (VGfloat) args[4]->NumberValue(),
+                               (VGfloat) args[5]->NumberValue(),
+                               (VGfloat) args[6]->NumberValue(),
+                               static_cast<VGUArcType>(args[7]->Uint32Value()))));
 }
 
-Handle<Value> openvg::vgu::ComputeWarpQuadToSquare(const Arguments& args) {
+V8_METHOD(openvg::vgu::ComputeWarpQuadToSquare) {
   HandleScope scope;
 
   CheckArgs9(computeWarpQuadToSquare,
@@ -1742,18 +1766,18 @@ Handle<Value> openvg::vgu::ComputeWarpQuadToSquare(const Arguments& args) {
 
   TypedArrayWrapper<VGfloat> matrix(args[8]);
 
-  return Uint32::New(vguComputeWarpQuadToSquare((VGfloat) args[0]->NumberValue(),
-                                                (VGfloat) args[1]->NumberValue(),
-                                                (VGfloat) args[2]->NumberValue(),
-                                                (VGfloat) args[3]->NumberValue(),
-                                                (VGfloat) args[4]->NumberValue(),
-                                                (VGfloat) args[5]->NumberValue(),
-                                                (VGfloat) args[6]->NumberValue(),
-                                                (VGfloat) args[7]->NumberValue(),
-                                                matrix.pointer()));
+  V8_RETURN(Uint32::New(vguComputeWarpQuadToSquare((VGfloat) args[0]->NumberValue(),
+                                                   (VGfloat) args[1]->NumberValue(),
+                                                   (VGfloat) args[2]->NumberValue(),
+                                                   (VGfloat) args[3]->NumberValue(),
+                                                   (VGfloat) args[4]->NumberValue(),
+                                                   (VGfloat) args[5]->NumberValue(),
+                                                   (VGfloat) args[6]->NumberValue(),
+                                                   (VGfloat) args[7]->NumberValue(),
+                                                   matrix.pointer())));
 }
 
-Handle<Value> openvg::vgu::ComputeWarpSquareToQuad(const Arguments& args) {
+V8_METHOD(openvg::vgu::ComputeWarpSquareToQuad) {
   HandleScope scope;
 
   CheckArgs9(computeWarpSquareToQuad,
@@ -1763,61 +1787,61 @@ Handle<Value> openvg::vgu::ComputeWarpSquareToQuad(const Arguments& args) {
 
   TypedArrayWrapper<VGfloat> matrix(args[8]);
 
-  return Uint32::New(vguComputeWarpSquareToQuad((VGfloat) args[0]->NumberValue(),
-                                                (VGfloat) args[1]->NumberValue(),
-                                                (VGfloat) args[2]->NumberValue(),
-                                                (VGfloat) args[3]->NumberValue(),
-                                                (VGfloat) args[4]->NumberValue(),
-                                                (VGfloat) args[5]->NumberValue(),
-                                                (VGfloat) args[6]->NumberValue(),
-                                                (VGfloat) args[7]->NumberValue(),
-                                                matrix.pointer()));
+  V8_RETURN(Uint32::New(vguComputeWarpSquareToQuad((VGfloat) args[0]->NumberValue(),
+                                                   (VGfloat) args[1]->NumberValue(),
+                                                   (VGfloat) args[2]->NumberValue(),
+                                                   (VGfloat) args[3]->NumberValue(),
+                                                   (VGfloat) args[4]->NumberValue(),
+                                                   (VGfloat) args[5]->NumberValue(),
+                                                   (VGfloat) args[6]->NumberValue(),
+                                                   (VGfloat) args[7]->NumberValue(),
+                                                   matrix.pointer())));
 }
 
-Handle<Value> openvg::vgu::ComputeWarpQuadToQuad(const Arguments& args) {
+V8_METHOD(openvg::vgu::ComputeWarpQuadToQuad) {
   HandleScope scope;
 
   // No arg check -> Would be a 17 arg macro
 
   TypedArrayWrapper<VGfloat> matrix(args[16]);
 
-  return Uint32::New(vguComputeWarpQuadToQuad((VGfloat) args[ 0]->NumberValue(),
-                                              (VGfloat) args[ 1]->NumberValue(),
-                                              (VGfloat) args[ 2]->NumberValue(),
-                                              (VGfloat) args[ 3]->NumberValue(),
-                                              (VGfloat) args[ 4]->NumberValue(),
-                                              (VGfloat) args[ 5]->NumberValue(),
-                                              (VGfloat) args[ 6]->NumberValue(),
-                                              (VGfloat) args[ 7]->NumberValue(),
-                                              (VGfloat) args[ 8]->NumberValue(),
-                                              (VGfloat) args[ 9]->NumberValue(),
-                                              (VGfloat) args[10]->NumberValue(),
-                                              (VGfloat) args[11]->NumberValue(),
-                                              (VGfloat) args[12]->NumberValue(),
-                                              (VGfloat) args[13]->NumberValue(),
-                                              (VGfloat) args[14]->NumberValue(),
-                                              (VGfloat) args[15]->NumberValue(),
-                                              matrix.pointer()));
+  V8_RETURN(Uint32::New(vguComputeWarpQuadToQuad((VGfloat) args[ 0]->NumberValue(),
+                                                 (VGfloat) args[ 1]->NumberValue(),
+                                                 (VGfloat) args[ 2]->NumberValue(),
+                                                 (VGfloat) args[ 3]->NumberValue(),
+                                                 (VGfloat) args[ 4]->NumberValue(),
+                                                 (VGfloat) args[ 5]->NumberValue(),
+                                                 (VGfloat) args[ 6]->NumberValue(),
+                                                 (VGfloat) args[ 7]->NumberValue(),
+                                                 (VGfloat) args[ 8]->NumberValue(),
+                                                 (VGfloat) args[ 9]->NumberValue(),
+                                                 (VGfloat) args[10]->NumberValue(),
+                                                 (VGfloat) args[11]->NumberValue(),
+                                                 (VGfloat) args[12]->NumberValue(),
+                                                 (VGfloat) args[13]->NumberValue(),
+                                                 (VGfloat) args[14]->NumberValue(),
+                                                 (VGfloat) args[15]->NumberValue(),
+                                                 matrix.pointer())));
 }
 
 
 /* KHR extensions */
 
 
-Handle<Value> openvg::ext::CreateEGLImageTargetKHR(const Arguments& args) {
+V8_METHOD(openvg::ext::CreateEGLImageTargetKHR) {
   HandleScope scope;
 
   CheckArgs1(createEGLImageTargetKHR, VGeglImageKHR, Object);
 
 #ifdef VG_VGEXT_PROTOTYPES
   VGeglImageKHR image = node::ObjectWrap::Unwrap<VGeglImageKHR>(args[0]->ToObject());
-  return Uint32::New(vgCreateEGLImageTargetKHR(image));
+  V8_RETURN(Uint32::New(vgCreateEGLImageTargetKHR(image)));
 #else
-  return Undefined();
+  V8_RETURN(Undefined());
 #endif
 }
 
-Handle<Value> openvg::ext::IterativeAverageBlurKHR(const Arguments& args) {
+V8_METHOD(openvg::ext::IterativeAverageBlurKHR) {
   HandleScope scope;
 
   CheckArgs6(iterativeAverageBlurKHR,
@@ -1833,10 +1857,10 @@ Handle<Value> openvg::ext::IterativeAverageBlurKHR(const Arguments& args) {
                             (VGImage) args[4]->Uint32Value(),
                             static_cast<VGTilingMode>((VGImage) args[5]->Uint32Value()));
 #endif
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::ext::ParametricFilterKHR(const Arguments& args) {
+V8_METHOD(openvg::ext::ParametricFilterKHR) {
   HandleScope scope;
 
   CheckArgs9(iterativeAverageBlurKHR,
@@ -1856,10 +1880,10 @@ Handle<Value> openvg::ext::ParametricFilterKHR(const Arguments& args) {
                         (VGPaint) args[8]->Uint32Value());
 #endif
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::ext::DropShadowKHR(const Arguments& args) {
+V8_METHOD(openvg::ext::DropShadowKHR) {
   HandleScope scope;
 
   CheckArgs11(dropShadowKHR,
@@ -1870,23 +1894,23 @@ Handle<Value> openvg::ext::DropShadowKHR(const Arguments& args) {
               shadowColorRGBA, Number);
 
 #ifdef VG_VGEXT_PROTOTYPES
-  return Uint32::New(vguDropShadowKHR((VGImage) args[0]->Uint32Value(),
-                                      (VGImage) args[1]->Uint32Value(),
-                                      (VGfloat) args[2]->NumberValue(),
-                                      (VGfloat) args[3]->NumberValue(),
-                                      (VGuint) args[4]->Uint32Value(),
-                                      (VGfloat) args[5]->NumberValue(),
-                                      (VGfloat) args[6]->NumberValue(),
-                                      (VGfloat) args[7]->NumberValue(),
-                                      (VGbitfield) args[8]->Uint32Value(),
-                                      (VGbitfield) args[9]->Uint32Value(),
-                                      (VGuint) args[10]->Uint32Value()));
+  V8_RETURN(Uint32::New(vguDropShadowKHR((VGImage) args[0]->Uint32Value(),
+                                         (VGImage) args[1]->Uint32Value(),
+                                         (VGfloat) args[2]->NumberValue(),
+                                         (VGfloat) args[3]->NumberValue(),
+                                         (VGuint) args[4]->Uint32Value(),
+                                         (VGfloat) args[5]->NumberValue(),
+                                         (VGfloat) args[6]->NumberValue(),
+                                         (VGfloat) args[7]->NumberValue(),
+                                         (VGbitfield) args[8]->Uint32Value(),
+                                         (VGbitfield) args[9]->Uint32Value(),
+                                         (VGuint) args[10]->Uint32Value())));
 #else
-  return Undefined();
+  V8_RETURN(Undefined());
 #endif
 }
 
-Handle<Value> openvg::ext::GlowKHR(const Arguments& args) {
+V8_METHOD(openvg::ext::GlowKHR) {
   HandleScope scope;
 
   CheckArgs9(glowKHR,
@@ -1897,21 +1921,21 @@ Handle<Value> openvg::ext::GlowKHR(const Arguments& args) {
              glowColorRGBA, Number);
 
 #ifdef VG_VGEXT_PROTOTYPES
-  return Uint32::New(vguGlowKHR((VGImage) args[0]->Uint32Value(),
-                                (VGImage) args[1]->Uint32Value(),
-                                (VGfloat) args[2]->NumberValue(),
-                                (VGfloat) args[3]->NumberValue(),
-                                (VGuint) args[4]->Uint32Value(),
-                                (VGfloat) args[5]->NumberValue(),
-                                (VGbitfield) args[6]->Uint32Value(),
-                                (VGbitfield) args[7]->Uint32Value(),
-                                (VGuint) args[8]->Uint32Value()));
+  V8_RETURN(Uint32::New(vguGlowKHR((VGImage) args[0]->Uint32Value(),
+                                   (VGImage) args[1]->Uint32Value(),
+                                   (VGfloat) args[2]->NumberValue(),
+                                   (VGfloat) args[3]->NumberValue(),
+                                   (VGuint) args[4]->Uint32Value(),
+                                   (VGfloat) args[5]->NumberValue(),
+                                   (VGbitfield) args[6]->Uint32Value(),
+                                   (VGbitfield) args[7]->Uint32Value(),
+                                   (VGuint) args[8]->Uint32Value())));
 #else
-  return Undefined();
+  V8_RETURN(Undefined());
 #endif
 }
 
-Handle<Value> openvg::ext::BevelKHR(const Arguments& args) {
+V8_METHOD(openvg::ext::BevelKHR) {
   HandleScope scope;
 
   CheckArgs12(bevelKHR,
@@ -1922,24 +1946,24 @@ Handle<Value> openvg::ext::BevelKHR(const Arguments& args) {
               highlightColorRGBA, Number, shadowColorRGBA, Number);
 
 #ifdef VG_VGEXT_PROTOTYPES
-  return Uint32::New(vguBevelKHR((VGImage) args[0]->Uint32Value(),
-                                 (VGImage) args[1]->Uint32Value(),
-                                 (VGfloat) args[2]->NumberValue(),
-                                 (VGfloat) args[3]->NumberValue(),
-                                 (VGuint) args[4]->Uint32Value(),
-                                 (VGfloat) args[5]->NumberValue(),
-                                 (VGfloat) args[6]->NumberValue(),
-                                 (VGfloat) args[7]->NumberValue(),
-                                 (VGbitfield) args[8]->Uint32Value(),
-                                 (VGbitfield) args[9]->Uint32Value(),
-                                 (VGuint) args[10]->Uint32Value(),
-                                 (VGuint) args[11]->Uint32Value()));
+  V8_RETURN(Uint32::New(vguBevelKHR((VGImage) args[0]->Uint32Value(),
+                                    (VGImage) args[1]->Uint32Value(),
+                                    (VGfloat) args[2]->NumberValue(),
+                                    (VGfloat) args[3]->NumberValue(),
+                                    (VGuint) args[4]->Uint32Value(),
+                                    (VGfloat) args[5]->NumberValue(),
+                                    (VGfloat) args[6]->NumberValue(),
+                                    (VGfloat) args[7]->NumberValue(),
+                                    (VGbitfield) args[8]->Uint32Value(),
+                                    (VGbitfield) args[9]->Uint32Value(),
+                                    (VGuint) args[10]->Uint32Value(),
+                                    (VGuint) args[11]->Uint32Value())));
 #else
-  return Undefined();
+  V8_RETURN(Undefined());
 #endif
 }
 
-Handle<Value> openvg::ext::GradientGlowKHR(const Arguments& args) {
+V8_METHOD(openvg::ext::GradientGlowKHR) {
   HandleScope scope;
 
   CheckArgs12(gradientGlowKHR,
@@ -1952,24 +1976,24 @@ Handle<Value> openvg::ext::GradientGlowKHR(const Arguments& args) {
 #ifdef VG_VGEXT_PROTOTYPES
   TypedArrayWrapper<VGfloat> glowColorRampStops(args[11]);
 
-  return Uint32::New(vguGradientGlowKHR((VGImage) args[0]->Uint32Value(),
-                                        (VGImage) args[1]->Uint32Value(),
-                                        (VGfloat) args[2]->NumberValue(),
-                                        (VGfloat) args[3]->NumberValue(),
-                                        (VGuint) args[4]->Uint32Value(),
-                                        (VGfloat) args[5]->NumberValue(),
-                                        (VGfloat) args[6]->NumberValue(),
-                                        (VGfloat) args[7]->NumberValue(),
-                                        (VGbitfield) args[8]->Uint32Value(),
-                                        (VGbitfield) args[9]->Uint32Value(),
-                                        (VGuint) args[10]->Uint32Value(),
-                                        glowColorRampStops.pointer()));
+  V8_RETURN(Uint32::New(vguGradientGlowKHR((VGImage) args[0]->Uint32Value(),
+                                           (VGImage) args[1]->Uint32Value(),
+                                           (VGfloat) args[2]->NumberValue(),
+                                           (VGfloat) args[3]->NumberValue(),
+                                           (VGuint) args[4]->Uint32Value(),
+                                           (VGfloat) args[5]->NumberValue(),
+                                           (VGfloat) args[6]->NumberValue(),
+                                           (VGfloat) args[7]->NumberValue(),
+                                           (VGbitfield) args[8]->Uint32Value(),
+                                           (VGbitfield) args[9]->Uint32Value(),
+                                           (VGuint) args[10]->Uint32Value(),
+                                           glowColorRampStops.pointer())));
 #else
-  return Undefined();
+  V8_RETURN(Undefined());
 #endif
 }
 
-Handle<Value> openvg::ext::GradientBevelKHR(const Arguments& args) {
+V8_METHOD(openvg::ext::GradientBevelKHR) {
   HandleScope scope;
 
   CheckArgs12(gradientBevelKHR,
@@ -1982,24 +2006,24 @@ Handle<Value> openvg::ext::GradientBevelKHR(const Arguments& args) {
 #ifdef VG_VGEXT_PROTOTYPES
   TypedArrayWrapper<VGfloat> bevelColorRampStops(args[11]);
 
-  return Uint32::New(vguGradientBevelKHR((VGImage) args[0]->Uint32Value(),
-                                         (VGImage) args[1]->Uint32Value(),
-                                         (VGfloat) args[2]->NumberValue(),
-                                         (VGfloat) args[3]->NumberValue(),
-                                         (VGuint) args[4]->Uint32Value(),
-                                         (VGfloat) args[5]->NumberValue(),
-                                         (VGfloat) args[6]->NumberValue(),
-                                         (VGfloat) args[7]->NumberValue(),
-                                         (VGbitfield) args[8]->Uint32Value(),
-                                         (VGbitfield) args[9]->Uint32Value(),
-                                         (VGuint) args[10]->Uint32Value(),
-                                         bevelColorRampStops.pointer()));
+  V8_RETURN(Uint32::New(vguGradientBevelKHR((VGImage) args[0]->Uint32Value(),
+                                            (VGImage) args[1]->Uint32Value(),
+                                            (VGfloat) args[2]->NumberValue(),
+                                            (VGfloat) args[3]->NumberValue(),
+                                            (VGuint) args[4]->Uint32Value(),
+                                            (VGfloat) args[5]->NumberValue(),
+                                            (VGfloat) args[6]->NumberValue(),
+                                            (VGfloat) args[7]->NumberValue(),
+                                            (VGbitfield) args[8]->Uint32Value(),
+                                            (VGbitfield) args[9]->Uint32Value(),
+                                            (VGuint) args[10]->Uint32Value(),
+                                            bevelColorRampStops.pointer())));
 #else
-  return Undefined();
+  V8_RETURN(Undefined());
 #endif
 }
 
-Handle<Value> openvg::ext::ProjectiveMatrixNDS(const Arguments& args) {
+V8_METHOD(openvg::ext::ProjectiveMatrixNDS) {
   HandleScope scope;
 
   CheckArgs1(projectiveMatrixNDS, enable, Boolean);
@@ -2008,10 +2032,10 @@ Handle<Value> openvg::ext::ProjectiveMatrixNDS(const Arguments& args) {
   vgProjectiveMatrixNDS((VGboolean) args[0]->BooleanValue());
 #endif
 
-  return Undefined();
+  V8_RETURN(Undefined());
 }
 
-Handle<Value> openvg::ext::TransformClipLineNDS(const Arguments& args) {
+V8_METHOD(openvg::ext::TransformClipLineNDS) {
   HandleScope scope;
 
   CheckArgs8(gradientBevelKHR,
@@ -2025,15 +2049,15 @@ Handle<Value> openvg::ext::TransformClipLineNDS(const Arguments& args) {
   TypedArrayWrapper<VGfloat> Bout(args[6]);
   TypedArrayWrapper<VGfloat> Cout(args[7]);
 
-  return Uint32::New(vguTransformClipLineNDS((VGfloat) args[0]->NumberValue(),
-                                             (VGfloat) args[1]->NumberValue(),
-                                             (VGfloat) args[2]->NumberValue(),
-                                             matrix.pointer(),
-                                             (VGboolean) args[4]->BooleanValue(),
-                                             Aout.pointer(),
-                                             Bout.pointer(),
-                                             Cout.pointer()));
+  V8_RETURN(Uint32::New(vguTransformClipLineNDS((VGfloat) args[0]->NumberValue(),
+                                                (VGfloat) args[1]->NumberValue(),
+                                                (VGfloat) args[2]->NumberValue(),
+                                                matrix.pointer(),
+                                                (VGboolean) args[4]->BooleanValue(),
+                                                Aout.pointer(),
+                                                Bout.pointer(),
+                                                Cout.pointer())));
 #else
-  return Undefined();
+  V8_RETURN(Undefined());
 #endif
 }
