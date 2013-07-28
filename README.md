@@ -1,8 +1,10 @@
 # node-openvg (OpenVG bindings for node.js)
 
-This module implemements bindings for OpenVG. It is targeted to the raspberry-pi.
+This module implements bindings for OpenVG. It is targeted to the raspberry-pi.
 
 It is heavily inspired in [node-sdl](https://github.com/creationix/node-sdl) and [openvg](https://github.com/ajstarks/openvg).
+
+Tested on node 0.8, 0.10 and 0.11.
 
 ## 0. Installation
 
@@ -18,13 +20,23 @@ This library makes a 1:1 mapping between OpenVG 1.1 (as currently bundled on ras
 
 All array based APIs are implemented via JS typed arrays. As such, length and offsets are supposed to be handled by the typed array API.
 
-Due to exceptional slowness of typed array creation (should be avoided at all costs either in node and in browser code), even when using [subarray](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays/Int8Array?redirectlocale=en-US&redirectslug=JavaScript%2FTyped_arrays%2FInt8Array#subarray%28%29), the APIs that receive typed arrays as parameters (setXxxFV, setXxxIV, etc.) also present OL (Offset + Length) or O (Offset) variants.
+Due to exceptional slowness of typed array creation (should be avoided at all costs either in node and in browser code), even when using [subarray](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays/Int8Array), the APIs that receive typed arrays as parameters (setXxxFV, setXxxIV, etc.) also present OL (Offset + Length) or O (Offset) variants.
+
+### Commonalities with the OpenVG APIs.
+
+Currently, handles to OpenVG resources currently aren't wrapped in JS/C++ objects.
+For this reason, care must be taken to ensure propper destruction of these objects, as
+they wont be reclaimed by the garbage collector.
+This may be seen as a bonus since this explicit resource management may help improve
+performance, esp. in the scenario where this library is supposed to be used.
+
+PS: There are plans to support this kind of wrapping in the future.
 
 ### Examples
 
 This library was created as a base for [openvg-canvas](https://github.com/luismreis/node-openvg-canvas), but can be used standalone.
 
-Check the examples directory.
+Also, check the [examples directory](https://github.com/luismreis/node-openvg/tree/master/examples).
 
 ## License
 
