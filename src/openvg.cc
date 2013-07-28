@@ -227,20 +227,17 @@ template<class C> class TypedArrayWrapper {
 template<class C> class TypedArrayWrapper {
  private:
   Local<TypedArray> array;
-  int byteOffset;
  public:
   inline __attribute__((always_inline)) TypedArrayWrapper(const Local<Value>& arg) :
-    array(Handle<TypedArray>::Cast(arg->ToObject())),
-    byteOffset(array->ByteOffset()) {
+    array(Handle<TypedArray>::Cast(arg->ToObject())) {
   }
 
   inline __attribute__((always_inline)) C* pointer(int offset = 0) {
     return (C*) &((char*) array->BaseAddress())[offset];
-    // return (C*) &((char*) array->BaseAddress())[byteOffset + offset];
   }
 
   inline __attribute__((always_inline)) int length() {
-    return array->ByteLength();
+    return array->Length();
   }
 };
 #endif
