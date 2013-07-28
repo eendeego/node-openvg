@@ -1,5 +1,7 @@
 # node-openvg (OpenVG bindings for node.js)
 
+[![NPM](https://nodei.co/npm/openvg.png?downloads=true&stars=true)](https://nodei.co/npm-dl/openvg/) [![NPM](https://nodei.co/npm-dl/openvg.png)](https://nodei.co/npm-dl/openvg/)
+
 This module implements bindings for OpenVG. It is targeted to the raspberry-pi.
 
 It is heavily inspired in [node-sdl](https://github.com/creationix/node-sdl) and [openvg](https://github.com/ajstarks/openvg).
@@ -24,9 +26,9 @@ Due to exceptional slowness of typed array creation (should be avoided at all co
 
 ### Commonalities with the OpenVG APIs.
 
-Currently, handles to OpenVG resources currently aren't wrapped in JS/C++ objects.
-For this reason, care must be taken to ensure propper destruction of these objects, as
-they wont be reclaimed by the garbage collector.
+Currently, handles to OpenVG resources aren't wrapped in JS/C++ objects.
+For this reason, special care must be taken to ensure propper destruction of these
+objects, as they wont be reclaimed by the garbage collector.
 This may be seen as a bonus since this explicit resource management may help improve
 performance, esp. in the scenario where this library is supposed to be used.
 
