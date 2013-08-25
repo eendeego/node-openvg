@@ -78,7 +78,7 @@ function terminate() {
   console.log("Making a clean exit.");
 }
 
-util.init();
+util.init({ loadFonts: false });
 
 width  = vg.screen.width;
 height = vg.screen.height;
