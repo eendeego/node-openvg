@@ -1,15 +1,40 @@
 #ifndef NODE_OPENVG_H_
 #define NODE_OPENVG_H_
 
-#include <node.h>
 #include <v8.h>
+#include <node.h>
 #include "EGL/egl.h"
+#include "VG/openvg.h"
 
 #include "v8_helpers.h"
 
 using namespace v8;
 
+typedef void (*VGDestroyFn)(VGHandle);
+
 namespace openvg {
+
+void VGNoopDestroy(VGHandle handle);
+
+class VGHandleWrap : public node::ObjectWrap {
+public:
+  static VGHandleWrap* New(VGMaskLayer handle, VGDestroyFn destructor);
+  void Destroy();
+
+  VGHandle Handle();
+
+  V8_METHOD_DECL(New);
+  V8_METHOD_DECL(Destroy);
+
+protected:
+  VGHandle    vghandle_;
+  VGDestroyFn vgdestructor_;
+
+  VGHandleWrap();
+  ~VGHandleWrap();
+};
+
+#define UNWRAPPED_HANDLE(cast,obj) ((cast) ObjectWrap::Unwrap<VGHandleWrap>(obj)->Handle())
 
 V8_METHOD_DECL(StartUp);
 V8_METHOD_DECL(Shutdown);

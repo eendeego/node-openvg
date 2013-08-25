@@ -13,6 +13,7 @@
       "defines": [
         "NODE_BUFFER_TYPE_<(buffer_impl)",
         "TYPED_ARRAY_TYPE_<(buffer_impl)",
+        "SCOPE_DECL_<(buffer_impl)",
         "V8_CALLBACK_STYLE_<(callback_style)"
       ],
       "ldflags": [
