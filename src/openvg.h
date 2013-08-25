@@ -6,8 +6,6 @@
 #include "EGL/egl.h"
 #include "VG/openvg.h"
 
-#include "v8_helpers.h"
-
 using namespace v8;
 
 typedef void (*VGDestroyFn)(VGHandle);
@@ -23,8 +21,8 @@ public:
 
   VGHandle Handle();
 
-  V8_METHOD_DECL(New);
-  V8_METHOD_DECL(Destroy);
+  NAN_METHOD(New);
+  NAN_METHOD(Destroy);
 
 protected:
   VGHandle    vghandle_;
@@ -36,8 +34,8 @@ protected:
 
 #define UNWRAPPED_HANDLE(cast,obj) ((cast) ObjectWrap::Unwrap<VGHandleWrap>(obj)->Handle())
 
-V8_METHOD_DECL(StartUp);
-V8_METHOD_DECL(Shutdown);
+NAN_METHOD(StartUp);
+NAN_METHOD(Shutdown);
 
 V8_METHOD_DECL(GetError);
 

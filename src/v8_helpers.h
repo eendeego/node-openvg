@@ -50,41 +50,41 @@
 
 #define V8_THROW(exception) V8_RETURN(ThrowException(exception))
 
-#ifdef TYPED_ARRAY_TYPE_PRE_0_11
+#if NODE_MODULE_VERSION <= NODE_0_10_MODULE_VERSION
 template<class C> class TypedArrayWrapper {
  private:
-  v8::Local<v8::Object> array;
-  v8::Handle<v8::Object> buffer;
+  Local<Object> array;
+  Handle<Object> buffer;
   int byteOffset;
  public:
-  inline __attribute__((always_inline)) TypedArrayWrapper(const v8::Local<v8::Value>& arg) :
+  NAN_INLINE TypedArrayWrapper(const Local<Value>& arg) :
     array(arg->ToObject()),
-    buffer(array->Get(v8::String::New("buffer"))->ToObject()),
-    byteOffset(array->Get(v8::String::New("byteOffset"))->Int32Value()) {
+    buffer(array->Get(NanNew<String>("buffer"))->ToObject()),
+    byteOffset(array->Get(NanNew<String>("byteOffset"))->Int32Value()) {
   }
 
-  inline __attribute__((always_inline)) C* pointer(int offset = 0) {
+  NAN_INLINE C* pointer(int offset = 0) {
     return (C*) &((char*) buffer->GetIndexedPropertiesExternalArrayData())[byteOffset + offset];
   }
 
-  inline __attribute__((always_inline)) int length() {
-    return array->Get(v8::String::New("length"))->Uint32Value();
+  NAN_INLINE int length() {
+    return array->Get(NanNew<String>("length"))->Uint32Value();
   }
 };
 #else
 template<class C> class TypedArrayWrapper {
  private:
-  v8::Local<v8::TypedArray> array;
+  Local<TypedArray> array;
  public:
-  inline __attribute__((always_inline)) TypedArrayWrapper(const v8::Local<v8::Value>& arg) :
-    array(v8::Handle<v8::TypedArray>::Cast(arg->ToObject())) {
+  NAN_INLINE TypedArrayWrapper(const Local<Value>& arg) :
+    array(Handle<TypedArray>::Cast(arg->ToObject())) {
   }
 
-  inline __attribute__((always_inline)) C* pointer(int offset = 0) {
+  NAN_INLINE C* pointer(int offset = 0) {
     return (C*) &((char*) array->BaseAddress())[offset];
   }
 
-  inline __attribute__((always_inline)) int length() {
+  NAN_INLINE int length() {
     return array->Length();
   }
 };
