@@ -7,12 +7,11 @@
 #include <v8.h>
 #include <node.h>
 #include <node_buffer.h>
+#include "nan.h"
 
 #include "openvg.h"
 #include "egl.h"
 #include "argchecks.h"
-
-#include "v8_helpers.h"
 
 const bool kInitOpenGLES = false;
 
@@ -148,8 +147,8 @@ void init(Handle<Object> target) {
   NODE_SET_METHOD(target, "getString"        , openvg::GetString);
 
   /* Utilities */
-  Local<Object> VGU = Object::New();
-  target->Set(String::New("vgu"), VGU);
+  Local<Object> VGU = NanNew<Object>();
+  target->Set(NanNew<String>("vgu"), VGU);
 
   NODE_SET_METHOD(VGU, "line"                   , openvg::vgu::Line);
   NODE_SET_METHOD(VGU, "polygon"                , openvg::vgu::Polygon);
@@ -165,8 +164,8 @@ void init(Handle<Object> target) {
                        openvg::vgu::ComputeWarpQuadToQuad);
 
   /* KHR extensions */
-  Local<Object> ext = Object::New();
-  target->Set(String::New("ext"), ext);
+  Local<Object> ext = NanNew<Object>();
+  target->Set(NanNew<String>("ext"), ext);
 
   NODE_SET_METHOD(ext, "createEGLImageTargetKHR",
                        openvg::ext::CreateEGLImageTargetKHR);
@@ -187,8 +186,8 @@ void init(Handle<Object> target) {
                        openvg::ext::TransformClipLineNDS);
 
   /* EGL */
-  Local<Object> egl = Object::New();
-  target->Set(String::New("egl"), egl);
+  Local<Object> egl = NanNew<Object>();
+  target->Set(NanNew<String>("egl"), egl);
   egl::InitBindings(egl);
 }
 NODE_MODULE(openvg, init)
@@ -202,25 +201,25 @@ NODE_MODULE(openvg, init)
     }\
   }
 
-#ifdef TYPED_ARRAY_TYPE_PRE_0_11
+#if NODE_MODULE_VERSION <= NODE_0_10_MODULE_VERSION
 template<class C> class TypedArrayWrapper {
  private:
   Local<Object> array;
   Handle<Object> buffer;
   int byteOffset;
  public:
-  inline __attribute__((always_inline)) TypedArrayWrapper(const Local<Value>& arg) :
+  NAN_INLINE TypedArrayWrapper(const Local<Value>& arg) :
     array(arg->ToObject()),
-    buffer(array->Get(String::New("buffer"))->ToObject()),
-    byteOffset(array->Get(String::New("byteOffset"))->Int32Value()) {
+    buffer(array->Get(NanNew<String>("buffer"))->ToObject()),
+    byteOffset(array->Get(NanNew<String>("byteOffset"))->Int32Value()) {
   }
 
-  inline __attribute__((always_inline)) C* pointer(int offset = 0) {
+  NAN_INLINE C* pointer(int offset = 0) {
     return (C*) &((char*) buffer->GetIndexedPropertiesExternalArrayData())[byteOffset + offset];
   }
 
-  inline __attribute__((always_inline)) int length() {
-    return array->Get(String::New("length"))->Uint32Value();
+  NAN_INLINE int length() {
+    return array->Get(NanNew<String>("length"))->Uint32Value();
   }
 };
 #else
@@ -228,22 +227,22 @@ template<class C> class TypedArrayWrapper {
  private:
   Local<TypedArray> array;
  public:
-  inline __attribute__((always_inline)) TypedArrayWrapper(const Local<Value>& arg) :
+  NAN_INLINE TypedArrayWrapper(const Local<Value>& arg) :
     array(Handle<TypedArray>::Cast(arg->ToObject())) {
   }
 
-  inline __attribute__((always_inline)) C* pointer(int offset = 0) {
+  NAN_INLINE C* pointer(int offset = 0) {
     return (C*) &((char*) array->BaseAddress())[offset];
   }
 
-  inline __attribute__((always_inline)) int length() {
+  NAN_INLINE int length() {
     return array->Length();
   }
 };
 #endif
 
-V8_METHOD(openvg::StartUp) {
-  HandleScope scope;
+NAN_METHOD(openvg::StartUp) {
+  NanScope();
 
   CheckArgs1(startUp, screen, Object);
 
@@ -256,88 +255,83 @@ V8_METHOD(openvg::StartUp) {
   CHECK_VG_ERROR;
 
   Local<Object> screen = args[0].As<Object>();
-  screen->Set(String::NewSymbol("width" ),
-              Integer::New(egl::State.screen_width));
-  screen->Set(String::NewSymbol("height"),
-              Integer::New(egl::State.screen_height));
-  screen->Set(String::NewSymbol("display"),
-              External::New(egl::State.display));
-  screen->Set(String::NewSymbol("surface"),
-              External::New(egl::State.surface));
-  screen->Set(String::NewSymbol("context"),
-              External::New(egl::State.context));
+  screen->Set(NanNew<String>("width" ), NanNew<Uint32>(egl::State.screen_width));
+  screen->Set(NanNew<String>("height"), NanNew<Uint32>(egl::State.screen_height));
+  screen->Set(NanNew<String>("display"), NanNew<External>(egl::State.display));
+  screen->Set(NanNew<String>("surface"), NanNew<External>(egl::State.surface));
+  screen->Set(NanNew<String>("context"), NanNew<External>(egl::State.context));
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::Shutdown) {
-  HandleScope scope;
+NAN_METHOD(openvg::Shutdown) {
+  NanScope();
 
   CheckArgs0(shutdown);
 
   egl::Finish();
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
 
-V8_METHOD(openvg::GetError) {
-  HandleScope scope;
+NAN_METHOD(openvg::GetError) {
+  NanScope();
 
   CheckArgs0(getError);
 
-  V8_RETURN(Integer::New(vgGetError()));
+  NanReturnValue(NanNew<Integer>(vgGetError()));
 }
 
 
-V8_METHOD(openvg::Flush) {
-  HandleScope scope;
+NAN_METHOD(openvg::Flush) {
+  NanScope();
 
   CheckArgs0(flush);
 
   vgFlush();
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::Finish) {
-  HandleScope scope;
+NAN_METHOD(openvg::Finish) {
+  NanScope();
 
   CheckArgs0(finish);
 
   vgFinish();
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
 
 /* Getters and Setters */
 
 
-V8_METHOD(openvg::SetF) {
-  HandleScope scope;
+NAN_METHOD(openvg::SetF) {
+  NanScope();
 
   CheckArgs2(setF, type, Int32, value, Number);
 
   vgSetf((VGParamType) args[0]->Int32Value(),
          (VGfloat) args[1]->NumberValue());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::SetI) {
-  HandleScope scope;
+NAN_METHOD(openvg::SetI) {
+  NanScope();
 
   CheckArgs2(setI, type, Int32, value, Int32);
 
   vgSeti((VGParamType) args[0]->Int32Value(),
          (VGint) args[1]->Int32Value());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::SetFV) {
-  HandleScope scope;
+NAN_METHOD(openvg::SetFV) {
+  NanScope();
 
   CheckArgs2(setFV, type, Int32, Float32Array, Object);
 
@@ -347,11 +341,11 @@ V8_METHOD(openvg::SetFV) {
           values.length(),
           values.pointer());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::SetIV) {
-  HandleScope scope;
+NAN_METHOD(openvg::SetIV) {
+  NanScope();
 
   CheckArgs2(setIV, type, Int32, Int32Array, Object);
 
@@ -361,11 +355,11 @@ V8_METHOD(openvg::SetIV) {
           values.length(),
           values.pointer());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::SetFVOL) {
-  HandleScope scope;
+NAN_METHOD(openvg::SetFVOL) {
+  NanScope();
 
   CheckArgs4(setFVOL, type, Int32, Float32Array, Object, offset, Int32, length, Int32);
 
@@ -375,11 +369,11 @@ V8_METHOD(openvg::SetFVOL) {
           (VGint) args[3]->Int32Value(),
           values.pointer(args[2]->Int32Value()));
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::SetIVOL) {
-  HandleScope scope;
+NAN_METHOD(openvg::SetIVOL) {
+  NanScope();
 
   CheckArgs4(setIV, type, Int32, Int32Array, Object, offset, Int32, length, Int32);
 
@@ -389,35 +383,35 @@ V8_METHOD(openvg::SetIVOL) {
           (VGint) args[3]->Int32Value(),
           values.pointer(args[2]->Int32Value()));
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::GetF) {
-  HandleScope scope;
+NAN_METHOD(openvg::GetF) {
+  NanScope();
 
   CheckArgs1(getF, type, Int32);
 
-  V8_RETURN(Number::New(vgGetf((VGParamType) args[0]->Int32Value())));
+  NanReturnValue(NanNew<Number>(vgGetf((VGParamType) args[0]->Int32Value())));
 }
 
-V8_METHOD(openvg::GetI) {
-  HandleScope scope;
+NAN_METHOD(openvg::GetI) {
+  NanScope();
 
   CheckArgs1(getI, type, Int32);
 
-  V8_RETURN(Integer::New(vgGeti((VGParamType) args[0]->Int32Value())));
+  NanReturnValue(NanNew<Integer>(vgGeti((VGParamType) args[0]->Int32Value())));
 }
 
-V8_METHOD(openvg::GetVectorSize) {
-  HandleScope scope;
+NAN_METHOD(openvg::GetVectorSize) {
+  NanScope();
 
   CheckArgs1(getVectorSize, type, Int32);
 
-  V8_RETURN(Integer::New(vgGetVectorSize((VGParamType) args[0]->Int32Value())));
+  NanReturnValue(NanNew<Integer>(vgGetVectorSize((VGParamType) args[0]->Int32Value())));
 }
 
-V8_METHOD(openvg::GetFV) {
-  HandleScope scope;
+NAN_METHOD(openvg::GetFV) {
+  NanScope();
 
   CheckArgs2(getFV, type, Int32, Float32Array, Object);
 
@@ -427,11 +421,11 @@ V8_METHOD(openvg::GetFV) {
           values.length(),
           values.pointer());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::GetIV) {
-  HandleScope scope;
+NAN_METHOD(openvg::GetIV) {
+  NanScope();
 
   CheckArgs2(getIV, type, Int32, Float32Array, Object);
 
@@ -441,11 +435,11 @@ V8_METHOD(openvg::GetIV) {
           values.length(),
           values.pointer());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::GetFVOL) {
-  HandleScope scope;
+NAN_METHOD(openvg::GetFVOL) {
+  NanScope();
 
   CheckArgs4(getFV, type, Int32, Float32Array, Object, offset, Int32, length, Int32);
 
@@ -455,11 +449,11 @@ V8_METHOD(openvg::GetFVOL) {
           (VGint) args[3]->Int32Value(),
           values.pointer(args[2]->Int32Value()));
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::GetIVOL) {
-  HandleScope scope;
+NAN_METHOD(openvg::GetIVOL) {
+  NanScope();
 
   CheckArgs4(getIV, type, Int32, Float32Array, Object, offset, Int32, length, Int32);
 
@@ -469,12 +463,12 @@ V8_METHOD(openvg::GetIVOL) {
           (VGint) args[3]->Int32Value(),
           values.pointer(args[2]->Int32Value()));
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
 
-V8_METHOD(openvg::SetParameterF) {
-  HandleScope scope;
+NAN_METHOD(openvg::SetParameterF) {
+  NanScope();
 
   CheckArgs3(setParameterF, VGHandle, Int32, VGParamType, Int32, value, Number);
 
@@ -482,11 +476,11 @@ V8_METHOD(openvg::SetParameterF) {
                   (VGParamType) args[1]->Int32Value(),
                   (VGfloat) args[2]->NumberValue());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::SetParameterI) {
-  HandleScope scope;
+NAN_METHOD(openvg::SetParameterI) {
+  NanScope();
 
   CheckArgs3(setParameterI, VGHandle, Int32, VGParamType, Int32, value, Int32);
 
@@ -494,11 +488,11 @@ V8_METHOD(openvg::SetParameterI) {
                   (VGParamType) args[1]->Int32Value(),
                   (VGint) args[2]->Int32Value());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::SetParameterFV) {
-  HandleScope scope;
+NAN_METHOD(openvg::SetParameterFV) {
+  NanScope();
 
   CheckArgs3(setParameterFV,
              VGHandle, Int32, VGParamType, Int32, Float32Array, Object);
@@ -510,11 +504,11 @@ V8_METHOD(openvg::SetParameterFV) {
                    values.length(),
                    values.pointer());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::SetParameterIV) {
-  HandleScope scope;
+NAN_METHOD(openvg::SetParameterIV) {
+  NanScope();
 
   CheckArgs3(setParameterIV,
              VGHandle, Int32, VGParamType, Int32, Int32Array, Object);
@@ -526,11 +520,11 @@ V8_METHOD(openvg::SetParameterIV) {
                    values.length(),
                    values.pointer());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::SetParameterFVOL) {
-  HandleScope scope;
+NAN_METHOD(openvg::SetParameterFVOL) {
+  NanScope();
 
   CheckArgs5(setParameterFV,
              VGHandle, Int32, VGParamType, Int32, Float32Array, Object,
@@ -543,11 +537,11 @@ V8_METHOD(openvg::SetParameterFVOL) {
                    (VGint) args[4]->Int32Value(),
                    values.pointer(args[3]->Int32Value()));
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::SetParameterIVOL) {
-  HandleScope scope;
+NAN_METHOD(openvg::SetParameterIVOL) {
+  NanScope();
 
   CheckArgs5(setParameterIV,
              VGHandle, Int32, VGParamType, Int32, Int32Array, Object,
@@ -560,38 +554,38 @@ V8_METHOD(openvg::SetParameterIVOL) {
                    (VGint) args[4]->Int32Value(),
                    values.pointer(args[3]->Int32Value()));
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::GetParameterF) {
-  HandleScope scope;
+NAN_METHOD(openvg::GetParameterF) {
+  NanScope();
 
   CheckArgs2(getParameterF, VGHandle, Int32, VGParamType, Int32);
 
-  V8_RETURN(Number::New(vgGetParameterf((VGHandle) args[0]->Int32Value(),
-                                        (VGParamType) args[1]->Int32Value())));
+  NanReturnValue(NanNew<Number>(vgGetParameterf((VGHandle) args[0]->Int32Value(),
+                                                (VGParamType) args[1]->Int32Value())));
 }
 
-V8_METHOD(openvg::GetParameterI) {
-  HandleScope scope;
+NAN_METHOD(openvg::GetParameterI) {
+  NanScope();
 
   CheckArgs2(getParameterI, VGHandle, Int32, VGParamType, Int32);
 
-  V8_RETURN(Integer::New(vgGetParameteri((VGHandle) args[0]->Int32Value(),
-                                         (VGParamType) args[1]->Int32Value())));
+  NanReturnValue(NanNew<Integer>(vgGetParameteri((VGHandle) args[0]->Int32Value(),
+                                                 (VGParamType) args[1]->Int32Value())));
 }
 
-V8_METHOD(openvg::GetParameterVectorSize) {
-  HandleScope scope;
+NAN_METHOD(openvg::GetParameterVectorSize) {
+  NanScope();
 
   CheckArgs2(getParameterVectorSize, VGHandle, Int32, VGParamType, Int32);
 
-  V8_RETURN(Integer::New(vgGetParameterVectorSize((VGHandle) args[0]->Int32Value(),
-                                                  (VGParamType) args[1]->Int32Value())));
+  NanReturnValue(NanNew<Integer>(vgGetParameterVectorSize((VGHandle) args[0]->Int32Value(),
+                                                          (VGParamType) args[1]->Int32Value())));
 }
 
-V8_METHOD(openvg::GetParameterFV) {
-  HandleScope scope;
+NAN_METHOD(openvg::GetParameterFV) {
+  NanScope();
 
   CheckArgs3(getParameterFV,
              VGHandle, Int32, VGParamType, Int32, Float32Array, Object);
@@ -603,11 +597,11 @@ V8_METHOD(openvg::GetParameterFV) {
                    values.length(),
                    values.pointer());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::GetParameterIV) {
-  HandleScope scope;
+NAN_METHOD(openvg::GetParameterIV) {
+  NanScope();
 
   CheckArgs3(getParameterIV,
              VGHandle, Int32, VGParamType, Int32, Int32Array, Object);
@@ -619,11 +613,11 @@ V8_METHOD(openvg::GetParameterIV) {
                    values.length(),
                    values.pointer());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::GetParameterFVOL) {
-  HandleScope scope;
+NAN_METHOD(openvg::GetParameterFVOL) {
+  NanScope();
 
   CheckArgs5(getParameterFV,
              VGHandle, Int32, VGParamType, Int32, Float32Array, Object,
@@ -636,11 +630,11 @@ V8_METHOD(openvg::GetParameterFVOL) {
                    (VGint) args[4]->Int32Value(),
                    values.pointer(args[3]->Int32Value()));
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::GetParameterIVOL) {
-  HandleScope scope;
+NAN_METHOD(openvg::GetParameterIVOL) {
+  NanScope();
 
   CheckArgs5(getParameterIV,
              VGHandle, Int32, VGParamType, Int32, Int32Array, Object,
@@ -653,25 +647,25 @@ V8_METHOD(openvg::GetParameterIVOL) {
                    (VGint) args[4]->Int32Value(),
                    values.pointer(args[3]->Int32Value()));
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
 
 /* Matrix Manipulation */
 
 
-V8_METHOD(openvg::LoadIdentity) {
-  HandleScope scope;
+NAN_METHOD(openvg::LoadIdentity) {
+  NanScope();
 
   CheckArgs0(loadIdentity);
 
   vgLoadIdentity();
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::LoadMatrix) {
-  HandleScope scope;
+NAN_METHOD(openvg::LoadMatrix) {
+  NanScope();
 
   CheckArgs1(loadIdentity, Float32Array, Object);
 
@@ -679,11 +673,11 @@ V8_METHOD(openvg::LoadMatrix) {
 
   vgLoadMatrix(matrix.pointer());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::GetMatrix) {
-  HandleScope scope;
+NAN_METHOD(openvg::GetMatrix) {
+  NanScope();
 
   CheckArgs1(getMatrix, Float32Array, Object);
 
@@ -691,11 +685,11 @@ V8_METHOD(openvg::GetMatrix) {
 
   vgGetMatrix(matrix.pointer());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::MultMatrix) {
-  HandleScope scope;
+NAN_METHOD(openvg::MultMatrix) {
+  NanScope();
 
   CheckArgs1(multMatrix, Float32Array, Object);
 
@@ -703,58 +697,58 @@ V8_METHOD(openvg::MultMatrix) {
 
   vgMultMatrix(matrix.pointer());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::Translate) {
-  HandleScope scope;
+NAN_METHOD(openvg::Translate) {
+  NanScope();
 
   CheckArgs2(translate, x, Number, y, Number);
 
   vgTranslate((VGfloat) args[0]->NumberValue(),
               (VGfloat) args[1]->NumberValue());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::Scale) {
-  HandleScope scope;
+NAN_METHOD(openvg::Scale) {
+  NanScope();
 
   CheckArgs2(scale, x, Number, y, Number);
 
   vgScale((VGfloat) args[0]->NumberValue(),
           (VGfloat) args[1]->NumberValue());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::Shear) {
-  HandleScope scope;
+NAN_METHOD(openvg::Shear) {
+  NanScope();
 
   CheckArgs2(shear, x, Number, y, Number);
 
   vgShear((VGfloat) args[0]->NumberValue(),
           (VGfloat) args[1]->NumberValue());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::Rotate) {
-  HandleScope scope;
+NAN_METHOD(openvg::Rotate) {
+  NanScope();
 
   CheckArgs1(shear, angle, Number);
 
   vgRotate((VGfloat) args[0]->NumberValue());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
 
 /* Masking and Clearing */
 
 
-V8_METHOD(openvg::Mask) {
-  HandleScope scope;
+NAN_METHOD(openvg::Mask) {
+  NanScope();
 
   CheckArgs6(mask,
              VGHandle, Uint32, VGMaskOperation, Uint32,
@@ -767,11 +761,11 @@ V8_METHOD(openvg::Mask) {
          (VGint) args[4]->Int32Value(),
          (VGint) args[5]->Int32Value());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::RenderToMask) {
-  HandleScope scope;
+NAN_METHOD(openvg::RenderToMask) {
+  NanScope();
 
   CheckArgs3(renderToMask,
              VGPath, Uint32,
@@ -782,30 +776,30 @@ V8_METHOD(openvg::RenderToMask) {
                  (VGbitfield) args[1]->Uint32Value(),
                  (VGMaskOperation) args[2]->Uint32Value());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::CreateMaskLayer) {
-  HandleScope scope;
+NAN_METHOD(openvg::CreateMaskLayer) {
+  NanScope();
 
   CheckArgs2(createMaskLayer, width, Int32, height, Int32);
 
-  V8_RETURN(Integer::New(vgCreateMaskLayer((VGint) args[0]->Int32Value(),
-                                           (VGint) args[1]->Int32Value())));
+  NanReturnValue(NanNew<Integer>(vgCreateMaskLayer((VGint) args[0]->Int32Value(),
+                                                   (VGint) args[1]->Int32Value())));
 }
 
-V8_METHOD(openvg::DestroyMaskLayer) {
-  HandleScope scope;
+NAN_METHOD(openvg::DestroyMaskLayer) {
+  NanScope();
 
   CheckArgs1(destroyMaskLayer, VGMaskLayer, Uint32);
 
   vgDestroyMaskLayer((VGMaskLayer) args[0]->Uint32Value());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::FillMaskLayer) {
-  HandleScope scope;
+NAN_METHOD(openvg::FillMaskLayer) {
+  NanScope();
 
   CheckArgs6(fillMaskLayer,
              VGMaskLayer, Uint32,
@@ -819,11 +813,11 @@ V8_METHOD(openvg::FillMaskLayer) {
                   (VGint) args[4]->Int32Value(),
                   (VGfloat) args[5]->NumberValue());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::CopyMask) {
-  HandleScope scope;
+NAN_METHOD(openvg::CopyMask) {
+  NanScope();
 
   CheckArgs7(fillMaskLayer,
              VGMaskLayer, Uint32,
@@ -835,94 +829,94 @@ V8_METHOD(openvg::CopyMask) {
              (VGint) args[3]->Int32Value(), (VGint) args[4]->Int32Value(),
              (VGint) args[5]->Int32Value(), (VGint) args[6]->Int32Value());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::Clear) {
-  HandleScope scope;
+NAN_METHOD(openvg::Clear) {
+  NanScope();
 
   CheckArgs4(clear, x, Int32, y, Int32, width, Int32, height, Int32);
 
   vgClear((VGint) args[0]->Int32Value(), (VGint) args[1]->Int32Value(),
           (VGint) args[2]->Int32Value(), (VGint) args[3]->Int32Value());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
 
 /* Paths */
 
 
-V8_METHOD(openvg::CreatePath) {
-  HandleScope scope;
+NAN_METHOD(openvg::CreatePath) {
+  NanScope();
 
   CheckArgs7(createPath,
              pathFormat, Int32, VGPathDatatype, Uint32,
              scale, Number, bias, Number, segmentCapacityHint, Int32,
              coordCapacityHint, Int32, capabilities, Uint32);
 
-  V8_RETURN(Uint32::New(vgCreatePath((VGint) args[0]->Int32Value(),
-                                     static_cast<VGPathDatatype>(args[1]->Uint32Value()),
-                                     (VGfloat) args[2]->NumberValue(),
-                                     (VGfloat) args[3]->NumberValue(),
-                                     (VGint) args[4]->Int32Value(),
-                                     (VGint) args[5]->Int32Value(),
-                                     (VGbitfield) args[6]->Uint32Value())));
+  NanReturnValue(NanNew<Uint32>(vgCreatePath((VGint) args[0]->Int32Value(),
+                                             static_cast<VGPathDatatype>(args[1]->Uint32Value()),
+                                             (VGfloat) args[2]->NumberValue(),
+                                             (VGfloat) args[3]->NumberValue(),
+                                             (VGint) args[4]->Int32Value(),
+                                             (VGint) args[5]->Int32Value(),
+                                             (VGbitfield) args[6]->Uint32Value())));
 }
 
-V8_METHOD(openvg::ClearPath) {
-  HandleScope scope;
+NAN_METHOD(openvg::ClearPath) {
+  NanScope();
 
   CheckArgs2(clearPath, VGPath, Number, capabilities, Uint32);
 
   vgClearPath((VGPath) args[0]->Uint32Value(),
               (VGbitfield) args[1]->Uint32Value());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::DestroyPath) {
-  HandleScope scope;
+NAN_METHOD(openvg::DestroyPath) {
+  NanScope();
 
   CheckArgs1(destroyPath, VGPath, Number);
 
   vgDestroyPath((VGPath) args[0]->Uint32Value());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::RemovePathCapabilities) {
-  HandleScope scope;
+NAN_METHOD(openvg::RemovePathCapabilities) {
+  NanScope();
 
   CheckArgs2(removePathCapabilities, VGPath, Number, capabilities, Uint32);
 
   vgRemovePathCapabilities((VGPath) args[0]->Uint32Value(),
                            (VGbitfield) args[1]->Uint32Value());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::GetPathCapabilities) {
-  HandleScope scope;
+NAN_METHOD(openvg::GetPathCapabilities) {
+  NanScope();
 
   CheckArgs1(getPathCapabilities, VGPath, Number);
 
-  V8_RETURN(Uint32::New(vgGetPathCapabilities((VGPath) args[0]->Int32Value())));
+  NanReturnValue(NanNew<Uint32>(vgGetPathCapabilities((VGPath) args[0]->Int32Value())));
 }
 
-V8_METHOD(openvg::AppendPath) {
-  HandleScope scope;
+NAN_METHOD(openvg::AppendPath) {
+  NanScope();
 
   CheckArgs2(appendPath, dstPath, Number, srcPath, Number);
 
   vgAppendPath((VGPath) args[0]->Uint32Value(),
                (VGPath) args[1]->Uint32Value());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::AppendPathData) {
-  HandleScope scope;
+NAN_METHOD(openvg::AppendPathData) {
+  NanScope();
 
   CheckArgs4(appendPathData,
              dstPath, Number, numSegments, Int32, Uint8Array, Object,
@@ -936,11 +930,11 @@ V8_METHOD(openvg::AppendPathData) {
                    segments.pointer(),
                    data.pointer());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::AppendPathDataO) {
-  HandleScope scope;
+NAN_METHOD(openvg::AppendPathDataO) {
+  NanScope();
 
   CheckArgs4(appendPathData,
              dstPath, Number, numSegments, Int32, Uint8Array, Object,
@@ -954,11 +948,11 @@ V8_METHOD(openvg::AppendPathDataO) {
                    segments.pointer(args[3]->Uint32Value()),
                    data.pointer(args[5]->Int32Value()));
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::ModifyPathCoords) {
-  HandleScope scope;
+NAN_METHOD(openvg::ModifyPathCoords) {
+  NanScope();
 
   CheckArgs4(modifyPathCoords,
              VGPath, Number, startIndex, Int32, numSegments, Int32,
@@ -971,46 +965,46 @@ V8_METHOD(openvg::ModifyPathCoords) {
                      (VGint) args[2]->Int32Value(),
                      data.pointer());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::TransformPath) {
-  HandleScope scope;
+NAN_METHOD(openvg::TransformPath) {
+  NanScope();
 
   CheckArgs2(transformPath, dstPath, Number, srcPath, Number);
 
   vgTransformPath((VGPath) args[0]->Uint32Value(),
                   (VGPath) args[1]->Uint32Value());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::InterpolatePath) {
-  HandleScope scope;
+NAN_METHOD(openvg::InterpolatePath) {
+  NanScope();
 
   CheckArgs4(interpolatePath,
              dstPath, Number, startPath, Number, endPath, Number,
              amount, Number);
 
-  V8_RETURN(Boolean::New(vgInterpolatePath((VGPath) args[0]->Uint32Value(),
-                                           (VGPath) args[1]->Uint32Value(),
-                                           (VGPath) args[2]->Uint32Value(),
-                                           (VGfloat) args[3]->NumberValue())));
+  NanReturnValue(NanNew<Boolean>(vgInterpolatePath((VGPath) args[0]->Uint32Value(),
+                                                   (VGPath) args[1]->Uint32Value(),
+                                                   (VGPath) args[2]->Uint32Value(),
+                                                   (VGfloat) args[3]->NumberValue())));
 }
 
-V8_METHOD(openvg::PathLength) {
-  HandleScope scope;
+NAN_METHOD(openvg::PathLength) {
+  NanScope();
 
   CheckArgs3(pathLength, path, Number,
              startSegment, Int32, numSegments, Int32);
 
-  V8_RETURN(Number::New(vgPathLength((VGPath) args[0]->Uint32Value(),
-                                     (VGint) args[1]->Int32Value(),
-                                     (VGint) args[2]->Int32Value())));
+  NanReturnValue(NanNew<Number>(vgPathLength((VGPath) args[0]->Uint32Value(),
+                                             (VGint) args[1]->Int32Value(),
+                                             (VGint) args[2]->Int32Value())));
 }
 
-V8_METHOD(openvg::PointAlongPath) {
-  HandleScope scope;
+NAN_METHOD(openvg::PointAlongPath) {
+  NanScope();
 
   CheckArgs5(pointAlongPath, path, Number,
              startSegment, Int32, numSegments, Int32,
@@ -1025,16 +1019,16 @@ V8_METHOD(openvg::PointAlongPath) {
                    &x, &y, &tx, &ty);
 
   Local<Object> point = args[4].As<Object>();
-  point->Set(String::NewSymbol("x"), Number::New(x));
-  point->Set(String::NewSymbol("y"), Number::New(y));
-  point->Set(String::NewSymbol("tx"), Number::New(tx));
-  point->Set(String::NewSymbol("ty"), Number::New(ty));
+  point->Set(NanNew<String>("x"), NanNew<Number>(x));
+  point->Set(NanNew<String>("y"), NanNew<Number>(y));
+  point->Set(NanNew<String>("tx"), NanNew<Number>(tx));
+  point->Set(NanNew<String>("ty"), NanNew<Number>(ty));
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::PathBounds) {
-  HandleScope scope;
+NAN_METHOD(openvg::PathBounds) {
+  NanScope();
 
   CheckArgs2(pathBounds, VGPath, Number, bounds, Object);
 
@@ -1044,16 +1038,16 @@ V8_METHOD(openvg::PathBounds) {
                &minX, &minY, &width, &height);
 
   Local<Object> bounds = args[1].As<Object>();
-  bounds->Set(String::NewSymbol("x"), Number::New(minX));
-  bounds->Set(String::NewSymbol("y"), Number::New(minY));
-  bounds->Set(String::NewSymbol("w"), Number::New(width));
-  bounds->Set(String::NewSymbol("h"), Number::New(height));
+  bounds->Set(NanNew<String>("x"), NanNew<Number>(minX));
+  bounds->Set(NanNew<String>("y"), NanNew<Number>(minY));
+  bounds->Set(NanNew<String>("w"), NanNew<Number>(width));
+  bounds->Set(NanNew<String>("h"), NanNew<Number>(height));
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::PathTransformedBounds) {
-  HandleScope scope;
+NAN_METHOD(openvg::PathTransformedBounds) {
+  NanScope();
 
   CheckArgs2(pathTransformedBounds, VGPath, Number, bounds, Object);
 
@@ -1063,125 +1057,125 @@ V8_METHOD(openvg::PathTransformedBounds) {
                           &minX, &minY, &width, &height);
 
   Local<Object> bounds = args[1].As<Object>();
-  bounds->Set(String::NewSymbol("x"), Number::New(minX));
-  bounds->Set(String::NewSymbol("y"), Number::New(minY));
-  bounds->Set(String::NewSymbol("w"), Number::New(width));
-  bounds->Set(String::NewSymbol("h"), Number::New(height));
+  bounds->Set(NanNew<String>("x"), NanNew<Number>(minX));
+  bounds->Set(NanNew<String>("y"), NanNew<Number>(minY));
+  bounds->Set(NanNew<String>("w"), NanNew<Number>(width));
+  bounds->Set(NanNew<String>("h"), NanNew<Number>(height));
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::DrawPath) {
-  HandleScope scope;
+NAN_METHOD(openvg::DrawPath) {
+  NanScope();
 
   CheckArgs2(drawPath, VGPath, Number, paintModes, Number);
 
   vgDrawPath((VGPath) args[0]->Uint32Value(),
              (VGbitfield) args[1]->Uint32Value());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
 
 /* Paint */
 
 
-V8_METHOD(openvg::CreatePaint) {
-  HandleScope scope;
+NAN_METHOD(openvg::CreatePaint) {
+  NanScope();
 
   CheckArgs0(createPaint);
 
-  V8_RETURN(Uint32::New(vgCreatePaint()));
+  NanReturnValue(NanNew<Uint32>(vgCreatePaint()));
 }
 
-V8_METHOD(openvg::DestroyPaint) {
-  HandleScope scope;
+NAN_METHOD(openvg::DestroyPaint) {
+  NanScope();
 
   CheckArgs1(destroyPaint, VGPaint, Number);
 
   vgDestroyPaint((VGPaint) args[0]->Uint32Value());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::SetPaint) {
-  HandleScope scope;
+NAN_METHOD(openvg::SetPaint) {
+  NanScope();
 
   CheckArgs2(setPaint, VGPaint, Number, paintModes, Number);
 
   vgSetPaint((VGPaint) args[0]->Uint32Value(),
              (VGbitfield) args[1]->Uint32Value());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::GetPaint) {
-  HandleScope scope;
+NAN_METHOD(openvg::GetPaint) {
+  NanScope();
 
   CheckArgs1(getPaint, VGPaint, Uint32);
 
-  V8_RETURN(Uint32::New(vgGetPaint(static_cast<VGPaintMode>(args[0]->Uint32Value()))));
+  NanReturnValue(NanNew<Uint32>(vgGetPaint(static_cast<VGPaintMode>(args[0]->Uint32Value()))));
 }
 
-V8_METHOD(openvg::SetColor) {
-  HandleScope scope;
+NAN_METHOD(openvg::SetColor) {
+  NanScope();
 
   CheckArgs2(setColor, VGPaint, Uint32, rgba, Uint32);
 
   vgSetColor((VGPaint) args[0]->Uint32Value(),
              (VGuint) args[1]->Uint32Value());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::GetColor) {
-  HandleScope scope;
+NAN_METHOD(openvg::GetColor) {
+  NanScope();
 
   CheckArgs1(getColor, VGPaint, Uint32);
 
-  V8_RETURN(Uint32::New(vgGetColor((VGPaint) args[0]->Uint32Value())));
+  NanReturnValue(NanNew<Uint32>(vgGetColor((VGPaint) args[0]->Uint32Value())));
 }
 
-V8_METHOD(openvg::PaintPattern) {
-  HandleScope scope;
+NAN_METHOD(openvg::PaintPattern) {
+  NanScope();
 
   CheckArgs2(paintPattern, VGPaint, Uint32, VGImage, Uint32);
 
   vgPaintPattern((VGPaint) args[0]->Uint32Value(),
                  (VGImage) args[1]->Uint32Value());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
 
 /* Images */
 
 
-V8_METHOD(openvg::CreateImage) {
-  HandleScope scope;
+NAN_METHOD(openvg::CreateImage) {
+  NanScope();
 
   CheckArgs4(createImage,
              VGImageFormat, Uint32, width, Int32, height, Int32,
              allowedQuality, Uint32);
 
-  V8_RETURN(Uint32::New(vgCreateImage(static_cast<VGImageFormat>(args[0]->Uint32Value()),
-                                      (VGint) args[1]->Int32Value(),
-                                      (VGint) args[2]->Int32Value(),
-                                      (VGuint) args[3]->Uint32Value())));
+  NanReturnValue(NanNew<Uint32>(vgCreateImage(static_cast<VGImageFormat>(args[0]->Uint32Value()),
+                                              (VGint) args[1]->Int32Value(),
+                                              (VGint) args[2]->Int32Value(),
+                                              (VGuint) args[3]->Uint32Value())));
 }
 
-V8_METHOD(openvg::DestroyImage) {
-  HandleScope scope;
+NAN_METHOD(openvg::DestroyImage) {
+  NanScope();
 
   CheckArgs1(destroyImage, VGImage, Number);
 
   vgDestroyImage((VGImage) (VGPaint) args[0]->Uint32Value());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::ClearImage) {
-  HandleScope scope;
+NAN_METHOD(openvg::ClearImage) {
+  NanScope();
 
   CheckArgs5(clearImage,
              VGImage, Number, x, Int32, y, Int32, width, Int32, height, Int32);
@@ -1192,11 +1186,11 @@ V8_METHOD(openvg::ClearImage) {
                (VGint) args[3]->Int32Value(),
                (VGint) args[4]->Int32Value());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::ImageSubData) {
-  HandleScope scope;
+NAN_METHOD(openvg::ImageSubData) {
+  NanScope();
 
   CheckArgs8(imageSubData,
              VGImage, Number, data, Object, dataStride, Int32,
@@ -1206,7 +1200,7 @@ V8_METHOD(openvg::ImageSubData) {
   Local<Object> data = args[1]->ToObject();
   void *dataPointer;
 
-  Local<Value> nativeBuffer = data->Get(String::New("buffer"));
+  Local<Value> nativeBuffer = data->Get(NanNew<String>("buffer"));
   if (!nativeBuffer->IsUndefined()) {
     // Native array
     Handle<Object> dataBuffer = nativeBuffer->ToObject();
@@ -1225,11 +1219,11 @@ V8_METHOD(openvg::ImageSubData) {
                  (VGint) args[6]->Int32Value(),
                  (VGint) args[7]->Int32Value());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::GetImageSubData) {
-  HandleScope scope;
+NAN_METHOD(openvg::GetImageSubData) {
+  NanScope();
 
   CheckArgs8(getImageSubData,
              VGImage, Number, data, Object, dataStride, Int32,
@@ -1247,32 +1241,32 @@ V8_METHOD(openvg::GetImageSubData) {
                     (VGint) args[6]->Int32Value(),
                     (VGint) args[7]->Int32Value());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::ChildImage) {
-  HandleScope scope;
+NAN_METHOD(openvg::ChildImage) {
+  NanScope();
 
   CheckArgs5(childImage,
              VGImage, Number, x, Int32, y, Int32, width, Int32, height, Int32);
 
-  V8_RETURN(Uint32::New(vgChildImage((VGImage) args[0]->Uint32Value(),
+  NanReturnValue(NanNew<Uint32>(vgChildImage((VGImage) args[0]->Uint32Value(),
                                      (VGint) args[1]->Int32Value(),
                                      (VGint) args[2]->Int32Value(),
                                      (VGint) args[3]->Int32Value(),
                                      (VGint) args[4]->Int32Value())));
 }
 
-V8_METHOD(openvg::GetParent) {
-  HandleScope scope;
+NAN_METHOD(openvg::GetParent) {
+  NanScope();
 
   CheckArgs1(getParent, VGImage, Number);
 
-  V8_RETURN(Uint32::New(vgGetParent((VGImage) args[0]->Uint32Value())));
+  NanReturnValue(NanNew<Uint32>(vgGetParent((VGImage) args[0]->Uint32Value())));
 }
 
-V8_METHOD(openvg::CopyImage) {
-  HandleScope scope;
+NAN_METHOD(openvg::CopyImage) {
+  NanScope();
 
   CheckArgs9(copyImage,
              dstImage, Number, dx, Int32, dy, Int32,
@@ -1289,21 +1283,21 @@ V8_METHOD(openvg::CopyImage) {
               (VGint) args[7]->Int32Value(),
               (VGboolean) args[8]->BooleanValue());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::DrawImage) {
-  HandleScope scope;
+NAN_METHOD(openvg::DrawImage) {
+  NanScope();
 
   CheckArgs1(drawImage, VGImage, Number);
 
   vgDrawImage((VGImage) args[0]->Uint32Value());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::SetPixels) {
-  HandleScope scope;
+NAN_METHOD(openvg::SetPixels) {
+  NanScope();
 
   CheckArgs7(setPixels,
              dx, Int32, dy, Int32,
@@ -1318,11 +1312,11 @@ V8_METHOD(openvg::SetPixels) {
               (VGint) args[5]->Int32Value(),
               (VGint) args[6]->Int32Value());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::WritePixels) {
-  HandleScope scope;
+NAN_METHOD(openvg::WritePixels) {
+  NanScope();
 
   CheckArgs7(writePixels, data, Object, dataStride, Int32,
              dataFormat, Uint32,
@@ -1338,11 +1332,11 @@ V8_METHOD(openvg::WritePixels) {
                 (VGint) args[5]->Int32Value(),
                 (VGint) args[6]->Int32Value());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::GetPixels) {
-  HandleScope scope;
+NAN_METHOD(openvg::GetPixels) {
+  NanScope();
 
   CheckArgs7(getPixels,
              VGImage, Number,
@@ -1358,11 +1352,11 @@ V8_METHOD(openvg::GetPixels) {
               (VGint) args[5]->Int32Value(),
               (VGint) args[6]->Int32Value());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::ReadPixels) {
-  HandleScope scope;
+NAN_METHOD(openvg::ReadPixels) {
+  NanScope();
 
   CheckArgs7(readPixels,
              data, Object, dataStride, Int32, dataFormat, Uint32,
@@ -1378,11 +1372,11 @@ V8_METHOD(openvg::ReadPixels) {
                (VGint) args[5]->Int32Value(),
                (VGint) args[6]->Int32Value());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::CopyPixels) {
-  HandleScope scope;
+NAN_METHOD(openvg::CopyPixels) {
+  NanScope();
 
   CheckArgs6(copyPixels,
              dx, Int32, dy, Int32, sx, Int32, sy, Int32,
@@ -1395,33 +1389,33 @@ V8_METHOD(openvg::CopyPixels) {
                (VGint) args[4]->Int32Value(),
                (VGint) args[5]->Int32Value());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
 
 /* Text */
 
 
-V8_METHOD(openvg::CreateFont) {
-  HandleScope scope;
+NAN_METHOD(openvg::CreateFont) {
+  NanScope();
 
   CheckArgs1(createFont, glyphCapacityHint, Int32);
 
-  V8_RETURN(Uint32::New(vgCreateFont((VGint) args[0]->Int32Value())));
+  NanReturnValue(NanNew<Uint32>(vgCreateFont((VGint) args[0]->Int32Value())));
 }
 
-V8_METHOD(openvg::DestroyFont) {
-  HandleScope scope;
+NAN_METHOD(openvg::DestroyFont) {
+  NanScope();
 
   CheckArgs1(destroyFont, VGFont, Number);
 
   vgDestroyFont((VGFont) args[0]->Uint32Value());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::SetGlyphToPath) {
-  HandleScope scope;
+NAN_METHOD(openvg::SetGlyphToPath) {
+  NanScope();
 
   CheckArgs6(setGlyphToPath, VGFont, Number, glyphIndex, Number,
              VGPath, Number, isHinted, Boolean,
@@ -1437,11 +1431,11 @@ V8_METHOD(openvg::SetGlyphToPath) {
                    glyphOrigin.pointer(),
                    escapement.pointer());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::SetGlyphToImage) {
-  HandleScope scope;
+NAN_METHOD(openvg::SetGlyphToImage) {
+  NanScope();
 
   CheckArgs5(setGlyphToImage, VGFont, Number, glyphIndex, Number,
              VGImage, Number,
@@ -1456,22 +1450,22 @@ V8_METHOD(openvg::SetGlyphToImage) {
                     glyphOrigin.pointer(),
                     escapement.pointer());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::ClearGlyph) {
-  HandleScope scope;
+NAN_METHOD(openvg::ClearGlyph) {
+  NanScope();
 
   CheckArgs2(clearGlyph, VGFont, Number, glyphIndex, Uint32);
 
   vgClearGlyph((VGFont) args[0]->Uint32Value(),
                (VGuint) args[1]->Uint32Value());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::DrawGlyph) {
-  HandleScope scope;
+NAN_METHOD(openvg::DrawGlyph) {
+  NanScope();
 
   CheckArgs4(drawGlyph, VGFont, Number, glyphIndex, Uint32,
              paintModes, Uint32, allowAutoHinting, Boolean);
@@ -1481,11 +1475,11 @@ V8_METHOD(openvg::DrawGlyph) {
               (VGbitfield) args[2]->Uint32Value(),
               (VGboolean) args[3]->BooleanValue());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::DrawGlyphs) {
-  HandleScope scope;
+NAN_METHOD(openvg::DrawGlyphs) {
+  NanScope();
 
   CheckArgs7(drawGlyphs, VGFont, Number, glyphCount, Int32,
              glyphIndices, Object, adjustments_x, Object, adjustments_y, Object,
@@ -1503,15 +1497,15 @@ V8_METHOD(openvg::DrawGlyphs) {
                (VGbitfield) args[5]->Uint32Value(),
                (VGboolean) args[6]->BooleanValue());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
 
 /* Image Filters */
 
 
-V8_METHOD(openvg::ColorMatrix) {
-  HandleScope scope;
+NAN_METHOD(openvg::ColorMatrix) {
+  NanScope();
 
   CheckArgs3(colorMatrix,
              dstVGImage, Number, srcVGImage, Number, matrix, Object);
@@ -1522,11 +1516,11 @@ V8_METHOD(openvg::ColorMatrix) {
                 (VGImage) args[1]->Uint32Value(),
                 matrix.pointer());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::Convolve) {
-  HandleScope scope;
+NAN_METHOD(openvg::Convolve) {
+  NanScope();
 
   CheckArgs10(convolve, dstVGImage, Number, srcVGImage, Number,
               kernelWidth, Int32, kernelHeight, Int32,
@@ -1547,11 +1541,11 @@ V8_METHOD(openvg::Convolve) {
              (VGfloat) args[8]->NumberValue(),
              static_cast<VGTilingMode>(args[9]->Uint32Value()));
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::SeparableConvolve) {
-  HandleScope scope;
+NAN_METHOD(openvg::SeparableConvolve) {
+  NanScope();
 
   CheckArgs11(separableConvolve, dstVGImage, Number, srcVGImage, Number,
               kernelWidth, Int32, kernelHeight, Int32,
@@ -1575,11 +1569,11 @@ V8_METHOD(openvg::SeparableConvolve) {
                       (VGfloat) args[9]->NumberValue(),
                       static_cast<VGTilingMode>(args[10]->Uint32Value()));
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::GaussianBlur) {
-  HandleScope scope;
+NAN_METHOD(openvg::GaussianBlur) {
+  NanScope();
 
   CheckArgs5(gaussianBlur, dstVGImage, Number, srcVGImage, Number,
              stdDeviationX, Number, stdDeviationY, Number,
@@ -1591,11 +1585,11 @@ V8_METHOD(openvg::GaussianBlur) {
                  (VGfloat) args[3]->NumberValue(),
                  static_cast<VGTilingMode>(args[4]->Uint32Value()));
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::Lookup) {
-  HandleScope scope;
+NAN_METHOD(openvg::Lookup) {
+  NanScope();
 
   CheckArgs9(lookup, VGImage, Number, dstVGImage, Number, srcVGImage, Number,
              redLUT, Object, greenLUT, Object, blueLUT, Object,
@@ -1616,11 +1610,11 @@ V8_METHOD(openvg::Lookup) {
            (VGboolean) args[6]->BooleanValue(),
            (VGboolean) args[7]->BooleanValue());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::LookupSingle) {
-  HandleScope scope;
+NAN_METHOD(openvg::LookupSingle) {
+  NanScope();
 
   CheckArgs6(lookupSingle, dstVGImage, Number, srcVGImage, Number,
              lookupTable, Object, sourceChannel, Uint32,
@@ -1635,51 +1629,51 @@ V8_METHOD(openvg::LookupSingle) {
                  (VGboolean) args[4]->BooleanValue(),
                  (VGboolean) args[5]->BooleanValue());
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
 
 /* Hardware Queries */
-V8_METHOD(openvg::HardwareQuery) {
-  HandleScope scope;
+NAN_METHOD(openvg::HardwareQuery) {
+  NanScope();
 
   CheckArgs2(hardwareQuery, key, Uint32, setting, Int32);
 
-  V8_RETURN(Uint32::New(vgHardwareQuery(static_cast<VGHardwareQueryType>(args[0]->Uint32Value()),
-                                        (VGint) args[1]->Int32Value())));
+  NanReturnValue(NanNew<Uint32>(vgHardwareQuery(static_cast<VGHardwareQueryType>(args[0]->Uint32Value()),
+                                                (VGint) args[1]->Int32Value())));
 }
 
 
 /* Renderer and Extension Information */
 VG_API_CALL const VGubyte * VG_API_ENTRY vgGetString(VGStringID name) VG_API_EXIT;
 
-V8_METHOD(openvg::GetString) {
-  HandleScope scope;
+NAN_METHOD(openvg::GetString) {
+  NanScope();
 
   CheckArgs1(getString, key, Uint32);
 
-  V8_RETURN(String::New((char*) vgGetString(static_cast<VGStringID>(args[0]->Uint32Value()))));
+  NanReturnValue(NanNew<String>((char*) vgGetString(static_cast<VGStringID>(args[0]->Uint32Value()))));
 }
 
 
 /* Utilities */
 
 
-V8_METHOD(openvg::vgu::Line) {
-  HandleScope scope;
+NAN_METHOD(openvg::vgu::Line) {
+  NanScope();
 
   CheckArgs5(line,
              VGPath, Number, x0, Number, y0, Number, x1, Number, y1, Number);
 
-  V8_RETURN(Uint32::New(vguLine((VGPath) args[0]->Uint32Value(),
-                                (VGfloat) args[1]->NumberValue(),
-                                (VGfloat) args[2]->NumberValue(),
-                                (VGfloat) args[3]->NumberValue(),
-                                (VGfloat) args[4]->NumberValue())));
+  NanReturnValue(NanNew<Uint32>(vguLine((VGPath) args[0]->Uint32Value(),
+                                        (VGfloat) args[1]->NumberValue(),
+                                        (VGfloat) args[2]->NumberValue(),
+                                        (VGfloat) args[3]->NumberValue(),
+                                        (VGfloat) args[4]->NumberValue())));
 }
 
-V8_METHOD(openvg::vgu::Polygon) {
-  HandleScope scope;
+NAN_METHOD(openvg::vgu::Polygon) {
+  NanScope();
 
   CheckArgs4(polygon,
              VGPath, Number, Float32Array, Object, count, Int32,
@@ -1687,74 +1681,74 @@ V8_METHOD(openvg::vgu::Polygon) {
 
   TypedArrayWrapper<VGfloat> points(args[1]);
 
-  V8_RETURN(Uint32::New(vguPolygon((VGPath) args[0]->Uint32Value(),
-                                   points.pointer(),
-                                   (VGint) args[2]->Int32Value(),
-                                   (VGboolean) args[3]->BooleanValue())));
+  NanReturnValue(NanNew<Uint32>(vguPolygon((VGPath) args[0]->Uint32Value(),
+                                           points.pointer(),
+                                           (VGint) args[2]->Int32Value(),
+                                           (VGboolean) args[3]->BooleanValue())));
 }
 
-V8_METHOD(openvg::vgu::Rect) {
-  HandleScope scope;
+NAN_METHOD(openvg::vgu::Rect) {
+  NanScope();
 
   CheckArgs5(rect, VGPath, Number, x, Number, y, Number,
              width, Number, height, Number);
 
-  V8_RETURN(Uint32::New(vguRect((VGPath) args[0]->Uint32Value(),
-                                (VGfloat) args[1]->NumberValue(),
-                                (VGfloat) args[2]->NumberValue(),
-                                (VGfloat) args[3]->NumberValue(),
-                                (VGfloat) args[4]->NumberValue())));
+  NanReturnValue(NanNew<Uint32>(vguRect((VGPath) args[0]->Uint32Value(),
+                                        (VGfloat) args[1]->NumberValue(),
+                                        (VGfloat) args[2]->NumberValue(),
+                                        (VGfloat) args[3]->NumberValue(),
+                                        (VGfloat) args[4]->NumberValue())));
 }
 
-V8_METHOD(openvg::vgu::RoundRect) {
-  HandleScope scope;
+NAN_METHOD(openvg::vgu::RoundRect) {
+  NanScope();
 
   CheckArgs7(rect, VGPath,
              Number, x, Number, y, Number, width, Number, height,
              Number, arcWidth, Number, arcHeight, Number);
 
-  V8_RETURN(Uint32::New(vguRoundRect((VGPath) args[0]->Uint32Value(),
-                                     (VGfloat) args[1]->NumberValue(),
-                                     (VGfloat) args[2]->NumberValue(),
-                                     (VGfloat) args[3]->NumberValue(),
-                                     (VGfloat) args[4]->NumberValue(),
-                                     (VGfloat) args[5]->NumberValue(),
-                                     (VGfloat) args[6]->NumberValue())));
+  NanReturnValue(NanNew<Uint32>(vguRoundRect((VGPath) args[0]->Uint32Value(),
+                                             (VGfloat) args[1]->NumberValue(),
+                                             (VGfloat) args[2]->NumberValue(),
+                                             (VGfloat) args[3]->NumberValue(),
+                                             (VGfloat) args[4]->NumberValue(),
+                                             (VGfloat) args[5]->NumberValue(),
+                                             (VGfloat) args[6]->NumberValue())));
 }
 
-V8_METHOD(openvg::vgu::Ellipse) {
-  HandleScope scope;
+NAN_METHOD(openvg::vgu::Ellipse) {
+  NanScope();
 
   CheckArgs5(ellipse, VGPath, Number, x, Number, y, Number,
              width, Number, height, Number);
 
-  V8_RETURN(Uint32::New(vguEllipse((VGPath) args[0]->Uint32Value(),
-                                   (VGfloat) args[1]->NumberValue(),
-                                   (VGfloat) args[2]->NumberValue(),
-                                   (VGfloat) args[3]->NumberValue(),
-                                   (VGfloat) args[4]->NumberValue())));
+  NanReturnValue(NanNew<Uint32>(vguEllipse((VGPath) args[0]->Uint32Value(),
+                                           (VGfloat) args[1]->NumberValue(),
+                                           (VGfloat) args[2]->NumberValue(),
+                                           (VGfloat) args[3]->NumberValue(),
+                                           (VGfloat) args[4]->NumberValue())));
 }
 
-V8_METHOD(openvg::vgu::Arc) {
-  HandleScope scope;
+NAN_METHOD(openvg::vgu::Arc) {
+  NanScope();
 
   CheckArgs8(arc,
              VGPath, Number, x, Number, y, Number,
              width, Number, height, Number,
              startAngle, Number, angleExtent, Number, VGUArcType, Uint32);
 
-  V8_RETURN(Uint32::New(vguArc((VGPath) args[0]->Uint32Value(),
-                               (VGfloat) args[1]->NumberValue(),
-                               (VGfloat) args[2]->NumberValue(),
-                               (VGfloat) args[3]->NumberValue(),
-                               (VGfloat) args[4]->NumberValue(),
-                               (VGfloat) args[5]->NumberValue(),
-                               (VGfloat) args[6]->NumberValue(),
-                               static_cast<VGUArcType>(args[7]->Uint32Value()))));
+  NanReturnValue(NanNew<Uint32>(vguArc((VGPath) args[0]->Uint32Value(),
+                                       (VGfloat) args[1]->NumberValue(),
+                                       (VGfloat) args[2]->NumberValue(),
+                                       (VGfloat) args[3]->NumberValue(),
+                                       (VGfloat) args[4]->NumberValue(),
+                                       (VGfloat) args[5]->NumberValue(),
+                                       (VGfloat) args[6]->NumberValue(),
+                                       static_cast<VGUArcType>(args[7]->Uint32Value()))));
 }
 
-V8_METHOD(openvg::vgu::ComputeWarpQuadToSquare) {
-  HandleScope scope;
+NAN_METHOD(openvg::vgu::ComputeWarpQuadToSquare) {
+  NanScope();
 
   CheckArgs9(computeWarpQuadToSquare,
              sx0, Number, sy0, Number, sx1, Number, sy1, Number,
@@ -1763,19 +1757,19 @@ V8_METHOD(openvg::vgu::ComputeWarpQuadToSquare) {
 
   TypedArrayWrapper<VGfloat> matrix(args[8]);
 
-  V8_RETURN(Uint32::New(vguComputeWarpQuadToSquare((VGfloat) args[0]->NumberValue(),
-                                                   (VGfloat) args[1]->NumberValue(),
-                                                   (VGfloat) args[2]->NumberValue(),
-                                                   (VGfloat) args[3]->NumberValue(),
-                                                   (VGfloat) args[4]->NumberValue(),
-                                                   (VGfloat) args[5]->NumberValue(),
-                                                   (VGfloat) args[6]->NumberValue(),
-                                                   (VGfloat) args[7]->NumberValue(),
-                                                   matrix.pointer())));
+  NanReturnValue(NanNew<Uint32>(vguComputeWarpQuadToSquare((VGfloat) args[0]->NumberValue(),
+                                                           (VGfloat) args[1]->NumberValue(),
+                                                           (VGfloat) args[2]->NumberValue(),
+                                                           (VGfloat) args[3]->NumberValue(),
+                                                           (VGfloat) args[4]->NumberValue(),
+                                                           (VGfloat) args[5]->NumberValue(),
+                                                           (VGfloat) args[6]->NumberValue(),
+                                                           (VGfloat) args[7]->NumberValue(),
+                                                           matrix.pointer())));
 }
 
-V8_METHOD(openvg::vgu::ComputeWarpSquareToQuad) {
-  HandleScope scope;
+NAN_METHOD(openvg::vgu::ComputeWarpSquareToQuad) {
+  NanScope();
 
   CheckArgs9(computeWarpSquareToQuad,
              sx0, Number, sy0, Number, sx1, Number, sy1, Number,
@@ -1784,62 +1778,62 @@ V8_METHOD(openvg::vgu::ComputeWarpSquareToQuad) {
 
   TypedArrayWrapper<VGfloat> matrix(args[8]);
 
-  V8_RETURN(Uint32::New(vguComputeWarpSquareToQuad((VGfloat) args[0]->NumberValue(),
-                                                   (VGfloat) args[1]->NumberValue(),
-                                                   (VGfloat) args[2]->NumberValue(),
-                                                   (VGfloat) args[3]->NumberValue(),
-                                                   (VGfloat) args[4]->NumberValue(),
-                                                   (VGfloat) args[5]->NumberValue(),
-                                                   (VGfloat) args[6]->NumberValue(),
-                                                   (VGfloat) args[7]->NumberValue(),
-                                                   matrix.pointer())));
+  NanReturnValue(NanNew<Uint32>(vguComputeWarpSquareToQuad((VGfloat) args[0]->NumberValue(),
+                                                           (VGfloat) args[1]->NumberValue(),
+                                                           (VGfloat) args[2]->NumberValue(),
+                                                           (VGfloat) args[3]->NumberValue(),
+                                                           (VGfloat) args[4]->NumberValue(),
+                                                           (VGfloat) args[5]->NumberValue(),
+                                                           (VGfloat) args[6]->NumberValue(),
+                                                           (VGfloat) args[7]->NumberValue(),
+                                                           matrix.pointer())));
 }
 
-V8_METHOD(openvg::vgu::ComputeWarpQuadToQuad) {
-  HandleScope scope;
+NAN_METHOD(openvg::vgu::ComputeWarpQuadToQuad) {
+  NanScope();
 
   // No arg check -> Would be a 17 arg macro
 
   TypedArrayWrapper<VGfloat> matrix(args[16]);
 
-  V8_RETURN(Uint32::New(vguComputeWarpQuadToQuad((VGfloat) args[ 0]->NumberValue(),
-                                                 (VGfloat) args[ 1]->NumberValue(),
-                                                 (VGfloat) args[ 2]->NumberValue(),
-                                                 (VGfloat) args[ 3]->NumberValue(),
-                                                 (VGfloat) args[ 4]->NumberValue(),
-                                                 (VGfloat) args[ 5]->NumberValue(),
-                                                 (VGfloat) args[ 6]->NumberValue(),
-                                                 (VGfloat) args[ 7]->NumberValue(),
-                                                 (VGfloat) args[ 8]->NumberValue(),
-                                                 (VGfloat) args[ 9]->NumberValue(),
-                                                 (VGfloat) args[10]->NumberValue(),
-                                                 (VGfloat) args[11]->NumberValue(),
-                                                 (VGfloat) args[12]->NumberValue(),
-                                                 (VGfloat) args[13]->NumberValue(),
-                                                 (VGfloat) args[14]->NumberValue(),
-                                                 (VGfloat) args[15]->NumberValue(),
-                                                 matrix.pointer())));
+  NanReturnValue(NanNew<Uint32>(vguComputeWarpQuadToQuad((VGfloat) args[ 0]->NumberValue(),
+                                                         (VGfloat) args[ 1]->NumberValue(),
+                                                         (VGfloat) args[ 2]->NumberValue(),
+                                                         (VGfloat) args[ 3]->NumberValue(),
+                                                         (VGfloat) args[ 4]->NumberValue(),
+                                                         (VGfloat) args[ 5]->NumberValue(),
+                                                         (VGfloat) args[ 6]->NumberValue(),
+                                                         (VGfloat) args[ 7]->NumberValue(),
+                                                         (VGfloat) args[ 8]->NumberValue(),
+                                                         (VGfloat) args[ 9]->NumberValue(),
+                                                         (VGfloat) args[10]->NumberValue(),
+                                                         (VGfloat) args[11]->NumberValue(),
+                                                         (VGfloat) args[12]->NumberValue(),
+                                                         (VGfloat) args[13]->NumberValue(),
+                                                         (VGfloat) args[14]->NumberValue(),
+                                                         (VGfloat) args[15]->NumberValue(),
+                                                         matrix.pointer())));
 }
 
 
 /* KHR extensions */
 
 
-V8_METHOD(openvg::ext::CreateEGLImageTargetKHR) {
-  HandleScope scope;
+NAN_METHOD(openvg::ext::CreateEGLImageTargetKHR) {
+  NanScope();
 
   CheckArgs1(createEGLImageTargetKHR, VGeglImageKHR, Object);
 
 #ifdef VG_VGEXT_PROTOTYPES
   VGeglImageKHR image = node::ObjectWrap::Unwrap<VGeglImageKHR>(args[0]->ToObject());
-  V8_RETURN(Uint32::New(vgCreateEGLImageTargetKHR(image)));
+  NanReturnValue(NanNew<Uint32>(vgCreateEGLImageTargetKHR(image)));
 #else
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 #endif
 }
 
-V8_METHOD(openvg::ext::IterativeAverageBlurKHR) {
-  HandleScope scope;
+NAN_METHOD(openvg::ext::IterativeAverageBlurKHR) {
+  NanScope();
 
   CheckArgs6(iterativeAverageBlurKHR,
              dstVGImage, Number, srcVGImage, Number,
@@ -1854,11 +1848,11 @@ V8_METHOD(openvg::ext::IterativeAverageBlurKHR) {
                             (VGImage) args[4]->Uint32Value(),
                             static_cast<VGTilingMode>((VGImage) args[5]->Uint32Value()));
 #endif
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::ext::ParametricFilterKHR) {
-  HandleScope scope;
+NAN_METHOD(openvg::ext::ParametricFilterKHR) {
+  NanScope();
 
   CheckArgs9(iterativeAverageBlurKHR,
              dstVGImage, Number, srcVGImage, Number, blurVGImage, Number,
@@ -1877,11 +1871,11 @@ V8_METHOD(openvg::ext::ParametricFilterKHR) {
                         (VGPaint) args[8]->Uint32Value());
 #endif
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::ext::DropShadowKHR) {
-  HandleScope scope;
+NAN_METHOD(openvg::ext::DropShadowKHR) {
+  NanScope();
 
   CheckArgs11(dropShadowKHR,
               dstVGImage, Number, srcVGImage, Number,
@@ -1891,24 +1885,24 @@ V8_METHOD(openvg::ext::DropShadowKHR) {
               shadowColorRGBA, Number);
 
 #ifdef VG_VGEXT_PROTOTYPES
-  V8_RETURN(Uint32::New(vguDropShadowKHR((VGImage) args[0]->Uint32Value(),
-                                         (VGImage) args[1]->Uint32Value(),
-                                         (VGfloat) args[2]->NumberValue(),
-                                         (VGfloat) args[3]->NumberValue(),
-                                         (VGuint) args[4]->Uint32Value(),
-                                         (VGfloat) args[5]->NumberValue(),
-                                         (VGfloat) args[6]->NumberValue(),
-                                         (VGfloat) args[7]->NumberValue(),
-                                         (VGbitfield) args[8]->Uint32Value(),
-                                         (VGbitfield) args[9]->Uint32Value(),
-                                         (VGuint) args[10]->Uint32Value())));
+  NanReturnValue(NanNew<Uint32>(vguDropShadowKHR((VGImage) args[0]->Uint32Value(),
+                                                 (VGImage) args[1]->Uint32Value(),
+                                                 (VGfloat) args[2]->NumberValue(),
+                                                 (VGfloat) args[3]->NumberValue(),
+                                                 (VGuint) args[4]->Uint32Value(),
+                                                 (VGfloat) args[5]->NumberValue(),
+                                                 (VGfloat) args[6]->NumberValue(),
+                                                 (VGfloat) args[7]->NumberValue(),
+                                                 (VGbitfield) args[8]->Uint32Value(),
+                                                 (VGbitfield) args[9]->Uint32Value(),
+                                                 (VGuint) args[10]->Uint32Value())));
 #else
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 #endif
 }
 
-V8_METHOD(openvg::ext::GlowKHR) {
-  HandleScope scope;
+NAN_METHOD(openvg::ext::GlowKHR) {
+  NanScope();
 
   CheckArgs9(glowKHR,
              dstVGImage, Number, srcVGImage, Number,
@@ -1918,22 +1912,22 @@ V8_METHOD(openvg::ext::GlowKHR) {
              glowColorRGBA, Number);
 
 #ifdef VG_VGEXT_PROTOTYPES
-  V8_RETURN(Uint32::New(vguGlowKHR((VGImage) args[0]->Uint32Value(),
-                                   (VGImage) args[1]->Uint32Value(),
-                                   (VGfloat) args[2]->NumberValue(),
-                                   (VGfloat) args[3]->NumberValue(),
-                                   (VGuint) args[4]->Uint32Value(),
-                                   (VGfloat) args[5]->NumberValue(),
-                                   (VGbitfield) args[6]->Uint32Value(),
-                                   (VGbitfield) args[7]->Uint32Value(),
-                                   (VGuint) args[8]->Uint32Value())));
+  NanReturnValue(NanNew<Uint32>(vguGlowKHR((VGImage) args[0]->Uint32Value(),
+                                           (VGImage) args[1]->Uint32Value(),
+                                           (VGfloat) args[2]->NumberValue(),
+                                           (VGfloat) args[3]->NumberValue(),
+                                           (VGuint) args[4]->Uint32Value(),
+                                           (VGfloat) args[5]->NumberValue(),
+                                           (VGbitfield) args[6]->Uint32Value(),
+                                           (VGbitfield) args[7]->Uint32Value(),
+                                           (VGuint) args[8]->Uint32Value())));
 #else
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 #endif
 }
 
-V8_METHOD(openvg::ext::BevelKHR) {
-  HandleScope scope;
+NAN_METHOD(openvg::ext::BevelKHR) {
+  NanScope();
 
   CheckArgs12(bevelKHR,
               dstVGImage, Number, srcVGImage, Number,
@@ -1943,25 +1937,25 @@ V8_METHOD(openvg::ext::BevelKHR) {
               highlightColorRGBA, Number, shadowColorRGBA, Number);
 
 #ifdef VG_VGEXT_PROTOTYPES
-  V8_RETURN(Uint32::New(vguBevelKHR((VGImage) args[0]->Uint32Value(),
-                                    (VGImage) args[1]->Uint32Value(),
-                                    (VGfloat) args[2]->NumberValue(),
-                                    (VGfloat) args[3]->NumberValue(),
-                                    (VGuint) args[4]->Uint32Value(),
-                                    (VGfloat) args[5]->NumberValue(),
-                                    (VGfloat) args[6]->NumberValue(),
-                                    (VGfloat) args[7]->NumberValue(),
-                                    (VGbitfield) args[8]->Uint32Value(),
-                                    (VGbitfield) args[9]->Uint32Value(),
-                                    (VGuint) args[10]->Uint32Value(),
-                                    (VGuint) args[11]->Uint32Value())));
+  NanReturnValue(NanNew<Uint32>(vguBevelKHR((VGImage) args[0]->Uint32Value(),
+                                            (VGImage) args[1]->Uint32Value(),
+                                            (VGfloat) args[2]->NumberValue(),
+                                            (VGfloat) args[3]->NumberValue(),
+                                            (VGuint) args[4]->Uint32Value(),
+                                            (VGfloat) args[5]->NumberValue(),
+                                            (VGfloat) args[6]->NumberValue(),
+                                            (VGfloat) args[7]->NumberValue(),
+                                            (VGbitfield) args[8]->Uint32Value(),
+                                            (VGbitfield) args[9]->Uint32Value(),
+                                            (VGuint) args[10]->Uint32Value(),
+                                            (VGuint) args[11]->Uint32Value())));
 #else
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 #endif
 }
 
-V8_METHOD(openvg::ext::GradientGlowKHR) {
-  HandleScope scope;
+NAN_METHOD(openvg::ext::GradientGlowKHR) {
+  NanScope();
 
   CheckArgs12(gradientGlowKHR,
               dstVGImage, Number, srcVGImage, Number,
@@ -1973,25 +1967,25 @@ V8_METHOD(openvg::ext::GradientGlowKHR) {
 #ifdef VG_VGEXT_PROTOTYPES
   TypedArrayWrapper<VGfloat> glowColorRampStops(args[11]);
 
-  V8_RETURN(Uint32::New(vguGradientGlowKHR((VGImage) args[0]->Uint32Value(),
-                                           (VGImage) args[1]->Uint32Value(),
-                                           (VGfloat) args[2]->NumberValue(),
-                                           (VGfloat) args[3]->NumberValue(),
-                                           (VGuint) args[4]->Uint32Value(),
-                                           (VGfloat) args[5]->NumberValue(),
-                                           (VGfloat) args[6]->NumberValue(),
-                                           (VGfloat) args[7]->NumberValue(),
-                                           (VGbitfield) args[8]->Uint32Value(),
-                                           (VGbitfield) args[9]->Uint32Value(),
-                                           (VGuint) args[10]->Uint32Value(),
-                                           glowColorRampStops.pointer())));
+  NanReturnValue(NanNew<Uint32>(vguGradientGlowKHR((VGImage) args[0]->Uint32Value(),
+                                                   (VGImage) args[1]->Uint32Value(),
+                                                   (VGfloat) args[2]->NumberValue(),
+                                                   (VGfloat) args[3]->NumberValue(),
+                                                   (VGuint) args[4]->Uint32Value(),
+                                                   (VGfloat) args[5]->NumberValue(),
+                                                   (VGfloat) args[6]->NumberValue(),
+                                                   (VGfloat) args[7]->NumberValue(),
+                                                   (VGbitfield) args[8]->Uint32Value(),
+                                                   (VGbitfield) args[9]->Uint32Value(),
+                                                   (VGuint) args[10]->Uint32Value(),
+                                                   glowColorRampStops.pointer())));
 #else
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 #endif
 }
 
-V8_METHOD(openvg::ext::GradientBevelKHR) {
-  HandleScope scope;
+NAN_METHOD(openvg::ext::GradientBevelKHR) {
+  NanScope();
 
   CheckArgs12(gradientBevelKHR,
               dstVGImage, Number, srcVGImage, Number,
@@ -2003,25 +1997,25 @@ V8_METHOD(openvg::ext::GradientBevelKHR) {
 #ifdef VG_VGEXT_PROTOTYPES
   TypedArrayWrapper<VGfloat> bevelColorRampStops(args[11]);
 
-  V8_RETURN(Uint32::New(vguGradientBevelKHR((VGImage) args[0]->Uint32Value(),
-                                            (VGImage) args[1]->Uint32Value(),
-                                            (VGfloat) args[2]->NumberValue(),
-                                            (VGfloat) args[3]->NumberValue(),
-                                            (VGuint) args[4]->Uint32Value(),
-                                            (VGfloat) args[5]->NumberValue(),
-                                            (VGfloat) args[6]->NumberValue(),
-                                            (VGfloat) args[7]->NumberValue(),
-                                            (VGbitfield) args[8]->Uint32Value(),
-                                            (VGbitfield) args[9]->Uint32Value(),
-                                            (VGuint) args[10]->Uint32Value(),
-                                            bevelColorRampStops.pointer())));
+  NanReturnValue(NanNew<Uint32>(vguGradientBevelKHR((VGImage) args[0]->Uint32Value(),
+                                                    (VGImage) args[1]->Uint32Value(),
+                                                    (VGfloat) args[2]->NumberValue(),
+                                                    (VGfloat) args[3]->NumberValue(),
+                                                    (VGuint) args[4]->Uint32Value(),
+                                                    (VGfloat) args[5]->NumberValue(),
+                                                    (VGfloat) args[6]->NumberValue(),
+                                                    (VGfloat) args[7]->NumberValue(),
+                                                    (VGbitfield) args[8]->Uint32Value(),
+                                                    (VGbitfield) args[9]->Uint32Value(),
+                                                    (VGuint) args[10]->Uint32Value(),
+                                                    bevelColorRampStops.pointer())));
 #else
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 #endif
 }
 
-V8_METHOD(openvg::ext::ProjectiveMatrixNDS) {
-  HandleScope scope;
+NAN_METHOD(openvg::ext::ProjectiveMatrixNDS) {
+  NanScope();
 
   CheckArgs1(projectiveMatrixNDS, enable, Boolean);
 
@@ -2029,11 +2023,11 @@ V8_METHOD(openvg::ext::ProjectiveMatrixNDS) {
   vgProjectiveMatrixNDS((VGboolean) args[0]->BooleanValue());
 #endif
 
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 }
 
-V8_METHOD(openvg::ext::TransformClipLineNDS) {
-  HandleScope scope;
+NAN_METHOD(openvg::ext::TransformClipLineNDS) {
+  NanScope();
 
   CheckArgs8(gradientBevelKHR,
              Ain, Number, Bin, Number, Cin, Number,
@@ -2046,15 +2040,15 @@ V8_METHOD(openvg::ext::TransformClipLineNDS) {
   TypedArrayWrapper<VGfloat> Bout(args[6]);
   TypedArrayWrapper<VGfloat> Cout(args[7]);
 
-  V8_RETURN(Uint32::New(vguTransformClipLineNDS((VGfloat) args[0]->NumberValue(),
-                                                (VGfloat) args[1]->NumberValue(),
-                                                (VGfloat) args[2]->NumberValue(),
-                                                matrix.pointer(),
-                                                (VGboolean) args[4]->BooleanValue(),
-                                                Aout.pointer(),
-                                                Bout.pointer(),
-                                                Cout.pointer())));
+  NanReturnValue(NanNew<Uint32>(vguTransformClipLineNDS((VGfloat) args[0]->NumberValue(),
+                                                        (VGfloat) args[1]->NumberValue(),
+                                                        (VGfloat) args[2]->NumberValue(),
+                                                        matrix.pointer(),
+                                                        (VGboolean) args[4]->BooleanValue(),
+                                                        Aout.pointer(),
+                                                        Bout.pointer(),
+                                                        Cout.pointer())));
 #else
-  V8_RETURN(Undefined());
+  NanReturnUndefined();
 #endif
 }

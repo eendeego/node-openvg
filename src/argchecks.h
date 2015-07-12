@@ -1,10 +1,12 @@
 #ifndef ARG_CHECKS_H_
 #define ARG_CHECKS_H_
 
+#include "nan.h"
+
 #if defined(ARG_CHECKS)
 
 #define BASE_MESSAGE "Invalid arguments: Expected "
-#define THROW(fn, args) return ThrowException(Exception::TypeError(String::New(BASE_MESSAGE #fn "(" args ")")))
+#define THROW(fn, args) NanThrowTypeError(BASE_MESSAGE #fn "(" args ")")
 
 #define CheckArgs0(fn) \
 do {\

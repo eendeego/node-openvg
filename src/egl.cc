@@ -1,3 +1,5 @@
+#include "nan.h"
+
 #include "EGL/egl.h"
 #include "GLES/gl.h"
 
@@ -141,17 +143,17 @@ extern void egl::Finish() {
 }
 
 
-V8_METHOD(egl::GetError) {
-  HandleScope scope;
+NAN_METHOD(egl::GetError) {
+  NanScope();
 
   CheckArgs0(getError);
 
-  V8_RETURN(scope.Close(Integer::New(eglGetError())));
+  NanReturnValue(NanNew<Integer>(eglGetError()));
 }
 
 
-V8_METHOD(egl::SwapBuffers) {
-  HandleScope scope;
+NAN_METHOD(egl::SwapBuffers) {
+  NanScope();
 
   CheckArgs1(swapBuffers, surface, External);
 
@@ -159,11 +161,11 @@ V8_METHOD(egl::SwapBuffers) {
 
   EGLBoolean result = eglSwapBuffers(State.display, surface);
 
-  V8_RETURN(scope.Close(Boolean::New(result)));
+  NanReturnValue(NanNew<Boolean>(result));
 }
 
-V8_METHOD(egl::CreatePbufferFromClientBuffer) {
-  HandleScope scope;
+NAN_METHOD(egl::CreatePbufferFromClientBuffer) {
+  NanScope();
 
   // According to the spec (sec. 4.2.2 EGL Functions)
   // The buffer is a VGImage: "The VGImage to be targeted is cast to the
@@ -190,11 +192,11 @@ V8_METHOD(egl::CreatePbufferFromClientBuffer) {
                                      egl::Config,
                                      attribute_list);
 
-  V8_RETURN(scope.Close(External::New(surface)));
+  NanReturnValue(NanNew<External>(surface));
 }
 
-V8_METHOD(egl::DestroySurface) {
-  HandleScope scope;
+NAN_METHOD(egl::DestroySurface) {
+  NanScope();
 
   CheckArgs1(destroySurface, surface, External);
 
@@ -202,11 +204,11 @@ V8_METHOD(egl::DestroySurface) {
 
   EGLBoolean result = eglDestroySurface(State.display, surface);
 
-  V8_RETURN(scope.Close(Boolean::New(result)));
+  NanReturnValue(NanNew<Boolean>(result));
 }
 
-V8_METHOD(egl::MakeCurrent) {
-  HandleScope scope;
+NAN_METHOD(egl::MakeCurrent) {
+  NanScope();
 
   CheckArgs2(makeCurrent, surface, External, context, External);
 
@@ -217,11 +219,11 @@ V8_METHOD(egl::MakeCurrent) {
   // surfaces must be the same
   EGLBoolean result = eglMakeCurrent(State.display, surface, surface, context);
 
-  V8_RETURN(scope.Close(Boolean::New(result)));
+  NanReturnValue(NanNew<Boolean>(result));
 }
 
-V8_METHOD(egl::CreateContext) {
-  HandleScope scope;
+NAN_METHOD(egl::CreateContext) {
+  NanScope();
 
   // No arg checks
 
@@ -234,11 +236,11 @@ V8_METHOD(egl::CreateContext) {
   EGLContext result =
     eglCreateContext(State.display, egl::Config, shareContext, NULL);
 
-  V8_RETURN(scope.Close(External::New(result)));
+  NanReturnValue(NanNew<External>(result));
 }
 
-V8_METHOD(egl::DestroyContext) {
-  HandleScope scope;
+NAN_METHOD(egl::DestroyContext) {
+  NanScope();
 
   CheckArgs1(destroyContext, context, External);
 
@@ -246,5 +248,5 @@ V8_METHOD(egl::DestroyContext) {
 
   EGLBoolean result = eglDestroyContext(State.display, context);
 
-  V8_RETURN(scope.Close(Boolean::New(result)));
+  NanReturnValue(NanNew<Boolean>(result));
 }

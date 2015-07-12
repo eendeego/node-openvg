@@ -1,11 +1,11 @@
 {
   "name": "openvg",
-  "preferGlobal" : "true",
-  "version": "0.4.4",
+  "preferGlobal": "true",
+  "version": "0.4.5",
   "author": "Luis Reis <luis@luismreis.com> (http://luismreis.com/)",
   "description": "OpenVG bindings for node",
   "bin": {
-    "node-openvg" : "./bin/node-openvg"
+    "node-openvg": "./bin/node-openvg"
   },
   "main": "openvg.js",
   "repository": {
@@ -16,10 +16,12 @@
     "raspberry-pi",
     "openvg"
   ],
-  "dependencies": {},
+  "dependencies": {
+    "nan": "^1.8.4"
+  },
   "devDependencies": {},
-  "license" : "MIT",
+  "license": "MIT",
   "engines": {
-    "node": ">=0.8"
+    "node": ">=0.8 <0.11"
   }
 }

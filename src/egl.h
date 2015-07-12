@@ -3,9 +3,9 @@
 
 #include <v8.h>
 #include <node.h>
-#include "EGL/egl.h"
+#include "nan.h"
 
-#include "v8_helpers.h"
+#include "EGL/egl.h"
 
 using namespace v8;
 
@@ -29,14 +29,14 @@ void Init();
 void InitOpenGLES();
 void Finish();
 
-V8_FUNCTION_DECL(GetError);
-V8_FUNCTION_DECL(SwapBuffers);
-V8_FUNCTION_DECL(CreatePbufferFromClientBuffer);
-V8_FUNCTION_DECL(DestroySurface);
+NAN_METHOD(GetError);
+NAN_METHOD(SwapBuffers);
+NAN_METHOD(CreatePbufferFromClientBuffer);
+NAN_METHOD(DestroySurface);
 
-V8_FUNCTION_DECL(CreateContext);
-V8_FUNCTION_DECL(DestroyContext);
-V8_FUNCTION_DECL(MakeCurrent);
+NAN_METHOD(CreateContext);
+NAN_METHOD(DestroyContext);
+NAN_METHOD(MakeCurrent);
 
 }
 
