@@ -1,12 +1,9 @@
 {
   "name": "openvg",
   "preferGlobal": "true",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "author": "Luis Reis <luis@luismreis.com> (http://luismreis.com/)",
   "description": "OpenVG bindings for node",
-  "bin": {
-    "node-openvg": "./bin/node-openvg"
-  },
   "main": "openvg.js",
   "repository": {
     "type": "git",
