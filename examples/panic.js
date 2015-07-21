@@ -1,19 +1,24 @@
 //
-// A fake panic dashboard
+// A fake panic dashboard (WIP)
 // http://www.panic.com/blog/2010/03/the-panic-status-board/
 //
 
-var openVG = require('../openvg');
+var vg = require('../openvg');
 
 var util = require('./modules/util');
 var text = require('./modules/text');
 
+var width, height;
+var sansTypeface;
+
 function terminate() {
+  text.unloadFont(sansTypeface);
   util.finish();
+  vg.finish();
+
   console.log("Making a clean exit.");
 }
 
-var width, height;
 var MAIL_QUEUES_HEIGHT = 0.2;
 
 var dashboardData = {
@@ -51,6 +56,10 @@ var dashboardData = {
   ]
 };
 
+dashboardData.mails.forEach(function (project) {
+  project.color = project.color.map(function (x) { return x / 255.0; });
+});
+
 function paintMailQueues() {
   var mailQueues = dashboardData.mails.length;
   var margin = 20;
@@ -71,10 +80,10 @@ function paintMailQueues() {
   var barWidth = (width - 2 * margin) / mailQueues;
   for(var i=0; i<mailQueues; i++) {
     var offset = margin + (width - 2 * margin) * i / mailQueues;
-    util.fill(dashboardData.mails[i].color[0],
-              dashboardData.mails[i].color[1],
-              dashboardData.mails[i].color[2],
-              1);
+    util.setFillColor(dashboardData.mails[i].color[0],
+                      dashboardData.mails[i].color[1],
+                      dashboardData.mails[i].color[2],
+                      1.0);
 
     var barHeight = (height * MAIL_QUEUES_HEIGHT - countHeight) * dashboardData.mails[i].messages / maxH;
     util.rect(offset + barMargin,
@@ -82,32 +91,26 @@ function paintMailQueues() {
               barWidth - barMargin * 2,
               barHeight);
 
-    util.fill(255, 255, 255, 1.0);
+    util.setFillColor(1.0, 1.0, 1.0, 1.0);
     text.textMiddle(offset + barMargin + (barWidth - barMargin * 2) / 2,
                     baseHeight + barHeight + countMargin,
                     dashboardData.mails[i].messages + " / " + dashboardData.mails[i].days,
-                    util.sansTypeface, countHeight - 2 * countMargin);
+                    sansTypeface, countHeight - 2 * countMargin);
   }
 
-  util.stroke(255, 255, 255, 1.0);
+  util.setStrokeColor(1.0, 1.0, 1.0, 1.0);
   util.strokeWidth(2);
-  util.line(margin, baseHeight,
-            width - margin, baseHeight);
-  util.strokeWidth(0);
-
-  // console.log("line: " +
-  //             width * margin + ", " + baseHeight + ", " +
-  //             width * (1.0-margin) + ", " + baseHeight);
+  util.line(margin, baseHeight, width - margin, baseHeight);
 }
 
 function paintDashboard() {
   variate();
 
-  util.background(0, 0, 0);
+  util.clearBackground();
 
   paintMailQueues();
 
-  util.end();
+  util.swapBuffers();
 }
 
 function requestPaint() {
@@ -129,16 +132,26 @@ function variate() {
   });
 }
 
-util.init();
+function init() {
+  vg.init();
+  util.init();
 
-width  = openVG.screen.width;
-height = openVG.screen.height;
+  width  = vg.screen.width;
+  height = vg.screen.height;
 
-util.start();
+  sansTypeface = text.loadFont("examples/fonts/sans.json");
 
-var animTime = 1000 / 24; // 24 fps
+  vg.setI(vg.VGParamType.VG_STROKE_CAP_STYLE , vg.VGCapStyle.VG_CAP_BUTT);
+  vg.setI(vg.VGParamType.VG_STROKE_JOIN_STYLE, vg.VGJoinStyle.VG_JOIN_MITER);
 
-var paintInterval = setInterval(requestPaint, animTime);
+  vg.setFV(vg.VGParamType.VG_CLEAR_COLOR, new Float32Array([ 0.0, 0.0, 0.0, 0.0 ]));
+}
+
+init();
+
+var maxTime = setInterval(function() {
+  process.exit(0);
+}, 5000);
 
 process.on('exit', terminate);
 
@@ -147,6 +160,11 @@ process.stdin.resume();
 process.stdin.setEncoding('utf8');
 
 process.stdin.once('data', function (chunk) {
+  console.log('Exiting...');
   clearInterval(paintInterval);
+  clearInterval(maxTime);
   process.stdin.pause();
 });
+
+var fps = 60;
+var paintInterval = setInterval(requestPaint, 1000 / fps);

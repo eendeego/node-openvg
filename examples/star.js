@@ -1,106 +1,116 @@
 var vg = require('../openvg');
+
 var util = require('./modules/util');
 
 var width, height;
 
 var starPoints = 5;
 var outerRadius = 1;
-var innerRadius = Math.sin(Math.PI / 2 - 2 * Math.PI / starPoints) /
-                  Math.sin(Math.PI / 2 - 2 * Math.PI / starPoints / 2);
 
-var vgPath;
-var segments = new Uint8Array(4*1024);
-var data     = new Float32Array(4*1024);
-var segmentsPos = 0;
-var dataPos = 0;
+var star;
 
-var moveTo = function (x, y) {
-  segments[segmentsPos++] = vg.VGPathCommand.VG_MOVE_TO_ABS;
-  data[dataPos++] = x;
-  data[dataPos++] = y;
-};
-
-var lineTo = function (x, y) {
-  segments[segmentsPos++] = vg.VGPathCommand.VG_LINE_TO_ABS;
-  data[dataPos++] = x;
-  data[dataPos++] = y;
-};
-
-var close = function () {
-  segments[segmentsPos++] = vg.VGPathSegment.VG_CLOSE_PATH;
-};
+// -----
 
 function init() {
-  util.fill(255, 0, 0, 1);
-  util.stroke(255, 255, 255, 1.0);
+  vg.init();
+
+  width  = vg.screen.width;
+  height = vg.screen.height;
+
+  util.init();
+
+  vg.setFV(vg.VGParamType.VG_CLEAR_COLOR, new Float32Array([ 0.0, 0.0, 0.0, 0.0 ]));
+
+  util.setFillColor  (1.0,   0,   0, 1.0);
+  util.setStrokeColor(1.0, 1.0, 1.0, 1.0);
   util.strokeWidth(2);
 
-  vgPath = vg.createPath(vg.VG_PATH_FORMAT_STANDARD,
-                         vg.VGPathDatatype.VG_PATH_DATATYPE_F,
-                         1.0 /* scale */ , 0.0 /* bias */,
-                         0 /* segCapacityHint */,
-                         0 /* coordCapacityHint */,
-                         vg.VGPathCapabilities.VG_PATH_CAPABILITY_ALL);
+  vg.setI(vg.VGParamType.VG_STROKE_CAP_STYLE , vg.VGCapStyle.VG_CAP_BUTT);
+  vg.setI(vg.VGParamType.VG_STROKE_JOIN_STYLE, vg.VGJoinStyle.VG_JOIN_MITER);
+
+  star = createStar(starPoints, outerRadius * 2 * height / 6);
 }
 
-function paint() {
-  util.strokeWidth(0);
-  util.background(0, 0, 0);
+function createStar(starPoints, outerRadius) {
+  var innerRadius = outerRadius *
+                    (Math.sin(Math.PI / 2 - 2 * Math.PI / starPoints) /
+                     Math.sin(Math.PI / 2 - 2 * Math.PI / starPoints / 2));
 
-  vg.clearPath(vgPath, vg.VGPathCapabilities.VG_PATH_CAPABILITY_ALL);
+  var path = new util.PathBuffer();
 
-  segmentsPos = 0;
-  dataPos = 0;
+  var angle = 0;
+  var rho = Math.PI * 2 / starPoints / 2;
 
-  var baseAngle = Math.PI / 2 + Date.now() / 1000 / 2 / (Math.PI / 2);
-  var angle = 0 * Math.PI * 2 / starPoints / 2 + baseAngle;
-
-  moveTo(width / 2 + outerRadius * Math.cos(angle), height / 2 + outerRadius * Math.sin(angle));
+  path.moveTo(outerRadius * Math.cos(angle), outerRadius * Math.sin(angle));
 
   for(var i = 1; i < starPoints * 2; i++) {
-    var angle = i * Math.PI * 2 / starPoints / 2 + baseAngle;
-    lineTo(width / 2 + innerRadius * Math.cos(angle), height / 2 + innerRadius * Math.sin(angle));
-    i++;
-    angle = i * Math.PI * 2 / starPoints / 2 + baseAngle;
-    lineTo(width / 2 + outerRadius * Math.cos(angle), height / 2 + outerRadius * Math.sin(angle));
+    angle += rho;
+    path.lineTo(innerRadius * Math.cos(angle), innerRadius * Math.sin(angle));
+    angle += rho; i++;
+    path.lineTo(outerRadius * Math.cos(angle), outerRadius * Math.sin(angle));
   }
 
-  vg.appendPathData(vgPath, segmentsPos, segments, data);
+  var vgPath = vg.createPath(vg.VG_PATH_FORMAT_STANDARD,
+                             vg.VGPathDatatype.VG_PATH_DATATYPE_F,
+                             1.0 /* scale */ , 0.0 /* bias */,
+                             path.segmentsPos /* segCapacityHint */,
+                             path.dataPos /* coordCapacityHint */,
+                             vg.VGPathCapabilities.VG_PATH_CAPABILITY_ALL);
+  vg.appendPathData(vgPath, path.segmentsPos, path.segments, path.data);
 
-  util.strokeWidth(2);
-  vg.drawPath(vgPath, vg.VGPaintMode.VG_FILL_PATH | vg.VGPaintMode.VG_STROKE_PATH);
+  return vgPath;
+}
 
-  util.end();
+function paint(t) {
+  util.clearBackground();
+
+  var baseAngle = 90 + t * 0.00005 * 360;
+
+  vg.translate(width / 2, height / 2);
+  vg.rotate(baseAngle);
+  vg.drawPath(star, vg.VGPaintMode.VG_FILL_PATH | vg.VGPaintMode.VG_STROKE_PATH);
+  vg.rotate(-baseAngle);
+  vg.translate(-width / 2, -height / 2);
+
+  util.swapBuffers();
+}
+
+var fps = 120;
+
+var firstRefresh;
+var paintInterval;
+function refresh() {
+  var t = Date.now();
+  paint(t - firstRefresh);
+  var tt = Date.now();
+  paintInterval = setTimeout(refresh, 1000/fps - (tt-t));
 }
 
 function terminate() {
+  console.log("Terminating...");
+  clearTimeout(paintInterval);
   util.finish();
+  vg.destroyPath(star);
+  vg.finish();
   console.log("Making a clean exit.");
 }
 
-util.init({ loadFonts: false });
-
-width  = vg.screen.width;
-height = vg.screen.height;
-
-outerRadius *= 2 * height / 6;
-innerRadius *= 2 * height / 6;
-
-util.start();
-
-var animTime = 1000 / 120;
-
 init();
-var paintInterval = setInterval(paint, animTime);
-// var paintInterval = setTimeout(paint, animTime);
+
+setTimeout(terminate, 5000);
+
+// var paintInterval = setInterval(refresh, animTime);
+firstRefresh = Date.now();
+refresh();
 
 process.on('exit', terminate);
 
-console.log("Press return to exit.");
-process.stdin.resume();
-process.stdin.setEncoding('utf8');
 
-process.stdin.once('data', function (chunk) {
-  clearInterval(paintInterval);
-  process.stdin.pause();
-});
+// console.log("Press return to exit.");
+// process.stdin.resume();
+// process.stdin.setEncoding('utf8');
+
+// process.stdin.once('data', function (chunk) {
+//   clearInterval(paintInterval);
+//   process.stdin.pause();
+// });

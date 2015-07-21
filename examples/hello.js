@@ -2,30 +2,40 @@
 // Based on https://github.com/ajstarks/openvg hellovg.c/go
 //
 
-var openVG = require('../openvg');
+var vg = require('../openvg');
 
 var util = require('./modules/util');
 var text = require('./modules/text');
 
-var countdown = 5;
-(function terminator() {
-  countdown--;
-  setTimeout(countdown === 1 ? util.finish : terminator, 1000);
-})();
-
 var width, height;
 
+vg.init();
 util.init();
 
-width  = openVG.screen.width;
-height = openVG.screen.height;
+var width  = vg.screen.width;
+var height = vg.screen.height;
 
-util.start();                             // Start the picture
-util.background(0, 0, 0);                 // Black background
-util.fill(44, 77, 232, 1);                // Big blue marble
-util.circle(width/2, 0, width);           // The "world"
-util.fill(255, 255, 255, 1);              // White text
+var serifTypeface = text.loadFont("examples/fonts/serif.json");
+
+vg.setFV(vg.VGParamType.VG_CLEAR_COLOR, new Float32Array([ 0.0, 0.0, 0.0, 0.0 ]));
+
+util.strokeWidth(0);
+
+util.clearBackground();
+util.setFillColor(0.17255, 0.3020, 0.9098, 1.0); // Big blue marble
+util.circle(width/2, 0, width);                 // The "world"
+util.setFillColor(1.0, 1.0, 1.0, 1.0);          // White text
 text.textMiddle(width/2, height/2,
                 "hello, world",
-                util.serifTypeface, width/10); // Greetings
-util.end();                               // End the picture
+                serifTypeface, width/10); // Greetings
+util.swapBuffers();
+
+function terminate() {
+  console.log("Terminating...");
+  text.unloadFont(serifTypeface);
+  util.finish();
+  vg.finish();
+  console.log("Making a clean exit.");
+}
+
+setTimeout(terminate, 5000);

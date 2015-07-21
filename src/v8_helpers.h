@@ -53,14 +53,14 @@
 #if NODE_MODULE_VERSION <= NODE_0_10_MODULE_VERSION
 template<class C> class TypedArrayWrapper {
  private:
-  Local<Object> array;
-  Handle<Object> buffer;
+  v8::Local<v8::Object> array;
+  v8::Handle<v8::Object> buffer;
   int byteOffset;
  public:
-  NAN_INLINE TypedArrayWrapper(const Local<Value>& arg) :
+  NAN_INLINE TypedArrayWrapper(const v8::Local<v8::Value>& arg) :
     array(arg->ToObject()),
-    buffer(array->Get(NanNew<String>("buffer"))->ToObject()),
-    byteOffset(array->Get(NanNew<String>("byteOffset"))->Int32Value()) {
+    buffer(array->Get(NanNew<v8::String>("buffer"))->ToObject()),
+    byteOffset(array->Get(NanNew<v8::String>("byteOffset"))->Int32Value()) {
   }
 
   NAN_INLINE C* pointer(int offset = 0) {
@@ -68,15 +68,15 @@ template<class C> class TypedArrayWrapper {
   }
 
   NAN_INLINE int length() {
-    return array->Get(NanNew<String>("length"))->Uint32Value();
+    return array->Get(NanNew<v8::String>("length"))->Uint32Value();
   }
 };
 #else
 template<class C> class TypedArrayWrapper {
  private:
-  Local<TypedArray> array;
+  v8::Local<TypedArray> array;
  public:
-  NAN_INLINE TypedArrayWrapper(const Local<Value>& arg) :
+  NAN_INLINE TypedArrayWrapper(const v8::Local<v8::Value>& arg) :
     array(Handle<TypedArray>::Cast(arg->ToObject())) {
   }
 

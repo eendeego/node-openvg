@@ -3,6 +3,8 @@
 
 #include <v8.h>
 #include <node.h>
+#include <nan.h>
+
 #include "EGL/egl.h"
 #include "VG/openvg.h"
 
@@ -14,25 +16,86 @@ namespace openvg {
 
 void VGNoopDestroy(VGHandle handle);
 
+static Persistent<Function> VGHandleWrapConstructor;
+
 class VGHandleWrap : public node::ObjectWrap {
 public:
-  static VGHandleWrap* New(VGMaskLayer handle, VGDestroyFn destructor);
-  void Destroy();
+  static void Init(Handle<Object> exports) {
+    NanScope();
+    Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(New);
+    tpl->SetClassName(NanNew("VGHandleWrap"));
+    tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-  VGHandle Handle();
+    NODE_SET_PROTOTYPE_METHOD(tpl, "getHandle", GetHandle);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "destroy"  , Destroy);
 
-  NAN_METHOD(New);
-  NAN_METHOD(Destroy);
+    NanAssignPersistent(VGHandleWrapConstructor, tpl->GetFunction());
+    exports->Set(NanNew("VGHandleWrap"), tpl->GetFunction());
+  }
 
-protected:
+  VGHandle SetVGHandle(VGHandle vghandle) {
+    return vghandle_ = vghandle;
+  }
+
+  VGHandle GetVGHandle() {
+    return vghandle_;
+  }
+
+  VGDestroyFn SetDestructor(VGDestroyFn vgdestructor) {
+    return vgdestructor_ = vgdestructor;
+  }
+
+  void Destroy() {
+    if (vghandle_ != 0) {
+      vgdestructor_(vghandle_);
+      vghandle_ = 0;
+    }
+  }
+
+private:
+  explicit VGHandleWrap(VGHandle vghandle = 0, VGDestroyFn vgdestructor = VGNoopDestroy) :
+    vghandle_(vghandle), vgdestructor_(vgdestructor) {}
+
+  ~VGHandleWrap() {
+    Destroy();
+  }
+
+  static NAN_METHOD(New) {
+    NanScope();
+
+    if (args.IsConstructCall()) {
+      VGHandle vghandle = args[0]->IsUndefined() ? 0 : args[0]->Int32Value();
+      VGHandleWrap *obj = new VGHandleWrap(vghandle);
+      obj->Wrap(args.This());
+      NanReturnThis();
+    } else {
+      const int argc = 1;
+      Local<Value> argv[argc] = { args[0] };
+      Local<Function> cons = NanNew(VGHandleWrapConstructor);
+      NanReturnValue(cons->NewInstance(argc, argv));
+    }
+  }
+
+  static NAN_METHOD(GetHandle) {
+    NanScope();
+    VGHandleWrap* obj = ObjectWrap::Unwrap<VGHandleWrap>(args.This());
+    NanReturnValue(NanObjectWrapHandle(obj));
+  }
+
+  static NAN_METHOD(Destroy) {
+    NanScope();
+
+    VGHandleWrap* obj = ObjectWrap::Unwrap<VGHandleWrap>(args.This());
+
+    obj->Destroy();
+
+    NanReturnUndefined();
+  }
+
+  //https://developer.apple.com/library/mac/documentation/Darwin/Conceptual/64bitPorting/MakingCode64-BitClean/MakingCode64-BitClean.html#//apple_ref/doc/uid/TP40001064-CH226-SW2
   VGHandle    vghandle_;
   VGDestroyFn vgdestructor_;
-
-  VGHandleWrap();
-  ~VGHandleWrap();
 };
-
-#define UNWRAPPED_HANDLE(cast,obj) ((cast) ObjectWrap::Unwrap<VGHandleWrap>(obj)->Handle())
 
 NAN_METHOD(StartUp);
 NAN_METHOD(Shutdown);

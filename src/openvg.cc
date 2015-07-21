@@ -7,16 +7,14 @@
 #include <v8.h>
 #include <node.h>
 #include <node_buffer.h>
+#include <nan.h>
+#include "v8_helpers.h"
 
 #include "openvg.h"
 #include "egl.h"
 #include "argchecks.h"
 
-#include "v8_helpers.h"
-
 const bool kInitOpenGLES = false;
-
-ISOLATE(openvg_isolate)
 
 using namespace node;
 using namespace v8;
@@ -25,29 +23,10 @@ namespace openvg {
 
 static Persistent<FunctionTemplate> handlewrap_constructor;
 
-void DeclareClass(Handle<Object> target, const char* name,
-                  Persistent<FunctionTemplate> &constructorTemplate,
-                  InvocationCallback constructorCallback,
-                  InvocationCallback destructorCallback) {
-  SCOPE(openvg_isolate);
-
-  // Prepare constructor template
-  Local<FunctionTemplate> constructor = FunctionTemplate::New(constructorCallback);
-  constructor->SetClassName(String::NewSymbol(name));
-  // constructor->InstanceTemplate()->SetInternalFieldCount(1);
-
-  SET_TEMPLATE(constructorTemplate, openvg_isolate, constructor);
-
-  // Prototype
-  Local<Template> proto = constructor->PrototypeTemplate();
-  proto->Set("destroy", FunctionTemplate::New(destructorCallback));
-}
-
 }
 
 void init(Handle<Object> target) {
-  ISOLATE_INIT(openvg_isolate)
-  SCOPE(openvg_isolate);
+  NanScope();
 
   NODE_SET_METHOD(target, "startUp"          , openvg::StartUp);
   NODE_SET_METHOD(target, "shutdown"         , openvg::Shutdown);
@@ -220,10 +199,7 @@ void init(Handle<Object> target) {
   target->Set(String::New("egl"), egl);
   egl::InitBindings(egl);
 
-  DeclareClass(target, "VGHandleWrap",
-               openvg::handlewrap_constructor,
-               openvg::VGHandleWrap::New,
-               openvg::VGHandleWrap::Destroy);
+  openvg::VGHandleWrap::Init(target);
 }
 NODE_MODULE(openvg, init)
 
@@ -236,71 +212,22 @@ NODE_MODULE(openvg, init)
     }\
   }
 
-// Handle wrapper
+#define RETURN_WRAPPED_HANDLE(vghandle, destructor)\
+  {                                                               \
+    const int argc = 0;                                           \
+    Local<Value> argv[] = {};                                     \
+    Local<Function> cons = NanNew(VGHandleWrapConstructor);       \
+    Local<Object> handle = cons->NewInstance(argc, argv);         \
+    VGHandleWrap* obj = ObjectWrap::Unwrap<VGHandleWrap>(handle); \
+                                                                  \
+    obj->SetVGHandle((VGHandle) vghandle);                        \
+    obj->SetDestructor((VGDestroyFn) &destructor);                \
+    NanReturnValue(handle);                                       \
+  }
 
+#define UNWRAPPED_HANDLE(jsObj) ObjectWrap::Unwrap<VGHandleWrap>(jsObj)->GetVGHandle()
 
 void openvg::VGNoopDestroy(VGHandle handle) {};
-
-// Constructor, never used directly
-openvg::VGHandleWrap::VGHandleWrap() {
-}
-
-// GC Destroy
-openvg::VGHandleWrap::~VGHandleWrap() {
-  NanScope(openvg_isolate);
-  Destroy();
-}
-
-// Return the Handle
-VGHandle openvg::VGHandleWrap::Handle() {
-  NanScope(openvg_isolate);
-  return vghandle_;
-}
-
-// JS Constructor function (template)
-// Only for internal usage (not from JS space)
-// TODO check for args.IsConstructCall()
-V8_METHOD(openvg::VGHandleWrap::New) {
-  NanScope(openvg_isolate);
-
-  openvg::VGHandleWrap* wrapper = new openvg::VGHandleWrap();
-  wrapper->Wrap(args.This());
-
-  NanReturnThis();
-}
-
-// Explicit destroy on handle via JS
-V8_METHOD(openvg::VGHandleWrap::Destroy) {
-  NanScope(openvg_isolate);
-
-  openvg::VGHandleWrap *wrap = ObjectWrap::Unwrap<openvg::VGHandleWrap>(args.This());
-  wrap->Destroy();
-
-  NanReturnUndefined();
-}
-
-// Creation (internal only)
-openvg::VGHandleWrap* openvg::VGHandleWrap::New(VGHandle handle, VGDestroyFn destructor) {
-  NanScope(openvg_isolate);
-
-  Local<Object> jsObj = NEW_INSTANCE(openvg_isolate, handlewrap_constructor);
-
-  openvg::VGHandleWrap *wrap = ObjectWrap::Unwrap<openvg::VGHandleWrap>(jsObj);
-  wrap->vghandle_     = handle;
-  wrap->vgdestructor_ = destructor;
-
-  return wrap;
-}
-
-// Explicit destroy on VG api
-void openvg::VGHandleWrap::Destroy() {
-  NanScope(openvg_isolate);
-
-  if (vghandle_) {
-    vgdestructor_(vghandle_);
-    vghandle_ = 0;
-  }
-}
 
 
 V8_METHOD(openvg::StartUp) {
@@ -534,7 +461,7 @@ V8_METHOD(openvg::SetParameterF) {
 
   CheckArgs3(setParameterF, VGHandle, Object, VGParamType, Int32, value, Number);
 
-  vgSetParameterf(UNWRAPPED_HANDLE(VGHandle, args[0]->ToObject()),
+  vgSetParameterf(UNWRAPPED_HANDLE(args[0]->ToObject()),
                   (VGParamType) args[1]->Int32Value(),
                   (VGfloat) args[2]->NumberValue());
 
@@ -546,7 +473,7 @@ V8_METHOD(openvg::SetParameterI) {
 
   CheckArgs3(setParameterI, VGHandle, Object, VGParamType, Int32, value, Int32);
 
-  vgSetParameteri(UNWRAPPED_HANDLE(VGHandle, args[0]->ToObject()),
+  vgSetParameteri(UNWRAPPED_HANDLE(args[0]->ToObject()),
                   (VGParamType) args[1]->Int32Value(),
                   (VGint) args[2]->Int32Value());
 
@@ -561,7 +488,7 @@ V8_METHOD(openvg::SetParameterFV) {
 
   TypedArrayWrapper<VGfloat> values(args[2]);
 
-  vgSetParameterfv(UNWRAPPED_HANDLE(VGHandle, args[0]->ToObject()),
+  vgSetParameterfv(UNWRAPPED_HANDLE(args[0]->ToObject()),
                    (VGParamType) args[1]->Int32Value(),
                    values.length(),
                    values.pointer());
@@ -577,7 +504,7 @@ V8_METHOD(openvg::SetParameterIV) {
 
   TypedArrayWrapper<VGint> values(args[2]);
 
-  vgSetParameteriv(UNWRAPPED_HANDLE(VGHandle, args[0]->ToObject()),
+  vgSetParameteriv(UNWRAPPED_HANDLE(args[0]->ToObject()),
                    (VGParamType) args[1]->Int32Value(),
                    values.length(),
                    values.pointer());
@@ -594,7 +521,7 @@ V8_METHOD(openvg::SetParameterFVOL) {
 
   TypedArrayWrapper<VGfloat> values(args[2]);
 
-  vgSetParameterfv(UNWRAPPED_HANDLE(VGHandle, args[0]->ToObject()),
+  vgSetParameterfv(UNWRAPPED_HANDLE(args[0]->ToObject()),
                    (VGParamType) args[1]->Int32Value(),
                    (VGint) args[4]->Int32Value(),
                    values.pointer(args[3]->Int32Value()));
@@ -611,7 +538,7 @@ V8_METHOD(openvg::SetParameterIVOL) {
 
   TypedArrayWrapper<VGint> values(args[2]);
 
-  vgSetParameteriv(UNWRAPPED_HANDLE(VGHandle, args[0]->ToObject()),
+  vgSetParameteriv(UNWRAPPED_HANDLE(args[0]->ToObject()),
                    (VGParamType) args[1]->Int32Value(),
                    (VGint) args[4]->Int32Value(),
                    values.pointer(args[3]->Int32Value()));
@@ -624,7 +551,7 @@ V8_METHOD(openvg::GetParameterF) {
 
   CheckArgs2(getParameterF, VGHandle, Object, VGParamType, Int32);
 
-  NanReturnValue(NanNew<Number>(vgGetParameterf(UNWRAPPED_HANDLE(VGHandle, args[0]->ToObject()),
+  NanReturnValue(NanNew<Number>(vgGetParameterf(UNWRAPPED_HANDLE(args[0]->ToObject()),
                                                 (VGParamType) args[1]->Int32Value())));
 }
 
@@ -633,7 +560,7 @@ V8_METHOD(openvg::GetParameterI) {
 
   CheckArgs2(getParameterI, VGHandle, Object, VGParamType, Int32);
 
-  NanReturnValue(NanNew<Integer>(vgGetParameteri(UNWRAPPED_HANDLE(VGHandle, args[0]->ToObject()),
+  NanReturnValue(NanNew<Integer>(vgGetParameteri(UNWRAPPED_HANDLE(args[0]->ToObject()),
                                                  (VGParamType) args[1]->Int32Value())));
 }
 
@@ -642,7 +569,7 @@ V8_METHOD(openvg::GetParameterVectorSize) {
 
   CheckArgs2(getParameterVectorSize, VGHandle, Object, VGParamType, Int32);
 
-  NanReturnValue(NanNew<Integer>(vgGetParameterVectorSize(UNWRAPPED_HANDLE(VGHandle, args[0]->ToObject()),
+  NanReturnValue(NanNew<Integer>(vgGetParameterVectorSize(UNWRAPPED_HANDLE(args[0]->ToObject()),
                                                           (VGParamType) args[1]->Int32Value())));
 }
 
@@ -654,7 +581,7 @@ V8_METHOD(openvg::GetParameterFV) {
 
   TypedArrayWrapper<VGfloat> values(args[2]);
 
-  vgGetParameterfv(UNWRAPPED_HANDLE(VGHandle, args[0]->ToObject()),
+  vgGetParameterfv(UNWRAPPED_HANDLE(args[0]->ToObject()),
                    (VGParamType) args[1]->Int32Value(),
                    values.length(),
                    values.pointer());
@@ -670,7 +597,7 @@ V8_METHOD(openvg::GetParameterIV) {
 
   TypedArrayWrapper<VGint> values(args[2]);
 
-  vgGetParameteriv(UNWRAPPED_HANDLE(VGHandle, args[0]->ToObject()),
+  vgGetParameteriv(UNWRAPPED_HANDLE(args[0]->ToObject()),
                    (VGParamType) args[1]->Int32Value(),
                    values.length(),
                    values.pointer());
@@ -687,7 +614,7 @@ V8_METHOD(openvg::GetParameterFVOL) {
 
   TypedArrayWrapper<VGfloat> values(args[2]);
 
-  vgGetParameterfv(UNWRAPPED_HANDLE(VGHandle, args[0]->ToObject()),
+  vgGetParameterfv(UNWRAPPED_HANDLE(args[0]->ToObject()),
                    (VGParamType) args[1]->Int32Value(),
                    (VGint) args[4]->Int32Value(),
                    values.pointer(args[3]->Int32Value()));
@@ -704,7 +631,7 @@ V8_METHOD(openvg::GetParameterIVOL) {
 
   TypedArrayWrapper<VGint> values(args[2]);
 
-  vgGetParameteriv(UNWRAPPED_HANDLE(VGHandle, args[0]->ToObject()),
+  vgGetParameteriv(UNWRAPPED_HANDLE(args[0]->ToObject()),
                    (VGParamType) args[1]->Int32Value(),
                    (VGint) args[4]->Int32Value(),
                    values.pointer(args[3]->Int32Value()));
@@ -816,7 +743,7 @@ V8_METHOD(openvg::Mask) {
              VGHandle, Object, VGMaskOperation, Uint32,
              x, Int32, y, Int32, width, Int32, height, Int32);
 
-  vgMask(UNWRAPPED_HANDLE(VGHandle, args[0]->ToObject()),
+  vgMask(UNWRAPPED_HANDLE(args[0]->ToObject()),
          static_cast<VGMaskOperation>(args[1]->Uint32Value()),
          (VGint) args[2]->Int32Value(),
          (VGint) args[3]->Int32Value(),
@@ -834,7 +761,7 @@ V8_METHOD(openvg::RenderToMask) {
              VGbitfield, Uint32,
              VGMaskOperation, Uint32);
 
-  vgRenderToMask(UNWRAPPED_HANDLE(VGPath, args[0]->ToObject()),
+  vgRenderToMask(UNWRAPPED_HANDLE(args[0]->ToObject()),
                  (VGbitfield) args[1]->Uint32Value(),
                  (VGMaskOperation) args[2]->Uint32Value());
 
@@ -849,7 +776,7 @@ V8_METHOD(openvg::CreateMaskLayer) {
   VGMaskLayer mask = vgCreateMaskLayer((VGint) args[0]->Int32Value(),
                                        (VGint) args[1]->Int32Value());
 
-  NanReturnValue(V8_PERSISTENT(VGHandleWrap::New(mask, (VGDestroyFn) &vgDestroyMaskLayer)));
+  RETURN_WRAPPED_HANDLE(mask, vgDestroyMaskLayer);
 }
 
 V8_METHOD(openvg::DestroyMaskLayer) {
@@ -870,7 +797,7 @@ V8_METHOD(openvg::FillMaskLayer) {
              x, Int32, y, Int32, width, Int32, height, Int32,
              value, Number);
 
-  vgFillMaskLayer(UNWRAPPED_HANDLE(VGMaskLayer, args[0]->ToObject()),
+  vgFillMaskLayer(UNWRAPPED_HANDLE(args[0]->ToObject()),
                   (VGint) args[1]->Int32Value(),
                   (VGint) args[2]->Int32Value(),
                   (VGint) args[3]->Int32Value(),
@@ -888,7 +815,7 @@ V8_METHOD(openvg::CopyMask) {
              dx, Int32, dy, Int32, sx, Int32, sy, Int32,
              width, Int32, height, Int32);
 
-  vgCopyMask(UNWRAPPED_HANDLE(VGMaskLayer, args[0]->ToObject()),
+  vgCopyMask(UNWRAPPED_HANDLE(args[0]->ToObject()),
              (VGint) args[1]->Int32Value(), (VGint) args[2]->Int32Value(),
              (VGint) args[3]->Int32Value(), (VGint) args[4]->Int32Value(),
              (VGint) args[5]->Int32Value(), (VGint) args[6]->Int32Value());
@@ -927,7 +854,7 @@ V8_METHOD(openvg::CreatePath) {
                              (VGint) args[5]->Int32Value(),
                              (VGbitfield) args[6]->Uint32Value());
 
-  NanReturnValue(V8_PERSISTENT(VGHandleWrap::New(path, (VGDestroyFn) &vgDestroyPath)));
+  RETURN_WRAPPED_HANDLE(path, vgDestroyPath);
 }
 
 V8_METHOD(openvg::ClearPath) {
@@ -935,7 +862,7 @@ V8_METHOD(openvg::ClearPath) {
 
   CheckArgs2(clearPath, VGPath, Object, capabilities, Uint32);
 
-  vgClearPath(UNWRAPPED_HANDLE(VGMaskLayer, args[0]->ToObject()),
+  vgClearPath(UNWRAPPED_HANDLE(args[0]->ToObject()),
               (VGbitfield) args[1]->Uint32Value());
 
   V8_RETURN(Undefined());
@@ -956,7 +883,7 @@ V8_METHOD(openvg::RemovePathCapabilities) {
 
   CheckArgs2(removePathCapabilities, VGPath, Object, capabilities, Uint32);
 
-  vgRemovePathCapabilities(UNWRAPPED_HANDLE(VGPath, args[0]->ToObject()),
+  vgRemovePathCapabilities(UNWRAPPED_HANDLE(args[0]->ToObject()),
                            (VGbitfield) args[1]->Uint32Value());
 
   V8_RETURN(Undefined());
@@ -967,7 +894,7 @@ V8_METHOD(openvg::GetPathCapabilities) {
 
   CheckArgs1(getPathCapabilities, VGPath, Object);
 
-  NanReturnValue(NanNew<Uint32>(vgGetPathCapabilities(UNWRAPPED_HANDLE(VGPath, args[0]->ToObject()))));
+  NanReturnValue(NanNew<Uint32>(vgGetPathCapabilities(UNWRAPPED_HANDLE(args[0]->ToObject()))));
 }
 
 V8_METHOD(openvg::AppendPath) {
@@ -975,8 +902,8 @@ V8_METHOD(openvg::AppendPath) {
 
   CheckArgs2(appendPath, dstPath, Object, srcPath, Object);
 
-  vgAppendPath(UNWRAPPED_HANDLE(VGPath, args[0]->ToObject()),
-               UNWRAPPED_HANDLE(VGPath, args[1]->ToObject()));
+  vgAppendPath(UNWRAPPED_HANDLE(args[0]->ToObject()),
+               UNWRAPPED_HANDLE(args[1]->ToObject()));
 
   V8_RETURN(Undefined());
 }
@@ -991,7 +918,7 @@ V8_METHOD(openvg::AppendPathData) {
   TypedArrayWrapper<VGubyte> segments(args[2]);
   TypedArrayWrapper<void> data(args[3]);
 
-  vgAppendPathData(UNWRAPPED_HANDLE(VGPath, args[0]->ToObject()),
+  vgAppendPathData(UNWRAPPED_HANDLE(args[0]->ToObject()),
                    (VGint) args[1]->Int32Value(),
                    segments.pointer(),
                    data.pointer());
@@ -1009,7 +936,7 @@ V8_METHOD(openvg::AppendPathDataO) {
   TypedArrayWrapper<VGubyte> segments(args[2]);
   TypedArrayWrapper<void> data(args[4]);
 
-  vgAppendPathData(UNWRAPPED_HANDLE(VGPath, args[0]->ToObject()),
+  vgAppendPathData(UNWRAPPED_HANDLE(args[0]->ToObject()),
                    (VGint) args[1]->Int32Value(),
                    segments.pointer(args[3]->Uint32Value()),
                    data.pointer(args[5]->Int32Value()));
@@ -1026,7 +953,7 @@ V8_METHOD(openvg::ModifyPathCoords) {
 
   TypedArrayWrapper<void> data(args[3]);
 
-  vgModifyPathCoords(UNWRAPPED_HANDLE(VGPath, args[0]->ToObject()),
+  vgModifyPathCoords(UNWRAPPED_HANDLE(args[0]->ToObject()),
                      (VGint) args[1]->Int32Value(),
                      (VGint) args[2]->Int32Value(),
                      data.pointer());
@@ -1039,8 +966,8 @@ V8_METHOD(openvg::TransformPath) {
 
   CheckArgs2(transformPath, dstPath, Object, srcPath, Object);
 
-  vgTransformPath(UNWRAPPED_HANDLE(VGPath, args[0]->ToObject()),
-                  UNWRAPPED_HANDLE(VGPath, args[1]->ToObject()));
+  vgTransformPath(UNWRAPPED_HANDLE(args[0]->ToObject()),
+                  UNWRAPPED_HANDLE(args[1]->ToObject()));
 
   V8_RETURN(Undefined());
 }
@@ -1052,9 +979,9 @@ V8_METHOD(openvg::InterpolatePath) {
              dstPath, Object, startPath, Object, endPath, Object,
              amount, Number);
 
-  NanReturnValue(NanNew<Boolean>(vgInterpolatePath(UNWRAPPED_HANDLE(VGPath, args[0]->ToObject()),
-                                                   UNWRAPPED_HANDLE(VGPath, args[1]->ToObject()),
-                                                   UNWRAPPED_HANDLE(VGPath, args[2]->ToObject()),
+  NanReturnValue(NanNew<Boolean>(vgInterpolatePath(UNWRAPPED_HANDLE(args[0]->ToObject()),
+                                                   UNWRAPPED_HANDLE(args[1]->ToObject()),
+                                                   UNWRAPPED_HANDLE(args[2]->ToObject()),
                                                    (VGfloat) args[3]->NumberValue())));
 }
 
@@ -1064,7 +991,7 @@ V8_METHOD(openvg::PathLength) {
   CheckArgs3(pathLength, path, Object,
              startSegment, Int32, numSegments, Int32);
 
-  NanReturnValue(NanNew<Number>(vgPathLength(UNWRAPPED_HANDLE(VGPath, args[0]->ToObject()),
+  NanReturnValue(NanNew<Number>(vgPathLength(UNWRAPPED_HANDLE(args[0]->ToObject()),
                                              (VGint) args[1]->Int32Value(),
                                              (VGint) args[2]->Int32Value())));
 }
@@ -1078,7 +1005,7 @@ V8_METHOD(openvg::PointAlongPath) {
 
   VGfloat x, y, tx, ty;
 
-  vgPointAlongPath(UNWRAPPED_HANDLE(VGPath, args[0]->ToObject()),
+  vgPointAlongPath(UNWRAPPED_HANDLE(args[0]->ToObject()),
                    (VGint) args[1]->Int32Value(),
                    (VGint) args[2]->Int32Value(),
                    (VGfloat) args[3]->NumberValue(),
@@ -1100,7 +1027,7 @@ V8_METHOD(openvg::PathBounds) {
 
   VGfloat minX, minY, width, height;
 
-  vgPathBounds(UNWRAPPED_HANDLE(VGPath, args[0]->ToObject()),
+  vgPathBounds(UNWRAPPED_HANDLE(args[0]->ToObject()),
                &minX, &minY, &width, &height);
 
   Local<Object> bounds = args[1].As<Object>();
@@ -1119,7 +1046,7 @@ V8_METHOD(openvg::PathTransformedBounds) {
 
   VGfloat minX, minY, width, height;
 
-  vgPathTransformedBounds(UNWRAPPED_HANDLE(VGPath, args[0]->ToObject()),
+  vgPathTransformedBounds(UNWRAPPED_HANDLE(args[0]->ToObject()),
                           &minX, &minY, &width, &height);
 
   Local<Object> bounds = args[1].As<Object>();
@@ -1136,7 +1063,7 @@ V8_METHOD(openvg::DrawPath) {
 
   CheckArgs2(drawPath, VGPath, Object, paintModes, Number);
 
-  vgDrawPath(UNWRAPPED_HANDLE(VGPath, args[0]->ToObject()),
+  vgDrawPath(UNWRAPPED_HANDLE(args[0]->ToObject()),
              (VGbitfield) args[1]->Uint32Value());
 
   V8_RETURN(Undefined());
@@ -1151,7 +1078,7 @@ V8_METHOD(openvg::CreatePaint) {
 
   CheckArgs0(createPaint);
 
-  NanReturnValue(V8_PERSISTENT(VGHandleWrap::New(vgCreatePaint(), (VGDestroyFn) &vgDestroyPaint)));
+  RETURN_WRAPPED_HANDLE(vgCreatePaint(), vgDestroyPaint);
 }
 
 V8_METHOD(openvg::DestroyPaint) {
@@ -1169,7 +1096,7 @@ V8_METHOD(openvg::SetPaint) {
 
   CheckArgs2(setPaint, VGPaint, Object, paintModes, Number);
 
-  vgSetPaint(UNWRAPPED_HANDLE(VGPaint, args[0]->ToObject()),
+  vgSetPaint(UNWRAPPED_HANDLE(args[0]->ToObject()),
              (VGbitfield) args[1]->Uint32Value());
 
   V8_RETURN(Undefined());
@@ -1188,7 +1115,7 @@ V8_METHOD(openvg::SetColor) {
 
   CheckArgs2(setColor, VGPaint, Object, rgba, Uint32);
 
-  vgSetColor(UNWRAPPED_HANDLE(VGPaint, args[0]->ToObject()),
+  vgSetColor(UNWRAPPED_HANDLE(args[0]->ToObject()),
              (VGuint) args[1]->Uint32Value());
 
   V8_RETURN(Undefined());
@@ -1199,7 +1126,7 @@ V8_METHOD(openvg::GetColor) {
 
   CheckArgs1(getColor, VGPaint, Object);
 
-  NanReturnValue(NanNew<Uint32>(vgGetColor(UNWRAPPED_HANDLE(VGPaint, args[0]->ToObject()))));
+  NanReturnValue(NanNew<Uint32>(vgGetColor(UNWRAPPED_HANDLE(args[0]->ToObject()))));
 }
 
 V8_METHOD(openvg::PaintPattern) {
@@ -1207,8 +1134,8 @@ V8_METHOD(openvg::PaintPattern) {
 
   CheckArgs2(paintPattern, VGPaint, Object, VGImage, Uint32);
 
-  vgPaintPattern(UNWRAPPED_HANDLE(VGPaint, args[0]->ToObject()),
-                 UNWRAPPED_HANDLE(VGImage, args[1]->ToObject()));
+  vgPaintPattern(UNWRAPPED_HANDLE(args[0]->ToObject()),
+                 UNWRAPPED_HANDLE(args[1]->ToObject()));
 
   V8_RETURN(Undefined());
 }
@@ -1229,7 +1156,7 @@ V8_METHOD(openvg::CreateImage) {
                                 (VGint) args[2]->Int32Value(),
                                 (VGuint) args[3]->Uint32Value());
 
-  NanReturnValue(V8_PERSISTENT(VGHandleWrap::New(image, (VGDestroyFn) &vgDestroyImage)));
+  RETURN_WRAPPED_HANDLE(image, vgDestroyImage);
 }
 
 V8_METHOD(openvg::DestroyImage) {
@@ -1248,7 +1175,7 @@ V8_METHOD(openvg::ClearImage) {
   CheckArgs5(clearImage,
              VGImage, Object, x, Int32, y, Int32, width, Int32, height, Int32);
 
-  vgClearImage(UNWRAPPED_HANDLE(VGImage, args[0]->ToObject()),
+  vgClearImage(UNWRAPPED_HANDLE(args[0]->ToObject()),
                (VGint) args[1]->Int32Value(),
                (VGint) args[2]->Int32Value(),
                (VGint) args[3]->Int32Value(),
@@ -1278,7 +1205,7 @@ V8_METHOD(openvg::ImageSubData) {
     dataPointer = (void *) Buffer::Data(data);
   }
 
-  vgImageSubData(UNWRAPPED_HANDLE(VGImage, args[0]->ToObject()),
+  vgImageSubData(UNWRAPPED_HANDLE(args[0]->ToObject()),
                  dataPointer,
                  (VGint) args[2]->Int32Value(),
                  static_cast<VGImageFormat>(args[3]->Uint32Value()),
@@ -1300,7 +1227,7 @@ V8_METHOD(openvg::GetImageSubData) {
 
   TypedArrayWrapper<void> data(args[1]);
 
-  vgGetImageSubData(UNWRAPPED_HANDLE(VGImage, args[0]->ToObject()),
+  vgGetImageSubData(UNWRAPPED_HANDLE(args[0]->ToObject()),
                     data.pointer(),
                     (VGint) args[2]->Int32Value(),
                     static_cast<VGImageFormat>(args[3]->Uint32Value()),
@@ -1318,39 +1245,24 @@ V8_METHOD(openvg::ChildImage) {
   CheckArgs5(childImage,
              VGImage, Object, x, Int32, y, Int32, width, Int32, height, Int32);
 
-  VGImage image = vgChildImage(UNWRAPPED_HANDLE(VGImage, args[0]->ToObject()),
+  VGImage image = vgChildImage(UNWRAPPED_HANDLE(args[0]->ToObject()),
                                (VGint) args[1]->Int32Value(),
                                (VGint) args[2]->Int32Value(),
                                (VGint) args[3]->Int32Value(),
                                (VGint) args[4]->Int32Value());
 
-  V8_RETURN(V8_PERSISTENT(VGHandleWrap::New(image, (VGDestroyFn) &vgDestroyImage)));
+  RETURN_WRAPPED_HANDLE(image, vgDestroyImage);
 }
 
 // TODO Implement this in a === compatible way
-V8_METHOD(openvg::GetParent) {
+NAN_METHOD(openvg::GetParent) {
   HandleScope scope;
 
   CheckArgs1(getParent, VGImage, Object);
 
-  VGImage image = vgChildImage(UNWRAPPED_HANDLE(VGImage, args[0]->ToObject()),
-                               (VGint) args[1]->Int32Value(),
-                               (VGint) args[2]->Int32Value(),
-                               (VGint) args[3]->Int32Value(),
-                               (VGint) args[4]->Int32Value());
+  VGImage image = vgGetParent(UNWRAPPED_HANDLE(args[0]->ToObject()));
 
-  V8_RETURN(V8_PERSISTENT(VGHandleWrap::New(image, (VGDestroyFn) &vgDestroyImage)));
-}
-
-// TODO Implement this in a === compatible way
-V8_METHOD(openvg::GetParent) {
-  HandleScope scope;
-
-  CheckArgs1(getParent, VGImage, Object);
-
-  VGImage image = vgGetParent(UNWRAPPED_HANDLE(VGImage, args[0]->ToObject()));
-
-  NanReturnValue(V8_PERSISTENT(VGHandleWrap::New(image, (VGDestroyFn) &VGNoopDestroy)));
+  RETURN_WRAPPED_HANDLE(image, VGNoopDestroy)
 }
 
 V8_METHOD(openvg::CopyImage) {
@@ -1361,10 +1273,10 @@ V8_METHOD(openvg::CopyImage) {
              srcImage, Object, sx, Int32, sy, Int32,
              width, Int32, height, Int32, dither, Boolean);
 
-  vgCopyImage(UNWRAPPED_HANDLE(VGImage, args[0]->ToObject()),
+  vgCopyImage(UNWRAPPED_HANDLE(args[0]->ToObject()),
               (VGint) args[1]->Int32Value(),
               (VGint) args[2]->Int32Value(),
-              UNWRAPPED_HANDLE(VGImage, args[3]->ToObject()),
+              UNWRAPPED_HANDLE(args[3]->ToObject()),
               (VGint) args[4]->Int32Value(),
               (VGint) args[5]->Int32Value(),
               (VGint) args[6]->Int32Value(),
@@ -1379,7 +1291,7 @@ V8_METHOD(openvg::DrawImage) {
 
   CheckArgs1(drawImage, VGImage, Object);
 
-  vgDrawImage(UNWRAPPED_HANDLE(VGImage, args[0]->ToObject()));
+  vgDrawImage(UNWRAPPED_HANDLE(args[0]->ToObject()));
 
   V8_RETURN(Undefined());
 }
@@ -1394,7 +1306,7 @@ V8_METHOD(openvg::SetPixels) {
 
   vgSetPixels((VGint) args[0]->Int32Value(),
               (VGint) args[1]->Int32Value(),
-              UNWRAPPED_HANDLE(VGImage, args[2]->ToObject()),
+              UNWRAPPED_HANDLE(args[2]->ToObject()),
               (VGint) args[3]->Int32Value(),
               (VGint) args[4]->Int32Value(),
               (VGint) args[5]->Int32Value(),
@@ -1432,7 +1344,7 @@ V8_METHOD(openvg::GetPixels) {
              sx, Int32, sy, Int32,
              width, Int32, height, Int32);
 
-  vgGetPixels(UNWRAPPED_HANDLE(VGImage, args[0]->ToObject()),
+  vgGetPixels(UNWRAPPED_HANDLE(args[0]->ToObject()),
               (VGint) args[1]->Int32Value(),
               (VGint) args[2]->Int32Value(),
               (VGint) args[3]->Int32Value(),
@@ -1491,7 +1403,7 @@ V8_METHOD(openvg::CreateFont) {
 
   VGFont font = vgCreateFont((VGint) args[0]->Int32Value());
 
-  NanReturnValue(V8_PERSISTENT(VGHandleWrap::New(font, (VGDestroyFn) &vgDestroyFont)));
+  RETURN_WRAPPED_HANDLE(font, vgDestroyFont);
 }
 
 V8_METHOD(openvg::DestroyFont) {
@@ -1514,9 +1426,9 @@ V8_METHOD(openvg::SetGlyphToPath) {
   TypedArrayWrapper<VGfloat> glyphOrigin(args[4]);
   TypedArrayWrapper<VGfloat> escapement(args[5]);
 
-  vgSetGlyphToPath(UNWRAPPED_HANDLE(VGFont, args[0]->ToObject()),
+  vgSetGlyphToPath(UNWRAPPED_HANDLE(args[0]->ToObject()),
                    (VGuint) args[1]->Uint32Value(),
-                   UNWRAPPED_HANDLE(VGPath, args[2]->ToObject()),
+                   UNWRAPPED_HANDLE(args[2]->ToObject()),
                    (VGboolean) args[3]->BooleanValue(),
                    glyphOrigin.pointer(),
                    escapement.pointer());
@@ -1534,9 +1446,9 @@ V8_METHOD(openvg::SetGlyphToImage) {
   TypedArrayWrapper<VGfloat> glyphOrigin(args[3]);
   TypedArrayWrapper<VGfloat> escapement(args[4]);
 
-  vgSetGlyphToImage(UNWRAPPED_HANDLE(VGFont, args[0]->ToObject()),
+  vgSetGlyphToImage(UNWRAPPED_HANDLE(args[0]->ToObject()),
                     (VGuint) args[1]->Uint32Value(),
-                    UNWRAPPED_HANDLE(VGImage, args[2]->ToObject()),
+                    UNWRAPPED_HANDLE(args[2]->ToObject()),
                     glyphOrigin.pointer(),
                     escapement.pointer());
 
@@ -1548,7 +1460,7 @@ V8_METHOD(openvg::ClearGlyph) {
 
   CheckArgs2(clearGlyph, VGFont, Object, glyphIndex, Uint32);
 
-  vgClearGlyph(UNWRAPPED_HANDLE(VGFont, args[0]->ToObject()),
+  vgClearGlyph(UNWRAPPED_HANDLE(args[0]->ToObject()),
                (VGuint) args[1]->Uint32Value());
 
   V8_RETURN(Undefined());
@@ -1560,7 +1472,7 @@ V8_METHOD(openvg::DrawGlyph) {
   CheckArgs4(drawGlyph, VGFont, Object, glyphIndex, Uint32,
              paintModes, Uint32, allowAutoHinting, Boolean);
 
-  vgDrawGlyph(UNWRAPPED_HANDLE(VGFont, args[0]->ToObject()),
+  vgDrawGlyph(UNWRAPPED_HANDLE(args[0]->ToObject()),
               (VGuint) args[1]->Uint32Value(),
               (VGbitfield) args[2]->Uint32Value(),
               (VGboolean) args[3]->BooleanValue());
@@ -1579,7 +1491,7 @@ V8_METHOD(openvg::DrawGlyphs) {
   TypedArrayWrapper<VGfloat> adjustments_x(args[3]);
   TypedArrayWrapper<VGfloat> adjustments_y(args[4]);
 
-  vgDrawGlyphs(UNWRAPPED_HANDLE(VGFont, args[0]->ToObject()),
+  vgDrawGlyphs(UNWRAPPED_HANDLE(args[0]->ToObject()),
                (VGuint) args[1]->Uint32Value(),
                glyphIndices.pointer(),
                adjustments_x.pointer(),
@@ -1602,8 +1514,8 @@ V8_METHOD(openvg::ColorMatrix) {
 
   TypedArrayWrapper<VGfloat> matrix(args[2]);
 
-  vgColorMatrix(UNWRAPPED_HANDLE(VGImage, args[0]->ToObject()),
-                UNWRAPPED_HANDLE(VGImage, args[1]->ToObject()),
+  vgColorMatrix(UNWRAPPED_HANDLE(args[0]->ToObject()),
+                UNWRAPPED_HANDLE(args[1]->ToObject()),
                 matrix.pointer());
 
   V8_RETURN(Undefined());
@@ -1620,8 +1532,8 @@ V8_METHOD(openvg::Convolve) {
 
   TypedArrayWrapper<VGshort> kernel(args[6]);
 
-  vgConvolve(UNWRAPPED_HANDLE(VGImage, args[0]->ToObject()),
-             UNWRAPPED_HANDLE(VGImage, args[1]->ToObject()),
+  vgConvolve(UNWRAPPED_HANDLE(args[0]->ToObject()),
+             UNWRAPPED_HANDLE(args[1]->ToObject()),
              (VGint) args[2]->Int32Value(),
              (VGint) args[3]->Int32Value(),
              (VGint) args[4]->Int32Value(),
@@ -1647,8 +1559,8 @@ V8_METHOD(openvg::SeparableConvolve) {
   TypedArrayWrapper<VGshort> kernelX(args[6]);
   TypedArrayWrapper<VGshort> kernelY(args[7]);
 
-  vgSeparableConvolve(UNWRAPPED_HANDLE(VGImage, args[0]->ToObject()),
-                      UNWRAPPED_HANDLE(VGImage, args[1]->ToObject()),
+  vgSeparableConvolve(UNWRAPPED_HANDLE(args[0]->ToObject()),
+                      UNWRAPPED_HANDLE(args[1]->ToObject()),
                       (VGint) args[2]->Int32Value(),
                       (VGint) args[3]->Int32Value(),
                       (VGint) args[4]->Int32Value(),
@@ -1669,8 +1581,8 @@ V8_METHOD(openvg::GaussianBlur) {
              stdDeviationX, Number, stdDeviationY, Number,
              tilingMode, Uint32);
 
-  vgGaussianBlur(UNWRAPPED_HANDLE(VGImage, args[0]->ToObject()),
-                 UNWRAPPED_HANDLE(VGImage, args[1]->ToObject()),
+  vgGaussianBlur(UNWRAPPED_HANDLE(args[0]->ToObject()),
+                 UNWRAPPED_HANDLE(args[1]->ToObject()),
                  (VGfloat) args[2]->NumberValue(),
                  (VGfloat) args[3]->NumberValue(),
                  static_cast<VGTilingMode>(args[4]->Uint32Value()));
@@ -1691,8 +1603,8 @@ V8_METHOD(openvg::Lookup) {
   TypedArrayWrapper<VGubyte> blueLUT(args[4]);
   TypedArrayWrapper<VGubyte> alphaLUT(args[5]);
 
-  vgLookup(UNWRAPPED_HANDLE(VGImage, args[0]->ToObject()),
-           UNWRAPPED_HANDLE(VGImage, args[1]->ToObject()),
+  vgLookup(UNWRAPPED_HANDLE(args[0]->ToObject()),
+           UNWRAPPED_HANDLE(args[1]->ToObject()),
            redLUT.pointer(),
            greenLUT.pointer(),
            blueLUT.pointer(),
@@ -1712,8 +1624,8 @@ V8_METHOD(openvg::LookupSingle) {
 
   TypedArrayWrapper<VGuint> lookupTable(args[2]);
 
-  vgLookupSingle(UNWRAPPED_HANDLE(VGImage, args[0]->ToObject()),
-                 UNWRAPPED_HANDLE(VGImage, args[1]->ToObject()),
+  vgLookupSingle(UNWRAPPED_HANDLE(args[0]->ToObject()),
+                 UNWRAPPED_HANDLE(args[1]->ToObject()),
                  lookupTable.pointer(),
                  static_cast<VGImageChannel>(args[3]->Uint32Value()),
                  (VGboolean) args[4]->BooleanValue(),
@@ -1755,7 +1667,7 @@ V8_METHOD(openvg::vgu::Line) {
   CheckArgs5(line, VGPath, Object,
              x0, Number, y0, Number, x1, Number, y1, Number);
 
-  NanReturnValue(NanNew<Uint32>(vguLine(UNWRAPPED_HANDLE(VGPath, args[0]->ToObject()),
+  NanReturnValue(NanNew<Uint32>(vguLine(UNWRAPPED_HANDLE(args[0]->ToObject()),
                                         (VGfloat) args[1]->NumberValue(),
                                         (VGfloat) args[2]->NumberValue(),
                                         (VGfloat) args[3]->NumberValue(),
@@ -1770,7 +1682,7 @@ V8_METHOD(openvg::vgu::Polygon) {
 
   TypedArrayWrapper<VGfloat> points(args[1]);
 
-  NanReturnValue(NanNew<Uint32>(vguPolygon(UNWRAPPED_HANDLE(VGPath, args[0]->ToObject()),
+  NanReturnValue(NanNew<Uint32>(vguPolygon(UNWRAPPED_HANDLE(args[0]->ToObject()),
                                            points.pointer(),
                                            (VGint) args[2]->Int32Value(),
                                            (VGboolean) args[3]->BooleanValue())));
@@ -1783,7 +1695,7 @@ V8_METHOD(openvg::vgu::Rect) {
              x, Number, y, Number,
              width, Number, height, Number);
 
-  NanReturnValue(NanNew<Uint32>(vguRect(UNWRAPPED_HANDLE(VGPath, args[0]->ToObject()),
+  NanReturnValue(NanNew<Uint32>(vguRect(UNWRAPPED_HANDLE(args[0]->ToObject()),
                                         (VGfloat) args[1]->NumberValue(),
                                         (VGfloat) args[2]->NumberValue(),
                                         (VGfloat) args[3]->NumberValue(),
@@ -1797,7 +1709,7 @@ V8_METHOD(openvg::vgu::RoundRect) {
              x, Number, y, Number, width, Number, height, Number,
              arcWidth, Number, arcHeight, Number);
 
-  NanReturnValue(NanNew<Uint32>(vguRoundRect(UNWRAPPED_HANDLE(VGPath, args[0]->ToObject()),
+  NanReturnValue(NanNew<Uint32>(vguRoundRect(UNWRAPPED_HANDLE(args[0]->ToObject()),
                                              (VGfloat) args[1]->NumberValue(),
                                              (VGfloat) args[2]->NumberValue(),
                                              (VGfloat) args[3]->NumberValue(),
@@ -1812,7 +1724,7 @@ V8_METHOD(openvg::vgu::Ellipse) {
   CheckArgs5(ellipse, VGPath, Object,
              x, Number, y, Number, width, Number, height, Number);
 
-  NanReturnValue(NanNew<Uint32>(vguEllipse(UNWRAPPED_HANDLE(VGPath, args[0]->ToObject()),
+  NanReturnValue(NanNew<Uint32>(vguEllipse(UNWRAPPED_HANDLE(args[0]->ToObject()),
                                            (VGfloat) args[1]->NumberValue(),
                                            (VGfloat) args[2]->NumberValue(),
                                            (VGfloat) args[3]->NumberValue(),
@@ -1826,7 +1738,7 @@ V8_METHOD(openvg::vgu::Arc) {
              x, Number, y, Number, width, Number, height, Number,
              startAngle, Number, angleExtent, Number, VGUArcType, Uint32);
 
-  NanReturnValue(NanNew<Uint32>(vguArc(UNWRAPPED_HANDLE(VGPath, args[0]->ToObject()),
+  NanReturnValue(NanNew<Uint32>(vguArc(UNWRAPPED_HANDLE(args[0]->ToObject()),
                                        (VGfloat) args[1]->NumberValue(),
                                        (VGfloat) args[2]->NumberValue(),
                                        (VGfloat) args[3]->NumberValue(),
@@ -1930,11 +1842,11 @@ V8_METHOD(openvg::ext::IterativeAverageBlurKHR) {
              tilingMode, Object);
 
 #ifdef VG_VGEXT_PROTOTYPES
-  vgIterativeAverageBlurKHR(UNWRAPPED_HANDLE(VGImage, args[0]->ToObject()),
-                            UNWRAPPED_HANDLE(VGImage, args[1]->ToObject()),
+  vgIterativeAverageBlurKHR(UNWRAPPED_HANDLE(args[0]->ToObject()),
+                            UNWRAPPED_HANDLE(args[1]->ToObject()),
                             (VGfloat) args[2]->NumberValue(),
                             (VGfloat) args[3]->NumberValue(),
-                            UNWRAPPED_HANDLE(VGImage, args[4]->ToObject()),
+                            UNWRAPPED_HANDLE(args[4]->ToObject()),
                             static_cast<VGTilingMode>(args[5]->Uint32Value()));
 #endif
   V8_RETURN(Undefined());
@@ -1949,15 +1861,15 @@ V8_METHOD(openvg::ext::ParametricFilterKHR) {
              filterFlags, Number, highlightPaint, Number, shadowPaint, Number);
 
 #ifdef VG_VGEXT_PROTOTYPES
-  vgParametricFilterKHR(UNWRAPPED_HANDLE(VGImage, args[0]->ToObject()),
-                        UNWRAPPED_HANDLE(VGImage, args[1]->ToObject()),
-                        UNWRAPPED_HANDLE(VGImage, args[2]->ToObject()),
+  vgParametricFilterKHR(UNWRAPPED_HANDLE(args[0]->ToObject()),
+                        UNWRAPPED_HANDLE(args[1]->ToObject()),
+                        UNWRAPPED_HANDLE(args[2]->ToObject()),
                         (VGfloat) args[3]->NumberValue(),
                         (VGfloat) args[4]->NumberValue(),
                         (VGfloat) args[5]->NumberValue(),
                         (VGbitfield) args[6]->Uint32Value(),
-                        UNWRAPPED_HANDLE(VGPaint, args[7]->ToObject()),
-                        UNWRAPPED_HANDLE(VGPaint, args[8]->ToObject()));
+                        UNWRAPPED_HANDLE(args[7]->ToObject()),
+                        UNWRAPPED_HANDLE(args[8]->ToObject()));
 #endif
 
   V8_RETURN(Undefined());
@@ -1975,8 +1887,8 @@ V8_METHOD(openvg::ext::DropShadowKHR) {
 
 #ifdef VG_VGEXT_PROTOTYPES
   // Returns a VGUErrorCode
-  NanReturnValue(NanNew<Uint32>(vguDropShadowKHR(UNWRAPPED_HANDLE(VGImage, args[0]->ToObject()),
-                                                 UNWRAPPED_HANDLE(VGImage, args[1]->ToObject()),
+  NanReturnValue(NanNew<Uint32>(vguDropShadowKHR(UNWRAPPED_HANDLE(args[0]->ToObject()),
+                                                 UNWRAPPED_HANDLE(args[1]->ToObject()),
                                                  (VGfloat) args[2]->NumberValue(),
                                                  (VGfloat) args[3]->NumberValue(),
                                                  (VGuint) args[4]->Uint32Value(),
@@ -2003,8 +1915,8 @@ V8_METHOD(openvg::ext::GlowKHR) {
 
 #ifdef VG_VGEXT_PROTOTYPES
   // Returns a VGUErrorCode
-  NanReturnValue(NanNew<Uint32>(vguGlowKHR(UNWRAPPED_HANDLE(VGImage, args[0]->ToObject()),
-                                           UNWRAPPED_HANDLE(VGImage, args[1]->ToObject()),
+  NanReturnValue(NanNew<Uint32>(vguGlowKHR(UNWRAPPED_HANDLE(args[0]->ToObject()),
+                                           UNWRAPPED_HANDLE(args[1]->ToObject()),
                                            (VGfloat) args[2]->NumberValue(),
                                            (VGfloat) args[3]->NumberValue(),
                                            (VGuint) args[4]->Uint32Value(),
@@ -2029,8 +1941,8 @@ V8_METHOD(openvg::ext::BevelKHR) {
 
 #ifdef VG_VGEXT_PROTOTYPES
   // Returns a VGUErrorCode
-  NanReturnValue(NanNew<Uint32>(vguBevelKHR(UNWRAPPED_HANDLE(VGImage, args[0]->ToObject()),
-                                            UNWRAPPED_HANDLE(VGImage, args[1]->ToObject()),
+  NanReturnValue(NanNew<Uint32>(vguBevelKHR(UNWRAPPED_HANDLE(args[0]->ToObject()),
+                                            UNWRAPPED_HANDLE(args[1]->ToObject()),
                                             (VGfloat) args[2]->NumberValue(),
                                             (VGfloat) args[3]->NumberValue(),
                                             (VGuint) args[4]->Uint32Value(),
@@ -2060,8 +1972,8 @@ V8_METHOD(openvg::ext::GradientGlowKHR) {
   TypedArrayWrapper<VGfloat> glowColorRampStops(args[11]);
 
   // Returns a VGUErrorCode
-  NanReturnValue(NanNew<Uint32>(vguGradientGlowKHR(UNWRAPPED_HANDLE(VGImage, args[0]->ToObject()),
-                                                   UNWRAPPED_HANDLE(VGImage, args[1]->ToObject()),
+  NanReturnValue(NanNew<Uint32>(vguGradientGlowKHR(UNWRAPPED_HANDLE(args[0]->ToObject()),
+                                                   UNWRAPPED_HANDLE(args[1]->ToObject()),
                                                    (VGfloat) args[2]->NumberValue(),
                                                    (VGfloat) args[3]->NumberValue(),
                                                    (VGuint) args[4]->Uint32Value(),
@@ -2091,8 +2003,8 @@ V8_METHOD(openvg::ext::GradientBevelKHR) {
   TypedArrayWrapper<VGfloat> bevelColorRampStops(args[11]);
 
   // Returns a VGUErrorCode
-  NanReturnValue(NanNew<Uint32>(vguGradientBevelKHR(UNWRAPPED_HANDLE(VGImage, args[0]->ToObject()),
-                                                    UNWRAPPED_HANDLE(VGImage, args[1]->ToObject()),
+  NanReturnValue(NanNew<Uint32>(vguGradientBevelKHR(UNWRAPPED_HANDLE(args[0]->ToObject()),
+                                                    UNWRAPPED_HANDLE(args[1]->ToObject()),
                                                     (VGfloat) args[2]->NumberValue(),
                                                     (VGfloat) args[3]->NumberValue(),
                                                     (VGuint) args[4]->Uint32Value(),
