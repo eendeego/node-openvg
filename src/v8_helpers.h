@@ -3,6 +3,7 @@
 
 #include <v8.h>
 #include <node.h>
+#include <nan.h>
 
 // SCOPE_DECL_* defined in bindings.gyp
 #ifdef SCOPE_DECL_PRE_0_11

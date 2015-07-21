@@ -23,9 +23,6 @@
       "cflags": [
         "-DENABLE_GDB_JIT_INTERFACE",
         "-Wall",
-        "-I/opt/vc/include",
-        "-I/opt/vc/include/interface/vcos/pthreads",
-        "-I/opt/vc/include/interface/vmcs_host/linux"
       ],
       "include_dirs" : [
         "/opt/vc/include",
