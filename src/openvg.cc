@@ -230,8 +230,8 @@ NODE_MODULE(openvg, init)
 void openvg::VGNoopDestroy(VGHandle handle) {};
 
 
-V8_METHOD(openvg::StartUp) {
-  HandleScope scope;
+NAN_METHOD(openvg::StartUp) {
+  NanScope();
 
   CheckArgs1(startUp, screen, Object);
 
