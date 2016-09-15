@@ -9,21 +9,20 @@
 #include "argchecks.h"
 
 using namespace v8;
-using namespace node;
 
 egl::state_t egl::State;
 EGLConfig egl::Config;
 
 extern void egl::InitBindings(Handle<Object> target) {
-  NODE_SET_METHOD(target, "getError"      , egl::GetError);
-  NODE_SET_METHOD(target, "swapBuffers"   , egl::SwapBuffers);
-  NODE_SET_METHOD(target, "createPbufferFromClientBuffer",
+  Nan::SetMethod(target, "getError"      , egl::GetError);
+  Nan::SetMethod(target, "swapBuffers"   , egl::SwapBuffers);
+  Nan::SetMethod(target, "createPbufferFromClientBuffer",
                           egl::CreatePbufferFromClientBuffer);
-  NODE_SET_METHOD(target, "destroySurface", egl::DestroySurface);
+  Nan::SetMethod(target, "destroySurface", egl::DestroySurface);
 
-  NODE_SET_METHOD(target, "createContext" , egl::CreateContext);
-  NODE_SET_METHOD(target, "destroyContext", egl::DestroyContext);
-  NODE_SET_METHOD(target, "makeCurrent"   , egl::MakeCurrent);
+  Nan::SetMethod(target, "createContext" , egl::CreateContext);
+  Nan::SetMethod(target, "destroyContext", egl::DestroyContext);
+  Nan::SetMethod(target, "makeCurrent"   , egl::MakeCurrent);
 }
 
 extern void egl::Init() {
@@ -144,28 +143,28 @@ extern void egl::Finish() {
 
 
 NAN_METHOD(egl::GetError) {
-  NanScope();
+  Nan::HandleScope scope;
 
   CheckArgs0(getError);
 
-  NanReturnValue(NanNew<Integer>(eglGetError()));
+  info.GetReturnValue().Set(Nan::New<Integer>(eglGetError()));
 }
 
 
 NAN_METHOD(egl::SwapBuffers) {
-  NanScope();
+  Nan::HandleScope scope;
 
   CheckArgs1(swapBuffers, surface, External);
 
-  EGLSurface surface = (EGLSurface) External::Cast(*args[0])->Value();
+  EGLSurface surface = (EGLSurface) External::Cast(*info[0])->Value();
 
   EGLBoolean result = eglSwapBuffers(State.display, surface);
 
-  NanReturnValue(NanNew<Boolean>(result));
+  info.GetReturnValue().Set(Nan::New<Boolean>(result));
 }
 
 NAN_METHOD(egl::CreatePbufferFromClientBuffer) {
-  NanScope();
+  Nan::HandleScope scope;
 
   // According to the spec (sec. 4.2.2 EGL Functions)
   // The buffer is a VGImage: "The VGImage to be targeted is cast to the
@@ -176,7 +175,7 @@ NAN_METHOD(egl::CreatePbufferFromClientBuffer) {
   CheckArgs1(CreatePbufferFromClientBuffer, vgImage, Number);
 
   EGLClientBuffer buffer =
-    reinterpret_cast<EGLClientBuffer>(args[0]->Uint32Value());
+    reinterpret_cast<EGLClientBuffer>(info[0]->Uint32Value());
 
   static const EGLint attribute_list[] = {
     EGL_TEXTURE_FORMAT, EGL_TEXTURE_RGBA,
@@ -192,61 +191,61 @@ NAN_METHOD(egl::CreatePbufferFromClientBuffer) {
                                      egl::Config,
                                      attribute_list);
 
-  NanReturnValue(NanNew<External>(surface));
+  info.GetReturnValue().Set(Nan::New<External>(surface));
 }
 
 NAN_METHOD(egl::DestroySurface) {
-  NanScope();
+  Nan::HandleScope scope;
 
   CheckArgs1(destroySurface, surface, External);
 
-  EGLSurface surface = (EGLSurface) External::Cast(*args[0])->Value();
+  EGLSurface surface = (EGLSurface) External::Cast(*info[0])->Value();
 
   EGLBoolean result = eglDestroySurface(State.display, surface);
 
-  NanReturnValue(NanNew<Boolean>(result));
+  info.GetReturnValue().Set(Nan::New<Boolean>(result));
 }
 
 NAN_METHOD(egl::MakeCurrent) {
-  NanScope();
+  Nan::HandleScope scope;
 
   CheckArgs2(makeCurrent, surface, External, context, External);
 
-  EGLSurface surface = (EGLSurface) External::Cast(*args[0])->Value();
-  EGLContext context = (EGLContext) External::Cast(*args[1])->Value();
+  EGLSurface surface = (EGLSurface) External::Cast(*info[0])->Value();
+  EGLContext context = (EGLContext) External::Cast(*info[1])->Value();
 
   // According to EGL 1.4 spec, 3.7.3, for OpenVG contexts, draw and read
   // surfaces must be the same
   EGLBoolean result = eglMakeCurrent(State.display, surface, surface, context);
 
-  NanReturnValue(NanNew<Boolean>(result));
+  info.GetReturnValue().Set(Nan::New<Boolean>(result));
 }
 
 NAN_METHOD(egl::CreateContext) {
-  NanScope();
+  Nan::HandleScope scope;
 
   // No arg checks
 
-  EGLContext shareContext = args.Length() == 0 ?
+  EGLContext shareContext = info.Length() == 0 ?
     EGL_NO_CONTEXT :
-    (EGLContext) External::Cast(*args[0])->Value();
+    (EGLContext) External::Cast(*info[0])->Value();
 
   // According to EGL 1.4 spec, 3.7.3, for OpenVG contexts, draw and read
   // surfaces must be the same
   EGLContext result =
     eglCreateContext(State.display, egl::Config, shareContext, NULL);
 
-  NanReturnValue(NanNew<External>(result));
+  info.GetReturnValue().Set(Nan::New<External>(result));
 }
 
 NAN_METHOD(egl::DestroyContext) {
-  NanScope();
+  Nan::HandleScope scope;
 
   CheckArgs1(destroyContext, context, External);
 
-  EGLContext context = (EGLContext) External::Cast(*args[0])->Value();
+  EGLContext context = (EGLContext) External::Cast(*info[0])->Value();
 
   EGLBoolean result = eglDestroyContext(State.display, context);
 
-  NanReturnValue(NanNew<Boolean>(result));
+  info.GetReturnValue().Set(Nan::New<Boolean>(result));
 }
