@@ -13,7 +13,7 @@ var serifTypeface    = util.serifTypeface    = undefined;
 var sansMonoTypeface = util.sansMonoTypeface = undefined;
 
 var start = util.start = function() {
-  var color = new Float32Array([255, 255, 255, 1]);
+  var color = new Float32Array([255, 255, 255, 0]);
   openVG.setFVOL(openVG.VGParamType.VG_CLEAR_COLOR, color, 0, 4);
   openVG.clear(0, 0, openVG.screen.width, openVG.screen.height);
   color[0] = 0, color[1] = 0, color[2] = 0;
