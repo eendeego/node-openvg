@@ -36,9 +36,9 @@ var init = util.init = function(options) {
   openVG.init();
 
   if(options.loadFonts) {
-    util.sansTypeface     = text.loadFont("examples/fonts/sans.json");
-    util.serifTypeface    = text.loadFont("examples/fonts/serif.json");
-    util.sansMonoTypeface = text.loadFont("examples/fonts/sans-mono.json");
+    util.sansTypeface     = text.loadFont(__dirname + "/../fonts/sans.json");
+    util.serifTypeface    = text.loadFont(__dirname + "/../fonts/serif.json");
+    util.sansMonoTypeface = text.loadFont(__dirname + "/../fonts/sans-mono.json");
   }
 }
 
