@@ -1116,23 +1116,8 @@ NAN_METHOD(openvg::ImageSubData) {
              dataFormat, Uint32,
              x, Int32, y, Int32, width, Int32, height, Int32);
 
-  Local<Object> data = info[1]->ToObject();
-  void *dataPointer;
-
-  Local<Value> nativeBuffer = data->Get(Nan::New<String>("buffer").ToLocalChecked());
-  if (!nativeBuffer->IsUndefined()) {
-    // Native array
-    //Handle<Object> dataBuffer = nativeBuffer->ToObject();
-    //dataPointer = (void*) dataBuffer->GetIndexedPropertiesExternalArrayData();
-    printf("openvg.cc:%d: Should not happen?\n", __LINE__);
-    exit(1);
-  } else {
-    // Node buffer
-    dataPointer = (void *) node::Buffer::Data(data);
-  }
-
   vgImageSubData((VGImage) info[0]->Uint32Value(),
-                 dataPointer,
+                 node::Buffer::Data(info[1]),
                  (VGint) info[2]->Int32Value(),
                  static_cast<VGImageFormat>(info[3]->Uint32Value()),
                  (VGint) info[4]->Int32Value(),
