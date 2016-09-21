@@ -1,8 +1,11 @@
 {
   "name": "openvg",
   "preferGlobal": "true",
-  "version": "0.4.6",
+  "version": "0.5.0",
   "author": "Luis Reis <luis@luismreis.com> (http://luismreis.com/)",
+  "contributors": [
+    "Rene Hollander <rene@rene8888.at> (http://www.rene8888.at/)"
+  ],
   "description": "OpenVG bindings for node",
   "main": "openvg.js",
   "repository": {
@@ -14,11 +17,8 @@
     "openvg"
   ],
   "dependencies": {
-    "nan": "^1.8.4"
+    "nan": "^2.4.0",
+    "bindings": "^1.2.1"
   },
-  "devDependencies": {},
-  "license": "MIT",
-  "engines": {
-    "node": ">=0.8 <0.11"
-  }
+  "license": "MIT"
 }
