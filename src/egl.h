@@ -3,7 +3,7 @@
 
 #include <v8.h>
 #include <node.h>
-#include "nan.h"
+#include <node_api.h>
 
 #include "EGL/egl.h"
 
@@ -23,20 +23,20 @@ struct state_t {
 extern state_t State;
 extern EGLConfig Config;
 
-extern void InitBindings(Handle<Object> target);
+extern void InitBindings(napi_env env, napi_value target);
 
 void Init();
 void InitOpenGLES();
 void Finish();
 
-NAN_METHOD(GetError);
-NAN_METHOD(SwapBuffers);
-NAN_METHOD(CreatePbufferFromClientBuffer);
-NAN_METHOD(DestroySurface);
+napi_value GetError(napi_env env, napi_callback_info info);
+napi_value SwapBuffers(napi_env env, napi_callback_info info);
+napi_value CreatePbufferFromClientBuffer(napi_env env, napi_callback_info info);
+napi_value DestroySurface(napi_env env, napi_callback_info info);
 
-NAN_METHOD(CreateContext);
-NAN_METHOD(DestroyContext);
-NAN_METHOD(MakeCurrent);
+napi_value CreateContext(napi_env env, napi_callback_info info);
+napi_value DestroyContext(napi_env env, napi_callback_info info);
+napi_value MakeCurrent(napi_env env, napi_callback_info info);
 
 }
 

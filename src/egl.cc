@@ -1,11 +1,13 @@
-#include "nan.h"
-
 #include "EGL/egl.h"
 #include "GLES/gl.h"
 
 #include "egl.h"
 #include "bcm_host.h"
 
+// TODO REMOVE
+#define ARG_CHECKS
+
+#include "node-common.h"
 #include "argchecks.h"
 
 using namespace v8;
@@ -14,16 +16,30 @@ using namespace node;
 egl::state_t egl::State;
 EGLConfig egl::Config;
 
-extern void egl::InitBindings(Handle<Object> target) {
-  NODE_SET_METHOD(target, "getError"      , egl::GetError);
-  NODE_SET_METHOD(target, "swapBuffers"   , egl::SwapBuffers);
-  NODE_SET_METHOD(target, "createPbufferFromClientBuffer",
-                          egl::CreatePbufferFromClientBuffer);
-  NODE_SET_METHOD(target, "destroySurface", egl::DestroySurface);
+extern void egl::InitBindings(napi_env env, napi_value target) {
+  napi_property_descriptor descriptors[] = {
+    DECLARE_NAPI_PROPERTY("getError", egl::GetError),
+    DECLARE_NAPI_PROPERTY("swapBuffers", egl::SwapBuffers),
+    DECLARE_NAPI_PROPERTY(
+      "createPbufferFromClientBuffer",
+      egl::CreatePbufferFromClientBuffer
+    ),
+    DECLARE_NAPI_PROPERTY("destroySurface", egl::DestroySurface),
 
-  NODE_SET_METHOD(target, "createContext" , egl::CreateContext);
-  NODE_SET_METHOD(target, "destroyContext", egl::DestroyContext);
-  NODE_SET_METHOD(target, "makeCurrent"   , egl::MakeCurrent);
+    DECLARE_NAPI_PROPERTY("createContext", egl::CreateContext),
+    DECLARE_NAPI_PROPERTY("destroyContext", egl::DestroyContext),
+    DECLARE_NAPI_PROPERTY("makeCurrent", egl::MakeCurrent)
+  };
+
+  NAPI_CALL_RETURN_VOID(
+    env,
+    napi_define_properties(
+      env,
+      target,
+      sizeof(descriptors) / sizeof(*descriptors),
+      descriptors
+    )
+  );
 }
 
 extern void egl::Init() {
@@ -143,40 +159,46 @@ extern void egl::Finish() {
 }
 
 
-NAN_METHOD(egl::GetError) {
-  NanScope();
+napi_value egl::GetError(napi_env env, napi_callback_info info) {
+  DeclareArgs(argc, args, 0);
+  CheckArgs0(env, info, getError, argc, args);
 
-  CheckArgs0(getError);
-
-  NanReturnValue(NanNew<Integer>(eglGetError()));
+  napi_value result;
+  NAPI_CALL(env, napi_create_number(env, eglGetError(), &result));
+  return result;
 }
 
 
-NAN_METHOD(egl::SwapBuffers) {
-  NanScope();
+napi_value egl::SwapBuffers(napi_env env, napi_callback_info info) {
+  DeclareArgs(argc, args, 2);
+  CheckArgs2(env, info, swapBuffers, argc, args, external, external);
 
-  CheckArgs1(swapBuffers, surface, External);
+  void* display;
+  NAPI_CALL(env, napi_get_value_external(env, args[0], &display));
+  void* surface;
+  NAPI_CALL(env, napi_get_value_external(env, args[1], &surface));
 
-  EGLSurface surface = (EGLSurface) External::Cast(*args[0])->Value();
+  EGLBoolean swapResult = eglSwapBuffers(display, surface);
 
-  EGLBoolean result = eglSwapBuffers(State.display, surface);
-
-  NanReturnValue(NanNew<Boolean>(result));
+  napi_value result;
+  NAPI_CALL(env, napi_get_boolean(env, swapResult, &result));
+  return result;
 }
 
-NAN_METHOD(egl::CreatePbufferFromClientBuffer) {
-  NanScope();
-
+napi_value egl::CreatePbufferFromClientBuffer(napi_env env, napi_callback_info info) {
   // According to the spec (sec. 4.2.2 EGL Functions)
   // The buffer is a VGImage: "The VGImage to be targeted is cast to the
   // EGLClientBuffer type and passed as the buffer parameter."
   // So, check for a Number (as VGImages are checked on openvg.cc) and
   // cast to a EGLClientBuffer.
 
-  CheckArgs1(CreatePbufferFromClientBuffer, vgImage, Number);
+  DeclareArgs(argc, args, 1);
+  CheckArgs1(env, info, CreatePbufferFromClientBuffer, argc, args, number);
 
-  EGLClientBuffer buffer =
-    reinterpret_cast<EGLClientBuffer>(args[0]->Uint32Value());
+  uint32_t clientBuffer;
+  NAPI_CALL(env, napi_get_value_uint32(env, args[0], &clientBuffer));
+
+  EGLClientBuffer buffer = reinterpret_cast<EGLClientBuffer>(clientBuffer);
 
   static const EGLint attribute_list[] = {
     EGL_TEXTURE_FORMAT, EGL_TEXTURE_RGBA,
@@ -185,68 +207,88 @@ NAN_METHOD(egl::CreatePbufferFromClientBuffer) {
     EGL_NONE
   };
 
-  EGLSurface surface =
-    eglCreatePbufferFromClientBuffer(State.display,
-                                     EGL_OPENVG_IMAGE,
-                                     buffer,
-                                     egl::Config,
-                                     attribute_list);
+  EGLSurface surface = eglCreatePbufferFromClientBuffer(
+    State.display,
+    EGL_OPENVG_IMAGE,
+    buffer,
+    egl::Config,
+    attribute_list
+  );
 
-  NanReturnValue(NanNew<External>(surface));
+  napi_value result;
+  NAPI_CALL(env, napi_create_external(env, surface, NULL, NULL, &result));
+  return result;
 }
 
-NAN_METHOD(egl::DestroySurface) {
-  NanScope();
+napi_value egl::DestroySurface(napi_env env, napi_callback_info info) {
+  DeclareArgs(argc, args, 1);
+  CheckArgs1(env, info, destroySurface, argc, args, external);
 
-  CheckArgs1(destroySurface, surface, External);
+  EGLSurface surface;
+  NAPI_CALL(env, napi_get_value_external(env, args[0], &surface));
 
-  EGLSurface surface = (EGLSurface) External::Cast(*args[0])->Value();
+  EGLBoolean errorCode = eglDestroySurface(State.display, surface);
 
-  EGLBoolean result = eglDestroySurface(State.display, surface);
-
-  NanReturnValue(NanNew<Boolean>(result));
+  napi_value result;
+  NAPI_CALL(env, napi_get_boolean(env, errorCode, &result));
+  return result;
 }
 
-NAN_METHOD(egl::MakeCurrent) {
-  NanScope();
+napi_value egl::MakeCurrent(napi_env env, napi_callback_info info) {
+  DeclareArgs(argc, args, 2);
+  CheckArgs2(env, info, makeCurrent, argc, args, external, external);
 
-  CheckArgs2(makeCurrent, surface, External, context, External);
-
-  EGLSurface surface = (EGLSurface) External::Cast(*args[0])->Value();
-  EGLContext context = (EGLContext) External::Cast(*args[1])->Value();
+  EGLSurface surface;
+  NAPI_CALL(env, napi_get_value_external(env, args[0], &surface));
+  EGLContext context;
+  NAPI_CALL(env, napi_get_value_external(env, args[1], &context));
 
   // According to EGL 1.4 spec, 3.7.3, for OpenVG contexts, draw and read
   // surfaces must be the same
-  EGLBoolean result = eglMakeCurrent(State.display, surface, surface, context);
+  EGLBoolean errorCode = eglMakeCurrent(
+    State.display,
+    surface,
+    surface,
+    context
+  );
 
-  NanReturnValue(NanNew<Boolean>(result));
+  napi_value result;
+  NAPI_CALL(env, napi_get_boolean(env, errorCode, &result));
+  return result;
 }
 
-NAN_METHOD(egl::CreateContext) {
-  NanScope();
-
+napi_value egl::CreateContext(napi_env env, napi_callback_info info) {
+  DeclareArgs(argc, args, 1);
   // No arg checks
 
-  EGLContext shareContext = args.Length() == 0 ?
-    EGL_NO_CONTEXT :
-    (EGLContext) External::Cast(*args[0])->Value();
+  NAPI_CALL(env, napi_get_cb_info(env, info, &argc, args, NULL, NULL));
+
+  EGLContext shareContext = EGL_NO_CONTEXT;
+
+  if (argc != 0) {
+    NAPI_CALL(env, napi_get_value_external(env, args[0], &shareContext));
+  }
 
   // According to EGL 1.4 spec, 3.7.3, for OpenVG contexts, draw and read
   // surfaces must be the same
-  EGLContext result =
+  EGLContext context =
     eglCreateContext(State.display, egl::Config, shareContext, NULL);
 
-  NanReturnValue(NanNew<External>(result));
+  napi_value result;
+  NAPI_CALL(env, napi_create_external(env, context, NULL, NULL, &result));
+  return result;
 }
 
-NAN_METHOD(egl::DestroyContext) {
-  NanScope();
+napi_value egl::DestroyContext(napi_env env, napi_callback_info info) {
+  DeclareArgs(argc, args, 1);
+  CheckArgs1(env, info, destroyContext, argc, args, external);
 
-  CheckArgs1(destroyContext, context, External);
+  EGLContext context;
+  NAPI_CALL(env, napi_get_value_external(env, args[0], &context));
 
-  EGLContext context = (EGLContext) External::Cast(*args[0])->Value();
+  EGLBoolean destroyResult = eglDestroyContext(State.display, context);
 
-  EGLBoolean result = eglDestroyContext(State.display, context);
-
-  NanReturnValue(NanNew<Boolean>(result));
+  napi_value result;
+  NAPI_CALL(env, napi_get_boolean(env, destroyResult, &result));
+  return result;
 }
