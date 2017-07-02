@@ -33,7 +33,7 @@ const fonts = {
 };
 
 function start() {
-  const color = new Float32Array([255, 255, 255, 1]);
+  const color = new Float32Array([255, 255, 255, 0]);
   openVG.setFVOL(VG_CLEAR_COLOR, color, 0, 4);
   openVG.clear(0, 0, openVG.screen.width, openVG.screen.height);
   (color[0] = 0), (color[1] = 0), (color[2] = 0);

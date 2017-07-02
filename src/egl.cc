@@ -66,6 +66,11 @@ extern void egl::Init() {
 
   static EGL_DISPMANX_WINDOW_T nativewindow;
 
+  static VC_DISPMANX_ALPHA_T alpha = {
+    DISPMANX_FLAGS_ALPHA_FROM_SOURCE,
+    255, 0
+  };
+
   // bcm_host_init() must be called before anything else
   bcm_host_init();
 
@@ -107,10 +112,10 @@ extern void egl::Init() {
   dispman_update  = vc_dispmanx_update_start(0);
 
   dispman_element =
-    vc_dispmanx_element_add(dispman_update, dispman_display, 0 /*layer */ ,
+    vc_dispmanx_element_add(dispman_update, dispman_display, 1 /*layer */ ,
                             &dst_rect, 0 /*src */ , &src_rect,
                             DISPMANX_PROTECTION_NONE,
-                            0 /*alpha */ , 0 /*clamp */ ,
+                            &alpha /*alpha */ , 0 /*clamp */ ,
                             DISPMANX_NO_ROTATE /*transform */);
 
   nativewindow.element = dispman_element;
