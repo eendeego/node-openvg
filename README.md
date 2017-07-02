@@ -6,9 +6,7 @@ This module implements bindings for OpenVG. It is targeted to the raspberry-pi.
 
 It is heavily inspired in [node-sdl](https://github.com/creationix/node-sdl) and [openvg](https://github.com/ajstarks/openvg).
 
-Tested on node 0.8.22, 0.10.28. These are the latest node 0.8 and 0.10 minor versions with official arm-v6l builds.
-
-### Note: For now, due to the current [TypedArray implementation on v8](https://github.com/nodejs/nan/issues/179#issuecomment-51238613) there are no plans to port to iojs.
+Tested on node 8.1.2 using the new n-api native bindings.
 
 ## 0. Installation
 

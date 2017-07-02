@@ -17,8 +17,7 @@
       "include_dirs" : [
         "/opt/vc/include",
         "/opt/vc/include/interface/vcos/pthreads",
-        "/opt/vc/include/interface/vmcs_host/linux",
-        "<!(node -e \"require('nan')\")"
+        "/opt/vc/include/interface/vmcs_host/linux"
       ]
     }
   ]

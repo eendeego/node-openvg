@@ -3,165 +3,168 @@
 
 #include <node.h>
 #include <v8.h>
+#include <node_api.h>
 #include "EGL/egl.h"
+
+#include "node-common.h"
 
 using namespace v8;
 
 namespace openvg {
 
-NAN_METHOD(StartUp);
-NAN_METHOD(Shutdown);
+napi_value NativeInit(napi_env env, napi_callback_info info);
+napi_value NativeDeinit(napi_env env, napi_callback_info info);
 
-NAN_METHOD(GetError);
+napi_value GetError(napi_env env, napi_callback_info info);
 
-NAN_METHOD(Flush);
-NAN_METHOD(Finish);
+napi_value Flush(napi_env env, napi_callback_info info);
+napi_value Finish(napi_env env, napi_callback_info info);
 
 /* Getters and Setters */
-NAN_METHOD(SetF);
-NAN_METHOD(SetI);
-NAN_METHOD(SetFV);
-NAN_METHOD(SetIV);
-NAN_METHOD(SetFVOL);
-NAN_METHOD(SetIVOL);
+napi_value SetF(napi_env env, napi_callback_info info);
+napi_value SetI(napi_env env, napi_callback_info info);
+napi_value SetFV(napi_env env, napi_callback_info info);
+napi_value SetIV(napi_env env, napi_callback_info info);
+napi_value SetFVOL(napi_env env, napi_callback_info info);
+napi_value SetIVOL(napi_env env, napi_callback_info info);
 
-NAN_METHOD(GetF);
-NAN_METHOD(GetI);
-NAN_METHOD(GetVectorSize);
-NAN_METHOD(GetFV);
-NAN_METHOD(GetIV);
-NAN_METHOD(GetFVOL);
-NAN_METHOD(GetIVOL);
+napi_value GetF(napi_env env, napi_callback_info info);
+napi_value GetI(napi_env env, napi_callback_info info);
+napi_value GetVectorSize(napi_env env, napi_callback_info info);
+napi_value GetFV(napi_env env, napi_callback_info info);
+napi_value GetIV(napi_env env, napi_callback_info info);
+napi_value GetFVOL(napi_env env, napi_callback_info info);
+napi_value GetIVOL(napi_env env, napi_callback_info info);
 
-NAN_METHOD(SetParameterF);
-NAN_METHOD(SetParameterI);
-NAN_METHOD(SetParameterFV);
-NAN_METHOD(SetParameterIV);
-NAN_METHOD(SetParameterFVOL);
-NAN_METHOD(SetParameterIVOL);
+napi_value SetParameterF(napi_env env, napi_callback_info info);
+napi_value SetParameterI(napi_env env, napi_callback_info info);
+napi_value SetParameterFV(napi_env env, napi_callback_info info);
+napi_value SetParameterIV(napi_env env, napi_callback_info info);
+napi_value SetParameterFVOL(napi_env env, napi_callback_info info);
+napi_value SetParameterIVOL(napi_env env, napi_callback_info info);
 
-NAN_METHOD(GetParameterF);
-NAN_METHOD(GetParameterI);
-NAN_METHOD(GetParameterVectorSize);
-NAN_METHOD(GetParameterFV);
-NAN_METHOD(GetParameterIV);
-NAN_METHOD(GetParameterFVOL);
-NAN_METHOD(GetParameterIVOL);
+napi_value GetParameterF(napi_env env, napi_callback_info info);
+napi_value GetParameterI(napi_env env, napi_callback_info info);
+napi_value GetParameterVectorSize(napi_env env, napi_callback_info info);
+napi_value GetParameterFV(napi_env env, napi_callback_info info);
+napi_value GetParameterIV(napi_env env, napi_callback_info info);
+napi_value GetParameterFVOL(napi_env env, napi_callback_info info);
+napi_value GetParameterIVOL(napi_env env, napi_callback_info info);
 
 /* Matrix Manipulation */
-NAN_METHOD(LoadIdentity);
-NAN_METHOD(LoadMatrix);
-NAN_METHOD(GetMatrix);
-NAN_METHOD(MultMatrix);
-NAN_METHOD(Translate);
-NAN_METHOD(Scale);
-NAN_METHOD(Shear);
-NAN_METHOD(Rotate);
+napi_value LoadIdentity(napi_env env, napi_callback_info info);
+napi_value LoadMatrix(napi_env env, napi_callback_info info);
+napi_value GetMatrix(napi_env env, napi_callback_info info);
+napi_value MultMatrix(napi_env env, napi_callback_info info);
+napi_value Translate(napi_env env, napi_callback_info info);
+napi_value Scale(napi_env env, napi_callback_info info);
+napi_value Shear(napi_env env, napi_callback_info info);
+napi_value Rotate(napi_env env, napi_callback_info info);
 
 /* Masking and Clearing */
-NAN_METHOD(Mask);
-NAN_METHOD(RenderToMask);
-NAN_METHOD(CreateMaskLayer);
-NAN_METHOD(DestroyMaskLayer);
-NAN_METHOD(FillMaskLayer);
-NAN_METHOD(CopyMask);
-NAN_METHOD(Clear);
+napi_value Mask(napi_env env, napi_callback_info info);
+napi_value RenderToMask(napi_env env, napi_callback_info info);
+napi_value CreateMaskLayer(napi_env env, napi_callback_info info);
+napi_value DestroyMaskLayer(napi_env env, napi_callback_info info);
+napi_value FillMaskLayer(napi_env env, napi_callback_info info);
+napi_value CopyMask(napi_env env, napi_callback_info info);
+napi_value Clear(napi_env env, napi_callback_info info);
 
 /* Paths */
-NAN_METHOD(CreatePath);
-NAN_METHOD(ClearPath);
-NAN_METHOD(DestroyPath);
-NAN_METHOD(RemovePathCapabilities);
-NAN_METHOD(GetPathCapabilities);
-NAN_METHOD(AppendPath);
-NAN_METHOD(AppendPathData);
-NAN_METHOD(AppendPathDataO);
-NAN_METHOD(ModifyPathCoords);
-NAN_METHOD(TransformPath);
-NAN_METHOD(InterpolatePath);
-NAN_METHOD(PathLength);
-NAN_METHOD(PointAlongPath);
-NAN_METHOD(PathBounds);
-NAN_METHOD(PathTransformedBounds);
-NAN_METHOD(DrawPath);
+napi_value CreatePath(napi_env env, napi_callback_info info);
+napi_value ClearPath(napi_env env, napi_callback_info info);
+napi_value DestroyPath(napi_env env, napi_callback_info info);
+napi_value RemovePathCapabilities(napi_env env, napi_callback_info info);
+napi_value GetPathCapabilities(napi_env env, napi_callback_info info);
+napi_value AppendPath(napi_env env, napi_callback_info info);
+napi_value AppendPathData(napi_env env, napi_callback_info info);
+napi_value AppendPathDataO(napi_env env, napi_callback_info info);
+napi_value ModifyPathCoords(napi_env env, napi_callback_info info);
+napi_value TransformPath(napi_env env, napi_callback_info info);
+napi_value InterpolatePath(napi_env env, napi_callback_info info);
+napi_value PathLength(napi_env env, napi_callback_info info);
+napi_value PointAlongPath(napi_env env, napi_callback_info info);
+napi_value PathBounds(napi_env env, napi_callback_info info);
+napi_value PathTransformedBounds(napi_env env, napi_callback_info info);
+napi_value DrawPath(napi_env env, napi_callback_info info);
 
 /* Paint */
-NAN_METHOD(CreatePaint);
-NAN_METHOD(DestroyPaint);
-NAN_METHOD(SetPaint);
-NAN_METHOD(GetPaint);
-NAN_METHOD(SetColor);
-NAN_METHOD(GetColor);
-NAN_METHOD(PaintPattern);
+napi_value CreatePaint(napi_env env, napi_callback_info info);
+napi_value DestroyPaint(napi_env env, napi_callback_info info);
+napi_value SetPaint(napi_env env, napi_callback_info info);
+napi_value GetPaint(napi_env env, napi_callback_info info);
+napi_value SetColor(napi_env env, napi_callback_info info);
+napi_value GetColor(napi_env env, napi_callback_info info);
+napi_value PaintPattern(napi_env env, napi_callback_info info);
 
 /* Images */
-NAN_METHOD(CreateImage);
-NAN_METHOD(DestroyImage);
-NAN_METHOD(ClearImage);
-NAN_METHOD(ImageSubData);
-NAN_METHOD(GetImageSubData);
-NAN_METHOD(ChildImage);
-NAN_METHOD(GetParent);
-NAN_METHOD(CopyImage);
-NAN_METHOD(DrawImage);
-NAN_METHOD(SetPixels);
-NAN_METHOD(WritePixels);
-NAN_METHOD(GetPixels);
-NAN_METHOD(ReadPixels);
-NAN_METHOD(CopyPixels);
+napi_value CreateImage(napi_env env, napi_callback_info info);
+napi_value DestroyImage(napi_env env, napi_callback_info info);
+napi_value ClearImage(napi_env env, napi_callback_info info);
+napi_value ImageSubData(napi_env env, napi_callback_info info);
+napi_value GetImageSubData(napi_env env, napi_callback_info info);
+napi_value ChildImage(napi_env env, napi_callback_info info);
+napi_value GetParent(napi_env env, napi_callback_info info);
+napi_value CopyImage(napi_env env, napi_callback_info info);
+napi_value DrawImage(napi_env env, napi_callback_info info);
+napi_value SetPixels(napi_env env, napi_callback_info info);
+napi_value WritePixels(napi_env env, napi_callback_info info);
+napi_value GetPixels(napi_env env, napi_callback_info info);
+napi_value ReadPixels(napi_env env, napi_callback_info info);
+napi_value CopyPixels(napi_env env, napi_callback_info info);
 
 /* Text */
-NAN_METHOD(CreateFont);
-NAN_METHOD(DestroyFont);
-NAN_METHOD(SetGlyphToPath);
-NAN_METHOD(SetGlyphToImage);
-NAN_METHOD(ClearGlyph);
-NAN_METHOD(DrawGlyph);
-NAN_METHOD(DrawGlyphs);
+napi_value CreateFont(napi_env env, napi_callback_info info);
+napi_value DestroyFont(napi_env env, napi_callback_info info);
+napi_value SetGlyphToPath(napi_env env, napi_callback_info info);
+napi_value SetGlyphToImage(napi_env env, napi_callback_info info);
+napi_value ClearGlyph(napi_env env, napi_callback_info info);
+napi_value DrawGlyph(napi_env env, napi_callback_info info);
+napi_value DrawGlyphs(napi_env env, napi_callback_info info);
 
 /* Image Filters */
-NAN_METHOD(ColorMatrix);
-NAN_METHOD(Convolve);
-NAN_METHOD(SeparableConvolve);
-NAN_METHOD(GaussianBlur);
-NAN_METHOD(Lookup);
-NAN_METHOD(LookupSingle);
+napi_value ColorMatrix(napi_env env, napi_callback_info info);
+napi_value Convolve(napi_env env, napi_callback_info info);
+napi_value SeparableConvolve(napi_env env, napi_callback_info info);
+napi_value GaussianBlur(napi_env env, napi_callback_info info);
+napi_value Lookup(napi_env env, napi_callback_info info);
+napi_value LookupSingle(napi_env env, napi_callback_info info);
 
 /* Hardware Queries */
-NAN_METHOD(HardwareQuery);
+napi_value HardwareQuery(napi_env env, napi_callback_info info);
 
 /* Renderer and Extension Information */
-NAN_METHOD(GetString);
+napi_value GetString(napi_env env, napi_callback_info info);
 
 namespace vgu {
 
-NAN_METHOD(Line);
-NAN_METHOD(Polygon);
-NAN_METHOD(Rect);
-NAN_METHOD(RoundRect);
-NAN_METHOD(Ellipse);
-NAN_METHOD(Arc);
-NAN_METHOD(ComputeWarpQuadToSquare);
-NAN_METHOD(ComputeWarpSquareToQuad);
-NAN_METHOD(ComputeWarpQuadToQuad);
+napi_value Line(napi_env env, napi_callback_info info);
+napi_value Polygon(napi_env env, napi_callback_info info);
+napi_value Rect(napi_env env, napi_callback_info info);
+napi_value RoundRect(napi_env env, napi_callback_info info);
+napi_value Ellipse(napi_env env, napi_callback_info info);
+napi_value Arc(napi_env env, napi_callback_info info);
+napi_value ComputeWarpQuadToSquare(napi_env env, napi_callback_info info);
+napi_value ComputeWarpSquareToQuad(napi_env env, napi_callback_info info);
+napi_value ComputeWarpQuadToQuad(napi_env env, napi_callback_info info);
 
 }
 
 namespace ext {
 
-NAN_METHOD(CreateEGLImageTargetKHR);
+napi_value CreateEGLImageTargetKHR(napi_env env, napi_callback_info info);
 
-NAN_METHOD(IterativeAverageBlurKHR);
+napi_value IterativeAverageBlurKHR(napi_env env, napi_callback_info info);
 
-NAN_METHOD(ParametricFilterKHR);
-NAN_METHOD(DropShadowKHR);
-NAN_METHOD(GlowKHR);
-NAN_METHOD(BevelKHR);
-NAN_METHOD(GradientGlowKHR);
-NAN_METHOD(GradientBevelKHR);
+napi_value ParametricFilterKHR(napi_env env, napi_callback_info info);
+napi_value DropShadowKHR(napi_env env, napi_callback_info info);
+napi_value GlowKHR(napi_env env, napi_callback_info info);
+napi_value BevelKHR(napi_env env, napi_callback_info info);
+napi_value GradientGlowKHR(napi_env env, napi_callback_info info);
+napi_value GradientBevelKHR(napi_env env, napi_callback_info info);
 
-NAN_METHOD(ProjectiveMatrixNDS);
-NAN_METHOD(TransformClipLineNDS);
+napi_value ProjectiveMatrixNDS(napi_env env, napi_callback_info info);
+napi_value TransformClipLineNDS(napi_env env, napi_callback_info info);
 
 }
 
