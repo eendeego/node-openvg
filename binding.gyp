@@ -8,7 +8,8 @@
       ],
       "ldflags": [
         "-L/opt/vc/lib",
-        "-lGLESv2"
+        "-lbrcmEGL",
+        "-lbrcmGLESv2"
       ],
       "cflags": [
         "-DENABLE_GDB_JIT_INTERFACE",
